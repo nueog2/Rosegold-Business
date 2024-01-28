@@ -24,11 +24,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull : false
       },
       checkin_date : {
-        type : DataTypes.DATE(),
+        type : DataTypes.CHAR(5),
         allowNull : false
       },
       checkout_date : {
-        type : DataTypes.DATE(),
+        type : DataTypes.CHAR(5),
         allowNull : false
       }
     },
@@ -62,7 +62,8 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey : "id",
       on_delete : "CASCADE"
     })
-    this.hasMany(models.hotel, {
+
+    this.hasMany(models.user, {
       foreignKey : "hotel_id",
       sourceKey : "id",
       on_delete : "CASCADE"
