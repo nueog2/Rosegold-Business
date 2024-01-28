@@ -5,7 +5,7 @@ const app = express();
 const router = require("./src/routes");
 const db = require("./models");
 const message = require("./config/message");
-var port = process.env.PORT || 3030;
+var port = process.env.PORT || 4040;
 
 db.sequelizeSync();
 

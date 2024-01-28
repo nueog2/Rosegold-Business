@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey : "id",
         on_delete : "CASCADE"
       })
+      this.belongsTo(models.hotel, {
+        foreignKey : "hotel_id",
+        sourceKey : "id",
+        on_delete : "CASCADE"
+      })
   };
   return user;
 };
