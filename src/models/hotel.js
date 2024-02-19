@@ -884,13 +884,13 @@ class Worker extends Hotel {
               .readAssignLogOne({ user_id: response.dataValues.id })
               .then((roleAssignResponse) => {
                 response.dataValues.role_id =
-                  roleAssignResponse.role_assign_log.role.id;
+                  roleAssignResponse.role_assign_log.role.dataValues.id;
                 response.dataValues.role_name =
-                  roleAssignResponse.role_assign_log.role.name;
+                  roleAssignResponse.role_assign_log.role.dataValues.name;
                 response.dataValues.department_id =
-                  roleAssignResponse.role_assign_log.role.department.id;
+                  roleAssignResponse.role_assign_log.role.dataValues.department.id;
                 response.dataValues.department_name =
-                  roleAssignResponse.role_assign_log.role.department.name;
+                  roleAssignResponse.role_assign_log.role.dataValues.department.name;
 
                 var obj = Object.assign({}, message["200_SUCCESS"]);
                 obj.worker = response;

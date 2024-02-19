@@ -621,8 +621,15 @@ function getTokensByWorkerAccountInfo(req, res) {
           );
       }
 
+      console.log(worker.worker.dataValues)
+
+
       // 사용자가 인증 후 JWT 토큰 발행
-      jwt.signAccessToken(user).then(response => {
+      jwt.signAccessToken({
+        id : worker.worker.dataValues.id,
+        name : worker.worker.dataValues.name,
+        user_id : worker.worker.dataValues.user_id
+      }).then(response => {
         // 토큰을 클라이언트에게 반환
         return res.status(response.status).send(response)
       }).catch(error => {
