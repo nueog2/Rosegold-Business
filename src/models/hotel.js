@@ -1,666 +1,1113 @@
-const models = require("../../models")
-const message = require("../../config/message")
+const models = require("../../models");
+const message = require("../../config/message");
+const jwtModule = require("../modules/jwt");
+const { updateRole } = require("../controllers/management");
 
-class Hotel{
-    constructor(){
-        
-    }
+class Hotel {
+  constructor() {}
 
-    create(name, contact_number, address_sido, address_sigungu, address_other, checkin_date, checkout_date){
-        return new Promise((resolve, reject) => {
-            models.hotel.create({
-                name : name,
-                contact_number : contact_number,
-                address_sido : address_sido,
-                address_sigungu : address_sigungu,
-                address_other : address_other,
-                checkin_date : checkin_date,
-                checkout_date : checkout_date
-            }).then(response => {
-                if(response){
-                    return resolve(message["200_SUCCESS"])
-                }else{
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                }
-            }).catch(error => {
-                console.log(error)
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
-        }) 
-    }
-
-    readMany(condition){
-        return new Promise((resolve, reject) => {
-            models.hotel.findAll({
-                where : condition
-            }).then(response => {
-                if(response.length > 0){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.hotels = response
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND"))
-                }
-            }).catch(error => {
-                console.log(error)
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
-        }) 
-    }
-
-    readOne(condition){
-        return new Promise((resolve, reject) => {
-            models.hotel.findOne({
-                where : condition
-            }).then(response => {
-                if(response){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.hotel = response.dataValues
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND"))
-                }
-            }).catch(error => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+  create(
+    name,
+    contact_number,
+    address_sido,
+    address_sigungu,
+    address_other,
+    checkin_date,
+    checkout_date
+  ) {
+    return new Promise((resolve, reject) => {
+      models.hotel
+        .create({
+          name: name,
+          contact_number: contact_number,
+          address_sido: address_sido,
+          address_sigungu: address_sigungu,
+          address_other: address_other,
+          checkin_date: checkin_date,
+          checkout_date: checkout_date,
         })
-    }
-
-    update(hotel_id, name, contact_number, address_sido, address_sigungu, address_other, checkin_date, checkout_date){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : hotel_id}).then(response =>{
-                models.hotel.update({
-                    name : name,
-                    contact_number : contact_number,
-                    address_sido : address_sido,
-                    address_sigungu : address_sigungu,
-                    address_other : address_other,
-                    checkin_date : checkin_date,
-                    checkout_date : checkout_date
-                }, {
-                    where : {
-                        id : hotel_id
-                    }
-                }).then(response => {
-                    return resolve(message["200_SUCCESS"])
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
-            })
+        .then((response) => {
+          if (response) {
+            return resolve(message["200_SUCCESS"]);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+            );
+          }
         })
-    }
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 
-    delete(hotel_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : hotel_id}).then(response =>{
-                models.hotel.destroy({
-                    where : {
-                        id : hotel_id
-                    }
-                }).then(response => {
-                    return resolve(message["200_SUCCESS"])
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
-            })
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.hotel
+        .findAll({
+          where: condition,
         })
-    }
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.hotels = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.hotel
+        .findOne({
+          where: condition,
+        })
+        .then((response) => {
+          if (response) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.hotel = response.dataValues;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  update(
+    hotel_id,
+    name,
+    contact_number,
+    address_sido,
+    address_sigungu,
+    address_other,
+    checkin_date,
+    checkout_date
+  ) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: hotel_id })
+        .then((response) => {
+          models.hotel
+            .update(
+              {
+                name: name,
+                contact_number: contact_number,
+                address_sido: address_sido,
+                address_sigungu: address_sigungu,
+                address_other: address_other,
+                checkin_date: checkin_date,
+                checkout_date: checkout_date,
+              },
+              {
+                where: {
+                  id: hotel_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  delete(hotel_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: hotel_id })
+        .then((response) => {
+          models.hotel
+            .destroy({
+              where: {
+                id: hotel_id,
+              },
+            })
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 }
 
-class Department extends Hotel{
-    constructor(){
-        super()
-    }
+class Department extends Hotel {
+  constructor() {
+    super();
+  }
 
-    create(name, token_name, hotel_id){
-        return new Promise((resolve, reject) => {
-            super.readOne(hotel_id).then(response => {
-                models.department.create({
-                    name : name,
-                    token_name : token_name,
-                    hotel_id : hotel_id
-                }).then(response => {
-                    if(response){
-                        return resolve(message["200_SUCCESS"])
-                    }else{
-                        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+  create(name, token_name, hotel_id) {
+    return new Promise((resolve, reject) => {
+      super
+        .readOne(hotel_id)
+        .then((response) => {
+          models.department
+            .create({
+              name: name,
+              token_name: token_name,
+              hotel_id: hotel_id,
+            })
+            .then((response) => {
+              if (response) {
+                return resolve(message["200_SUCCESS"]);
+              } else {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.department
+        .findAll({
+          where: condition,
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.departments = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "DEPARTMENT_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.department
+        .findOne({
+          where: condition,
+        })
+        .then((response) => {
+          if (response) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.department = response.dataValues;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "DEPARTMENT_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  update(department_id, name, token_name) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: department_id })
+        .then((response) => {
+          models.department
+            .update(
+              {
+                name: name,
+                token_name: token_name,
+              },
+              {
+                where: {
+                  id: department_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  delete(department_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: department_id })
+        .then((response) => {
+          var role = new Role();
+          role
+            .readMany({ department_id: department_id })
+            .then((roleResponse) => {
+              var processCount = 0;
+
+              roleResponse.roles.forEach((_role) => {
+                role
+                  .readAssignLogOne({ role_id: _role.id })
+                  .then((response) => {
+                    console.log(response);
+                    return reject(
+                      message.issueMessage(
+                        message["409_CONFLICT"],
+                        "WORKER_ASSIGNED_DEPARTMENT"
+                      )
+                    );
+                  })
+                  .catch((error) => {
+                    if (
+                      error.status != null &&
+                      error.status == message["404_NOT_FOUND"].status
+                    ) {
+                      processCount++;
+
+                      if (processCount == roleResponse.roles.length) {
+                        models.department
+                          .destroy({
+                            where: {
+                              id: department_id,
+                            },
+                          })
+                          .then((response) => {
+                            return resolve(message["200_SUCCESS"]);
+                          })
+                          .catch((error) => {
+                            return reject(
+                              message.issueMessage(
+                                message["500_SERVER_INTERNAL_ERROR"],
+                                "UNDEFINED_ERROR"
+                              )
+                            );
+                          });
+                      }
                     }
-                }).catch(error => {
-                    console.log(error)
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
-            })
-        }) 
-    }
-
-    readMany(condition){
-        return new Promise((resolve, reject) => {
-            models.department.findAll({
-                where : condition
-            }).then(response => {
-                if(response.length > 0){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.departments = response
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "DEPARTMENT_NOT_FOUND"))
-                }
-            }).catch(error => {
-                console.log(error)
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
-        }) 
-    }
-
-    readOne(condition){
-        return new Promise((resolve, reject) => {
-            models.department.findOne({
-                where : condition
-            }).then(response => {
-                if(response){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.department = response.dataValues
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "DEPARTMENT_NOT_FOUND"))
-                }
-            }).catch(error => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+                  });
+              });
+            });
         })
-    }
-
-    update(department_id, name, token_name){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : department_id}).then(response =>{
-                models.department.update({
-                    name : name,
-                    token_name : token_name
-                }, {
-                    where : {
-                        id : department_id
-                    }
-                }).then(response => {
-                    return resolve(message["200_SUCCESS"])
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
-            })
-        })
-    }
-
-    delete(department_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : department_id}).then(response =>{
-                var role = new Role()
-                role.readMany({department_id : department_id}).then(roleResponse => {
-                    var processCount = 0;
-                    
-                    roleResponse.roles.forEach((_role) => {
-                        role.readAssignLogOne({role_id : _role.id}).then(response => {
-                            console.log(response)
-                            return reject(message.issueMessage(message["409_CONFLICT"], "WORKER_ASSIGNED_DEPARTMENT"))
-                        }).catch(error => {
-                            if(error.status != null && error.status == message["404_NOT_FOUND"].status){
-                                processCount++
-
-                                if(processCount == roleResponse.roles.length){
-                                    models.department.destroy({
-                                        where : {
-                                            id : department_id
-                                        }
-                                    }).then(response => {
-                                        return resolve(message["200_SUCCESS"])
-                                    }).catch(error => {
-                                        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                                    })
-                                }
-                            }
-                        })
-                    })
-                })
-                
-            }).catch(error => {
-                return reject(error)
-            })
-        })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 }
 
-class Role extends Department{
-    constructor(){
-        super()
-    }
+class Role extends Department {
+  constructor() {
+    super();
+  }
 
-    create(name, department_id){
-        return new Promise((resolve, reject) => {
-            super.readOne(department_id).then(response => {
-                models.role.create({
-                    name : name,
-                    department_id : department_id
-                }).then(response => {
-                    if(response){
-                        return resolve(message["200_SUCCESS"])
-                    }else{
-                        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                    }
-                }).catch(error => {
-                    console.log(error)
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
+  create(name, department_id) {
+    return new Promise((resolve, reject) => {
+      super
+        .readOne(department_id)
+        .then((response) => {
+          models.role
+            .create({
+              name: name,
+              department_id: department_id,
             })
-        }) 
-    }
-
-    readMany(condition){
-        return new Promise((resolve, reject) => {
-            models.role.findAll({
-                where : condition
-            }).then(response => {
-                if(response.length > 0){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.roles = response
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "ROLE_NOT_FOUND"))
-                }
-            }).catch(error => {
-                console.log(error)
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+            .then((response) => {
+              if (response) {
+                return resolve(message["200_SUCCESS"]);
+              } else {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              }
             })
-        }) 
-    }
-
-    readOne(condition){
-        return new Promise((resolve, reject) => {
-            models.role.findOne({
-                where : condition
-            }).then(response => {
-                if(response){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.role = response.dataValues
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "ROLE_NOT_FOUND"))
-                }
-            }).catch(error => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+            .catch((error) => {
+              console.log(error);
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
         })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 
-    createAssignLog(role_id, user_id){
-        return new Promise((resolve, reject) => {
-            models.role_assign_log.create({
-                role_id : role_id,
-                user_id : user_id
-            }).then(response => {
-                return resolve(message["200_SUCCESS"])
-            }).catch(error => {
-                console.log(error);
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.role
+        .findAll({
+          where: condition,
         })
-    }
-
-    readAssignLogOne(condition){
-        return new Promise((resolve, reject) => {
-            models.role_assign_log.findOne({
-                include : [
-                    {
-                        model : models.role,
-                        include : [
-                            {
-                                model : models.department
-                            }
-                        ]
-                    }
-                ],  
-                where : condition
-            }).then(response => {
-                if(response){
-                    var obj = Object.assign({}, message["200_SUCCESS"])
-                    obj.role_assign_log = response.dataValues
-                    return resolve(obj)
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "ROLE_ASSIGN_LOG_NOT_FOUND"))
-                }
-            }).catch(error => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.roles = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "ROLE_NOT_FOUND")
+            );
+          }
         })
-    }
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 
-    deleteAssignLogByUserID(user_id){
-        return new Promise((resolve, reject) => {
-            models.role_assign_log.destroy({
-                where : {
-                    user_id : user_id
-                }
-            }).then(response => {
-                return resolve(message["200_SUCCESS"])
-            }).catch(errror => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+  readOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.role
+        .findOne({
+          where: condition,
         })
-    }
+        .then((response) => {
+          if (response) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.role = response.dataValues;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "ROLE_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 
-    assign(role_id, user_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : role_id}).then(response => {
-                this.readAssignLogOne({user_id : user_id}).then(response => {
-                    deleteAssignLogByUserID(user_id).then(response => {
-                        this.createAssignLog(role_id, user_id).then(response => {
-                            return resolve(response)
-                        }).catch(error => {
-                            return reject(error)
-                        })
-                    }).catch(error => {
-                        return reject(error)
+  createAssignLog(role_id, user_id) {
+    return new Promise((resolve, reject) => {
+      models.role_assign_log
+        .create({
+          role_id: role_id,
+          user_id: user_id,
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readAssignLogOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.role_assign_log
+        .findOne({
+          include: [
+            {
+              model: models.role,
+              include: [
+                {
+                  model: models.department,
+                },
+              ],
+            },
+          ],
+          where: condition,
+        })
+        .then((response) => {
+          if (response) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.role_assign_log = response.dataValues;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "ROLE_ASSIGN_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  deleteAssignLogByUserID(user_id) {
+    return new Promise((resolve, reject) => {
+      models.role_assign_log
+        .destroy({
+          where: {
+            user_id: user_id,
+          },
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((errror) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  assign(role_id, user_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: role_id })
+        .then((response) => {
+          this.readAssignLogOne({ user_id: user_id })
+            .then((response) => {
+              deleteAssignLogByUserID(user_id)
+                .then((response) => {
+                  this.createAssignLog(role_id, user_id)
+                    .then((response) => {
+                      return resolve(response);
                     })
-                }).catch(error => {
-                    if(error.status != null && error.status == message["404_NOT_FOUND"].status){
-                        this.createAssignLog(role_id, user_id).then(response => {
-                            return resolve(response)
-                        }).catch(error => {
-                            return reject(error)
-                        })
-                    }else{
-                        return reject(error)
-                    }
+                    .catch((error) => {
+                      return reject(error);
+                    });
                 })
-            }).catch(error => {
-                return reject(error)
+                .catch((error) => {
+                  return reject(error);
+                });
             })
-            
+            .catch((error) => {
+              if (
+                error.status != null &&
+                error.status == message["404_NOT_FOUND"].status
+              ) {
+                this.createAssignLog(role_id, user_id)
+                  .then((response) => {
+                    return resolve(response);
+                  })
+                  .catch((error) => {
+                    return reject(error);
+                  });
+              } else {
+                return reject(error);
+              }
+            });
         })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 
-    update(role_id, name){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : role_id}).then(response =>{
-                models.role.update({
-                    name : name,
-                }, {
-                    where : {
-                        id : role_id
-                    }
-                }).then(response => {
-                    return resolve(message["200_SUCCESS"])
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
+  update(role_id, name) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: role_id })
+        .then((response) => {
+          models.role
+            .update(
+              {
+                name: name,
+              },
+              {
+                where: {
+                  id: role_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
             })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
         })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 
-    delete(role_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : role_id}).then(response =>{
-                this.readAssignLogOne({role_id : role_id}).then(response => {
-                    return reject(message.issueMessage(message["409_CONFLICT"], "WORKER_ASSIGNED_ROLE"))
-                }).catch(error => {
-                    if(error.status != null && error.status == message["404_NOT_FOUND"].status){
-                        models.role.destroy({
-                            where : {
-                                id : role_id
-                            }
-                        }).then(response => {
-                            return resolve(message["200_SUCCESS"])
-                        }).catch(error => {
-                            return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                        })
-                    }else{
-                        return reject(error)
-                    }
-                })
-                
-            }).catch(error => {
-                return reject(error)
+  delete(role_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: role_id })
+        .then((response) => {
+          this.readAssignLogOne({ role_id: role_id })
+            .then((response) => {
+              return reject(
+                message.issueMessage(
+                  message["409_CONFLICT"],
+                  "WORKER_ASSIGNED_ROLE"
+                )
+              );
             })
+            .catch((error) => {
+              if (
+                error.status != null &&
+                error.status == message["404_NOT_FOUND"].status
+              ) {
+                models.role
+                  .destroy({
+                    where: {
+                      id: role_id,
+                    },
+                  })
+                  .then((response) => {
+                    return resolve(message["200_SUCCESS"]);
+                  })
+                  .catch((error) => {
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  });
+              } else {
+                return reject(error);
+              }
+            });
         })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 }
 
-class Worker extends Hotel{
-    constructor(){
-        super()
-    }
+class Worker extends Hotel {
+  constructor() {
+    super();
+  }
 
-    create(name, user_id, user_pwd, phone, role_id, hotel_id){
-        return new Promise((resolve, reject) => {
-            super.readOne(hotel_id).then(response => {
-                const role = new Role()
-                role.readOne({id : role_id}).then(response => {
-                    models.user.create({
-                        name : name,
-                        user_id : user_id,
-                        user_pwd : user_pwd,
-                        phone : phone,
-                        hotel_id : hotel_id
-                    }).then(response => {
-                        if(response){
-                            role.createAssignLog(role_id, response.dataValues.id).then(response => {
-                                return resolve(message["200_SUCCESS"])
-                            }).catch(error => {
-                                console.log(error);
-                                return reject(error)
-                            }) 
-                        }else{
-                            return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                        }
-                    }).catch(error => {
-                        console.log(error)
-                        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                    })
-                }).catch(error => {
-                    console.log(error);
-                    return reject(error)
+  create(name, user_id, user_pwd, phone, role_id, hotel_id) {
+    return new Promise((resolve, reject) => {
+      super
+        .readOne(hotel_id)
+        .then((response) => {
+          const role = new Role();
+          role
+            .readOne({ id: role_id })
+            .then((response) => {
+              models.user
+                .create({
+                  name: name,
+                  user_id: user_id,
+                  user_pwd: user_pwd,
+                  phone: phone,
+                  hotel_id: hotel_id,
                 })
-                
-            }).catch(error => {
-                console.log(error);
-                return reject(error)
-            })
-        }) 
-    }
-
-    readMany(condition, order){
-        return new Promise((resolve, reject) => {
-            models.user.findAll({
-                where : condition,
-                order : order
-            }).then(response => {
-                if(response.length > 0){
-                    const role = new Role()
-                    var workerList = []
-
-                    response.forEach((worker) => {
-                        role.readAssignLogOne({user_id : worker.id}).then(roleAssignResponse => {
-                            worker.dataValues.role_id = roleAssignResponse.role_assign_log.role.id
-                            worker.dataValues.role_name = roleAssignResponse.role_assign_log.role.name
-                            worker.dataValues.department_id = roleAssignResponse.role_assign_log.role.department.id
-                            worker.dataValues.department_name = roleAssignResponse.role_assign_log.role.department.name
-                            workerList.push(worker)
-
-                            if(workerList.length == response.length){
-                                var obj = Object.assign({}, message["200_SUCCESS"])
-                                obj.workers = workerList
-                                return resolve(obj)
-                            }
-                        }).catch(error => {
-                            if(error.status != null && error.status == message["404_NOT_FOUND"].status){
-                                worker.dataValues.role_id = -1
-                                worker.dataValues.role_name = ""
-                                worker.dataValues.department_id = -1
-                                worker.dataValues.department_name = ""
-
-                                workerList.push(worker)
-
-                                if(workerList.length == response.length){
-                                    var obj = Object.assign({}, message["200_SUCCESS"])
-                                    obj.workers = workerList
-                                    return resolve(obj)
-                                }
-                            }else{
-                                return reject(error)
-                            }
-                            
-                        })
-                    })
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND"))
-                }
-            }).catch(error => {
-                console.log(error)
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
-        }) 
-    }
-
-    readManyByDepartment(department_id, order){
-        return new Promise((resolve, reject) => {
-            const department = new Department()
-            department.readOne({id : department_id}).then(response => {
-                this.readMany({}, order).then(usersResponse => {
-                    var workersList = []
-                    var processedCount = 0
-                    usersResponse.workers.forEach((worker) => {
-                        if(worker.department_id == department_id){
-                            workersList.push(worker)
-                        }
-    
-                        processedCount++
-                        if(usersResponse.workers.length == processedCount){
-                            if(workersList.length == 0) return reject(message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND"))
-                            else {
-                                var obj = Object.assign({}, message["200_SUCCESS"])
-                                obj.workers = workersList
-                                return resolve(obj)
-                            }
-                        }
-                    })
-                }).catch(error => {
-                    return reject(error)
+                .then((response) => {
+                  if (response) {
+                    role
+                      .createAssignLog(role_id, response.dataValues.id)
+                      .then((response) => {
+                        return resolve(message["200_SUCCESS"]);
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        return reject(error);
+                      });
+                  } else {
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  }
                 })
-            }).catch(error => {
-                return reject(error)
+                .catch((error) => {
+                  console.log(error);
+                  return reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
+                });
             })
-            
+            .catch((error) => {
+              console.log(error);
+              return reject(error);
+            });
         })
-    }
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
+    });
+  }
 
-    readOne(condition){
-        return new Promise((resolve, reject) => {
-            models.user.findOne({
-                where : condition
-            }).then(response => {
-                if(response){
-                    const role = new Role()
-                    role.readAssignLogOne({user_id : response.dataValues.id}).then(roleAssignResponse => {
-                        response.dataValues.role_id = roleAssignResponse.role_assign_log.role.id
-                        response.dataValues.role_name = roleAssignResponse.role_assign_log.role.name
-                        response.dataValues.department_id = roleAssignResponse.role_assign_log.role.department.id
-                        response.dataValues.department_name = roleAssignResponse.role_assign_log.role.department.name
-                        
-                        var obj = Object.assign({}, message["200_SUCCESS"])
-                        obj.worker = response
-                        return resolve(obj)
-                    }).catch(error => {
-                        return reject(error)
-                    })
-                }else{
-                    return reject(message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND"))
-                }
-            }).catch(error => {
-                return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-            })
+  readMany(condition, order) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findAll({
+          where: condition,
+          order: order,
         })
-    }
+        .then((response) => {
+          if (response.length > 0) {
+            const role = new Role();
+            var workerList = [];
 
-    update(user_id, name, phone, role_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : user_id}).then(response =>{
-                models.user.update({
-                    name : name,
-                    phone : phone
-                }, {
-                    where : {
-                        id : user_id
+            response.forEach((worker) => {
+              role
+                .readAssignLogOne({ user_id: worker.id })
+                .then((roleAssignResponse) => {
+                  worker.dataValues.role_id =
+                    roleAssignResponse.role_assign_log.role.id;
+                  worker.dataValues.role_name =
+                    roleAssignResponse.role_assign_log.role.name;
+                  worker.dataValues.department_id =
+                    roleAssignResponse.role_assign_log.role.department.id;
+                  worker.dataValues.department_name =
+                    roleAssignResponse.role_assign_log.role.department.name;
+                  workerList.push(worker);
+
+                  if (workerList.length == response.length) {
+                    var obj = Object.assign({}, message["200_SUCCESS"]);
+                    obj.workers = workerList;
+                    return resolve(obj);
+                  }
+                })
+                .catch((error) => {
+                  if (
+                    error.status != null &&
+                    error.status == message["404_NOT_FOUND"].status
+                  ) {
+                    worker.dataValues.role_id = -1;
+                    worker.dataValues.role_name = "";
+                    worker.dataValues.department_id = -1;
+                    worker.dataValues.department_name = "";
+
+                    workerList.push(worker);
+
+                    if (workerList.length == response.length) {
+                      var obj = Object.assign({}, message["200_SUCCESS"]);
+                      obj.workers = workerList;
+                      return resolve(obj);
                     }
-                }).then(response => {
-                    const role = new Role()
-                    role.readAssignLogOne({user_id : user_id}).then(response => {
-                        console.log(response.role_assign_log)
-                        if(response.role_assign_log.role_id == role_id){
-                            return resolve(message["200_SUCCESS"])
-                        }else{
-                            role.deleteAssignLogByUserID(user_id).then(response => {
-                                role.createAssignLog(role_id, user_id).then(response => {
-                                    return resolve(message["200_SUCCESS"])
-                                }).catch(error => {
-                                    return reject(error)
-                                })
-                            }).catch(error => {
-                                return reject(error)
-                            })
-                            
-                        }
-                    }).catch(error => {
-                        if(error.status != null && error.status == message["404_NOT_FOUND"].status){
-                            role.createAssignLog(role_id, user_id).then(response => {
-                                return resolve(message["200_SUCCESS"])
-                            }).catch(error => {
-                                return reject(error)
-                            })
-                        }else{
-                            return reject(error)
-                        }
-                    })
-                    
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
-            })
+                  } else {
+                    return reject(error);
+                  }
+                });
+            });
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND")
+            );
+          }
         })
-    }
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 
-    delete(user_id){
-        return new Promise((resolve, reject) => {
-            this.readOne({id : user_id}).then(response =>{
-                models.user.destroy({
-                    where : {
-                        id : user_id
-                    }
-                }).then(response => {
-                    return resolve(message["200_SUCCESS"])
-                }).catch(error => {
-                    return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-                })
-            }).catch(error => {
-                return reject(error)
+  readManyByDepartment(department_id, order) {
+    return new Promise((resolve, reject) => {
+      const department = new Department();
+      department
+        .readOne({ id: department_id })
+        .then((response) => {
+          this.readMany({}, order)
+            .then((usersResponse) => {
+              var workersList = [];
+              var processedCount = 0;
+              usersResponse.workers.forEach((worker) => {
+                if (worker.department_id == department_id) {
+                  workersList.push(worker);
+                }
+
+                processedCount++;
+                if (usersResponse.workers.length == processedCount) {
+                  if (workersList.length == 0)
+                    return reject(
+                      message.issueMessage(
+                        message["404_NOT_FOUND"],
+                        "WORKER_NOT_FOUND"
+                      )
+                    );
+                  else {
+                    var obj = Object.assign({}, message["200_SUCCESS"]);
+                    obj.workers = workersList;
+                    return resolve(obj);
+                  }
+                }
+              });
             })
+            .catch((error) => {
+              return reject(error);
+            });
         })
-    }
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  readOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findOne({
+          where: condition,
+        })
+        .then((response) => {
+          if (response) {
+            const role = new Role();
+            role
+              .readAssignLogOne({ user_id: response.dataValues.id })
+              .then((roleAssignResponse) => {
+                response.dataValues.role_id =
+                  roleAssignResponse.role_assign_log.role.id;
+                response.dataValues.role_name =
+                  roleAssignResponse.role_assign_log.role.name;
+                response.dataValues.department_id =
+                  roleAssignResponse.role_assign_log.role.department.id;
+                response.dataValues.department_name =
+                  roleAssignResponse.role_assign_log.role.department.name;
+
+                var obj = Object.assign({}, message["200_SUCCESS"]);
+                obj.worker = response;
+                return resolve(obj);
+              })
+              .catch((error) => {
+                return reject(error);
+              });
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  update(user_id, name, phone, role_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: user_id })
+        .then((response) => {
+          models.user
+            .update(
+              {
+                name: name,
+                phone: phone,
+              },
+              {
+                where: {
+                  id: user_id,
+                },
+              }
+            )
+            .then((response) => {
+              const role = new Role();
+              role
+                .readAssignLogOne({ user_id: user_id })
+                .then((response) => {
+                  console.log(response.role_assign_log);
+                  if (response.role_assign_log.role_id == role_id) {
+                    return resolve(message["200_SUCCESS"]);
+                  } else {
+                    role
+                      .deleteAssignLogByUserID(user_id)
+                      .then((response) => {
+                        role
+                          .createAssignLog(role_id, user_id)
+                          .then((response) => {
+                            return resolve(message["200_SUCCESS"]);
+                          })
+                          .catch((error) => {
+                            return reject(error);
+                          });
+                      })
+                      .catch((error) => {
+                        return reject(error);
+                      });
+                  }
+                })
+                .catch((error) => {
+                  if (
+                    error.status != null &&
+                    error.status == message["404_NOT_FOUND"].status
+                  ) {
+                    role
+                      .createAssignLog(role_id, user_id)
+                      .then((response) => {
+                        return resolve(message["200_SUCCESS"]);
+                      })
+                      .catch((error) => {
+                        return reject(error);
+                      });
+                  } else {
+                    return reject(error);
+                  }
+                });
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  delete(user_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: user_id })
+        .then((response) => {
+          models.user
+            .destroy({
+              where: {
+                id: user_id,
+              },
+            })
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  getTokensByWorkerAccountInfo(user_id, user_pwd) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findOne({
+          where: {
+            user_id: user_id,
+            user_pwd: user_pwd,
+          },
+        })
+        .then((response) => {
+          if (response) {
+            signAccessToken({
+              id: response.id,
+              name: response.name,
+              user_id: response.user_id,
+            })
+              .then((response) => {
+                return resolve(response);
+              })
+              .catch((error) => {
+                return reject(error);
+              });
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+}
+
+class Role_Assign_Log extends Role {
+  constructor() {
+    super();
+  }
+
+  //UPDATE ASSIGNLOG
+  updateAssignLog(user_id, role_id) {
+    return new Promise((resolve, reject) => {
+      models.role_assign_log
+        .update(
+          {
+            role_id: role_id,
+          },
+          {
+            where: {
+              user_id: user_id,
+            },
+          }
+        )
+        .then((response) => {
+          if (response[0] > 0) {
+            return resolve(message["200_SUCCESS"]);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "ROLE_ASSIGN_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 }
 
 module.exports = {
-    Hotel,
-    Department,
-    Role,
-    Worker
-}
+  Hotel,
+  Department,
+  Role,
+  Worker,
+  Role_Assign_Log,
+};
