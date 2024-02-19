@@ -593,7 +593,6 @@ function createWorker(req, res) {
 // ID/PW 기반 사용자 인증 후 JWT 발급 API
 
 function getTokensByWorkerAccountInfo(req, res) {
-  console.log(req);
   if (!req.body.user_id || !req.body.user_pwd) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -603,14 +602,14 @@ function getTokensByWorkerAccountInfo(req, res) {
   }
 
   const worker = new Worker();
+  console.log("hello")
   worker
     .readOne({
-      where: {
         user_id: req.body.user_id,
         user_pwd: req.body.user_pwd,
-      },
     })
     .then((worker) => {
+      
       if (!worker) {
         return res
           .status(message["401_UNAUTHORIZED"].status)
@@ -623,14 +622,17 @@ function getTokensByWorkerAccountInfo(req, res) {
       }
 
       // 사용자가 인증 후 JWT 토큰 발행
-      const accessToken = jwt.signAccessToken(user);
-      const refreshToken = jwt.refreshToken(user);
-
-      // 토큰을 클라이언트에게 반환
-      return res.status(message["200_OK"].status).send({
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      });
+      jwt.signAccessToken(user).then(response => {
+        // 토큰을 클라이언트에게 반환
+        return res.status(response.status).send(response)
+      }).catch(error => {
+        console.log(error)
+        if(error.status){
+          return res.status(error.status).send(error)
+        }else{
+          return res.status(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"],"UNDEFINED_ERROR"));
+        }
+      })
     })
     .catch((error) => {
       console.error(error);

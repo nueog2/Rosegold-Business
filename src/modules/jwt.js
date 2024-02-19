@@ -17,7 +17,6 @@ function signAccessToken(user) {
     var refreshToken = randToken.uid(256);
 
     var accessToken = jwt.sign(payload, secretKey, options);
-
     models.user
       .update(
         {
@@ -31,6 +30,7 @@ function signAccessToken(user) {
       )
       .then((response) => {
         if (response) {
+          
           var obj = Object.assign({}, message["200_SUCCESS"]);
           obj.access_token = accessToken;
           obj.refresh_token = refreshToken;
