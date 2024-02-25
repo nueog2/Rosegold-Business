@@ -325,6 +325,7 @@ class Department extends Hotel {
     });
   }
 
+  // 직책-부서 삭제 코드
   delete(department_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: department_id })
@@ -333,49 +334,89 @@ class Department extends Hotel {
           role
             .readMany({ department_id: department_id })
             .then((roleResponse) => {
-              var processCount = 0;
-
-              roleResponse.roles.forEach((_role) => {
-                role
-                  .readAssignLogOne({ role_id: _role.id })
+              if (roleResponse.roles.length === 0) {
+                models.department
+                  .destroy({
+                    where: {
+                      id: department_id,
+                    },
+                  })
                   .then((response) => {
-                    console.log(response);
-                    return reject(
-                      message.issueMessage(
-                        message["409_CONFLICT"],
-                        "WORKER_ASSIGNED_DEPARTMENT"
-                      )
-                    );
+                    return resolve(message["200_SUCCESS"]);
                   })
                   .catch((error) => {
-                    if (
-                      error.status != null &&
-                      error.status == message["404_NOT_FOUND"].status
-                    ) {
-                      processCount++;
-
-                      if (processCount == roleResponse.roles.length) {
-                        models.department
-                          .destroy({
-                            where: {
-                              id: department_id,
-                            },
-                          })
-                          .then((response) => {
-                            return resolve(message["200_SUCCESS"]);
-                          })
-                          .catch((error) => {
-                            return reject(
-                              message.issueMessage(
-                                message["500_SERVER_INTERNAL_ERROR"],
-                                "UNDEFINED_ERROR"
-                              )
-                            );
-                          });
-                      }
-                    }
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
                   });
-              });
+              } else {
+                var processCount = 0;
+
+                roleResponse.roles.forEach((_role) => {
+                  role
+                    .readAssignLogOne({ role_id: _role.id })
+                    .then((response) => {
+                      return reject(
+                        message.issueMessage(
+                          message["409_CONFLICT"],
+                          "WORKER_ASSIGNED_DEPARTMENT"
+                        )
+                      );
+                    })
+                    .catch((error) => {
+                      if (
+                        error.status != null &&
+                        error.status == message["404_NOT_FOUND"].status
+                      ) {
+                        processCount++;
+
+                        if (processCount == roleResponse.roles.length) {
+                          // 해당 부서에 있는 직책 로그 삭제
+                          models.role
+                            .destroy({
+                              where: {
+                                department_id: department_id,
+                              },
+                            })
+                            .then((response) => {
+                              // 부서 삭제
+                              models.department
+                                .destroy({
+                                  where: {
+                                    id: department_id,
+                                  },
+                                })
+                                .then((response) => {
+                                  return resolve(message["200_SUCCESS"]);
+                                })
+                                .catch((error) => {
+                                  return reject(
+                                    message.issueMessage(
+                                      message["500_SERVER_INTERNAL_ERROR"],
+                                      "UNDEFINED_ERROR"
+                                    )
+                                  );
+                                });
+                            })
+                            .catch((error) => {
+                              return reject(
+                                message.issueMessage(
+                                  message["500_SERVER_INTERNAL_ERROR"],
+                                  "UNDEFINED_ERROR"
+                                )
+                              );
+                            });
+                        }
+                      }
+                    });
+                });
+              }
+            })
+            .catch((error) => {
+              return reject(error);
             });
         })
         .catch((error) => {
@@ -383,6 +424,66 @@ class Department extends Hotel {
         });
     });
   }
+
+  // 기존 코드
+  //   delete(department_id) {
+  //     return new Promise((resolve, reject) => {
+  //       this.readOne({ id: department_id })
+  //         .then((response) => {
+  //           var role = new Role();
+  //           role
+  //             .readMany({ department_id: department_id })
+  //             .then((roleResponse) => {
+  //               var processCount = 0;
+
+  //               roleResponse.roles.forEach((_role) => {
+  //                 role
+  //                   .readAssignLogOne({ role_id: _role.id })
+  //                   .then((response) => {
+  //                     console.log(response);
+  //                     return reject(
+  //                       message.issueMessage(
+  //                         message["409_CONFLICT"],
+  //                         "WORKER_ASSIGNED_DEPARTMENT"
+  //                       )
+  //                     );
+  //                   })
+  //                   .catch((error) => {
+  //                     if (
+  //                       error.status != null &&
+  //                       error.status == message["404_NOT_FOUND"].status
+  //                     ) {
+  //                       processCount++;
+
+  //                       if (processCount == roleResponse.roles.length) {
+  //                         models.department
+  //                           .destroy({
+  //                             where: {
+  //                               id: department_id,
+  //                             },
+  //                           })
+  //                           .then((response) => {
+  //                             return resolve(message["200_SUCCESS"]);
+  //                           })
+  //                           .catch((error) => {
+  //                             return reject(
+  //                               message.issueMessage(
+  //                                 message["500_SERVER_INTERNAL_ERROR"],
+  //                                 "UNDEFINED_ERROR"
+  //                               )
+  //                             );
+  //                           });
+  //                       }
+  //                     }
+  //                   });
+  //               });
+  //             });
+  //         })
+  //         .catch((error) => {
+  //           return reject(error);
+  //         });
+  //     });
+  //   }
 }
 
 class Role extends Department {
