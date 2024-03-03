@@ -7,4 +7,4 @@ router.get("/one", managementController.getRoomOne)
 router.put("/", managementController.updateRoom)
 router.delete("/", managementController.deleteRoom)
 
-module.exports = router
+module.exports = router 
