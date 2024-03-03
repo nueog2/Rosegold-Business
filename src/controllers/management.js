@@ -602,14 +602,13 @@ function getTokensByWorkerAccountInfo(req, res) {
   }
 
   const worker = new Worker();
-  console.log("hello")
+  console.log("hello");
   worker
     .readOne({
-        user_id: req.body.user_id,
-        user_pwd: req.body.user_pwd,
+      user_id: req.body.user_id,
+      user_pwd: req.body.user_pwd,
     })
     .then((worker) => {
-      
       if (!worker) {
         return res
           .status(message["401_UNAUTHORIZED"].status)
@@ -621,25 +620,32 @@ function getTokensByWorkerAccountInfo(req, res) {
           );
       }
 
-      console.log(worker.worker.dataValues)
-
+      console.log(worker.worker.dataValues);
 
       // 사용자가 인증 후 JWT 토큰 발행
-      jwt.signAccessToken({
-        id : worker.worker.dataValues.id,
-        name : worker.worker.dataValues.name,
-        user_id : worker.worker.dataValues.user_id
-      }).then(response => {
-        // 토큰을 클라이언트에게 반환
-        return res.status(response.status).send(response)
-      }).catch(error => {
-        console.log(error)
-        if(error.status){
-          return res.status(error.status).send(error)
-        }else{
-          return res.status(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"],"UNDEFINED_ERROR"));
-        }
-      })
+      jwt
+        .signAccessToken({
+          id: worker.worker.dataValues.id,
+          name: worker.worker.dataValues.name,
+          user_id: worker.worker.dataValues.user_id,
+        })
+        .then((response) => {
+          // 토큰을 클라이언트에게 반환
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          console.log(error);
+          if (error.status) {
+            return res.status(error.status).send(error);
+          } else {
+            return res.status(
+              message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+            );
+          }
+        });
     })
     .catch((error) => {
       console.error(error);
@@ -827,6 +833,37 @@ function updateWorker(req, res) {
     });
 }
 
+// hotel_admin_user UPDTATE API
+function updateWorkerAdmin(req, res) {
+  if (req.body.worker_id == null || req.body.hotel_admin_user == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const worker = new Worker();
+  worker
+    .updateAdmin(req.body.worker_id, req.body.hotel_admin_user)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function deleteWorker(req, res) {
   if (req.body.worker_id == null) {
     return res
@@ -909,6 +946,8 @@ module.exports = {
   getWorkerManyByDepartment,
   getWorkerOne,
   updateWorker,
+  updateWorkerAdmin,
+  //호텔 최고 관리자 여부 선택 추가
   deleteWorker,
   //토큰 발행 추가
   getTokensByWorkerAccountInfo,

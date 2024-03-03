@@ -2,6 +2,7 @@ const models = require("../../models");
 const message = require("../../config/message");
 const jwtModule = require("../modules/jwt");
 const { updateRole } = require("../controllers/management");
+const { response } = require("express");
 
 class Hotel {
   constructor() {}
@@ -1076,6 +1077,40 @@ class Worker extends Hotel {
                     return reject(error);
                   }
                 });
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  // UPDATE hotel_admin_user
+  updateAdmin(user_id, hotel_admin_user) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: user_id })
+        .then((response) => {
+          models.user
+            .update(
+              {
+                hotel_admin_user: hotel_admin_user,
+              },
+              {
+                where: {
+                  id: user_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
             })
             .catch((error) => {
               return reject(
