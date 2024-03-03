@@ -1,5 +1,6 @@
 const jwt = require("../modules/jwt");
 const message = require("../../config/message");
+const { Room } = require("../models/hotel");
 const Hotel = require("../models/hotel").Hotel;
 const Department = require("../models/hotel").Department;
 const Role = require("../models/hotel").Role;
@@ -924,6 +925,136 @@ function updateAssignLog(req, res) {
     });
 }
 
+function createRoom(req, res){
+  if(req.body.hotel_id == null || req.body.name == null || req.body.floor == null){
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room()
+  room.create(req.body.hotel_id, req.body.name, req.body.floor).then((response) => {
+    return res.status(response.status).send(response);
+  })
+  .catch((error) => {
+    console.error(error);
+    return res
+      .status(message["500_SERVER_INTERNAL_ERROR"].status)
+      .send(
+        message.issueMessage(
+          message["500_SERVER_INTERNAL_ERROR"],
+          "UNDEFINED_ERROR"
+        )
+      );
+  });
+}
+
+function getRoomMany(req, res){
+  if(req.query.hotel_id == null){
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room()
+  room.readMany({hotel_id : req.query.hotel_id}).then((response) => {
+    return res.status(response.status).send(response);
+  })
+  .catch((error) => {
+    console.error(error);
+    return res
+      .status(message["500_SERVER_INTERNAL_ERROR"].status)
+      .send(
+        message.issueMessage(
+          message["500_SERVER_INTERNAL_ERROR"],
+          "UNDEFINED_ERROR"
+        )
+      );
+  });
+}
+
+function getRoomOne(req, res){
+  if(req.query.room_id == null){
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room()
+  room.readOne({id : req.query.room_id}).then((response) => {
+    return res.status(response.status).send(response);
+  })
+  .catch((error) => {
+    console.error(error);
+    return res
+      .status(message["500_SERVER_INTERNAL_ERROR"].status)
+      .send(
+        message.issueMessage(
+          message["500_SERVER_INTERNAL_ERROR"],
+          "UNDEFINED_ERROR"
+        )
+      );
+  });
+}
+
+function updateRoom(req, res){
+  if(req.body.room_id == null || req.body.name == null || req.body.floor == null){
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room()
+  room.update(req.body.room_id, req.body.name, req.body.floor).then((response) => {
+    return res.status(response.status).send(response);
+  })
+  .catch((error) => {
+    console.error(error);
+    return res
+      .status(message["500_SERVER_INTERNAL_ERROR"].status)
+      .send(
+        message.issueMessage(
+          message["500_SERVER_INTERNAL_ERROR"],
+          "UNDEFINED_ERROR"
+        )
+      );
+  });
+}
+
+function deleteRoom(req, res){
+  if(req.body.room_id == null){
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room()
+  room.delete(req.body.room_id).then((response) => {
+    return res.status(response.status).send(response);
+  })
+  .catch((error) => {
+    console.error(error);
+    return res
+      .status(message["500_SERVER_INTERNAL_ERROR"].status)
+      .send(
+        message.issueMessage(
+          message["500_SERVER_INTERNAL_ERROR"],
+          "UNDEFINED_ERROR"
+        )
+      );
+  });
+}
+
 module.exports = {
   createHotel,
   getHotelMany,
@@ -954,4 +1085,10 @@ module.exports = {
   refreshToken,
   //직원-부서 할당 추가
   updateAssignLog,
+  createRoom,
+  getRoomMany,
+  getRoomOne,
+  updateRoom,
+  deleteRoom
+
 };

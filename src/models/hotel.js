@@ -1240,10 +1240,115 @@ class Role_Assign_Log extends Role {
   }
 }
 
+class Room extends Hotel{
+  constructor(){
+    super()
+  }
+
+  create(hotel_id, name, floor){
+    return new Promise((resolve, reject) => {
+      models.room.create({
+        hotel_id : hotel_id,
+        name : name,
+        floor : floor
+      }).then(response => {
+        return resolve(message["200_SUCCESS"])
+      }).catch(error => {
+        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+      })
+    })
+  }
+
+  readMany(condition){
+    return new Promise((resolve, reject) => {
+      models.room.findAll({
+        where : condition,
+        attributes : ["id", "name", "floor", "hotel_id"]
+      }).then(response => {
+        if(response.length == 0){
+          return reject(message.issueMessage(message["404_NOT_FOUND"], "ROOMS_NOT_FOUND"))
+        }else{
+          var obj = Object.assign({}, message["200_SUCCESS"])
+          obj.rooms = response
+        
+          return resolve(obj)
+        }
+      }).catch(error => {
+        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+      })
+    })
+  }
+
+  readOne(condition){
+    return new Promise((resolve, reject) => {
+      models.room.findOne({
+        where : condition,
+        attributes : ["id", "name", "floor", "hotel_id"]
+      }).then(response => {
+        if(!response){
+          return reject(message.issueMessage(message["404_NOT_FOUND"], "ROOM_NOT_FOUND"))
+        }else{
+          var obj = Object.assign({}, message["200_SUCCESS"])
+          obj.room = response
+        
+          return resolve(obj)
+        }
+      }).catch(error => {
+        return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+      })
+    })
+  }
+
+  update(room_id, name, floor){
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id : room_id
+      }).then(response => {
+        models.room.update({
+          name : name,
+          floor : floor
+        }, {
+          where : {
+            id : room_id
+          }
+        }).then(response => {
+          return resolve(message["200_SUCCESS"])
+        }).catch(error => {
+          return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+        })
+      }).catch(error => {
+        return reject(error)
+      })
+    })
+  }
+
+  delete(room_id){
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id : room_id
+      }).then(response => {
+        models.room.destroy({
+          where : {
+            id : room_id
+          }
+        }).then(response => {
+          return resolve(message["200_SUCCESS"])
+        }).catch(error => {
+          return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+        })
+      }).catch(error => {
+        return reject(error)
+      })
+      
+    })
+  }
+}
+
 module.exports = {
   Hotel,
   Department,
   Role,
   Worker,
   Role_Assign_Log,
+  Room
 };
