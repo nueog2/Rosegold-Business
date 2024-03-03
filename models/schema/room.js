@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey : "id",
         on_delete : "CASCADE"
       })
+      this.hasMany(models.chatting_log, {
+        foreignKey : "room_id",
+        sourceKey : "id",
+        on_delete : "CASCADE"
+      })
   };
   return room;
 };
