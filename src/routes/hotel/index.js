@@ -5,7 +5,8 @@ const managementController = require("../../controllers/management");
 const requirement_categoryRouter = require("./requirement_category");
 const chatbot_docsRouter = require("./chatbot_docs");
 const chattingLogRouter = require("./chatting_log");
-const roomRouter = require("./room")
+const roomRouter = require("./room");
+const requirement_logRouter = require("./requirement_log");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -13,7 +14,8 @@ router.use("/worker", workerRouter);
 router.use("/requirement_category", requirement_categoryRouter);
 router.use("/chatbot_docs", chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
-router.use("/room", roomRouter)
+router.use("/room", roomRouter);
+router.use("/requirement_log", requirement_logRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", managementController.getHotelMany);

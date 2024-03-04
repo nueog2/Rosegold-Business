@@ -1,13 +1,14 @@
-const router = require("express").Router()
-const roleRouter = require("./role")
-const managementController = require("../../../controllers/management")
+const router = require("express").Router();
+const roleRouter = require("./role");
 
-router.use("/role", roleRouter)
+const managementController = require("../../../controllers/management");
 
-router.post("/", managementController.createDepartment)
-router.get("/many", managementController.getDepartmentMany)
-router.get("/one", managementController.getDepartmentOne)
-router.put("/", managementController.updateDepartment)
-router.delete("/", managementController.deleteDepartment)
+router.use("/role", roleRouter);
 
-module.exports = router
+router.post("/", managementController.createDepartment);
+router.get("/many", managementController.getDepartmentMany);
+router.get("/one", managementController.getDepartmentOne);
+router.put("/", managementController.updateDepartment);
+router.delete("/", managementController.deleteDepartment);
+
+module.exports = router;
