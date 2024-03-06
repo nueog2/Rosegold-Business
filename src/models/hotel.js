@@ -1399,45 +1399,41 @@ class Requirement_Log extends Room {
     super();
   }
 
-  create(
-    type,
-    requirement_article,
-    response_article,
-    room_id,
-    hotel_id,
-    process_department_id,
-    requirement_id
-  ) {
+  create(question, answer, department_name, room_id){
     return new Promise((resolve, reject) => {
-      super.readOne(hotel_id).then((response) => {
-        models.requirement_log
-          .create({
-            type: type,
-            requirement_article: requirement_article,
-            response_article: response_article,
-            room_id: room_id,
-            hotel_id: hotel_id,
-            process_department_id: process_department_id,
-            requirement_id: requirement_id,
+      new Department().readOne({
+        token_name : department_name
+      }).then(response => {
+        var department_id = response.department.id
+        new Room().readOne({
+          id : room_id
+        }).then(response => {
+          var hotel_id = response.room.hotel_id
+          models.requirement_log.create({
+            type : "챗봇 요청사항",
+            requirement_article : question,
+            response_article : answer,
+            progress : 0,
+            process_department_id : department_id,
+            room_id : room_id,
+            hotel_id : hotel_id
+          }).then(response => {
+            if(response) return resolve(message["200_SUCCESS"])
+            else return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
+          }).catch(error => {
+            console.log(error)
+            return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
           })
-          .then((response) => {
-            if (response) {
-              return resolve(message["200_SUCCESS"]);
-            } else {
-              return reject(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-            return reject(error);
-          });
-      });
-    });
+        }).catch(error => {
+          console.log(error)
+          return reject(error)
+        })
+      }).catch(error => {
+        console.log(error)
+        return reject(error)
+      })
+      
+    })
   }
 
   readMany(condition) {
@@ -1454,6 +1450,7 @@ class Requirement_Log extends Room {
             "hotel_id",
             "process_department_id",
             "requirement_id",
+            "createdAt"
           ],
         })
         .then((response) => {
