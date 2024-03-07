@@ -1,6 +1,8 @@
 const models = require("../../models");
 const message = require("../../config/message");
 const { Hotel } = require("./hotel");
+const multer = require("multer");
+//const upload = multer({ dest: "uploads/" });
 
 class Chatbot_Docs extends Hotel {
   constructor() {
