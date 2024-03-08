@@ -1441,6 +1441,12 @@ class Requirement_Log extends Room {
       models.requirement_log
         .findAll({
           where: condition,
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+              // as: "room",
+            },
           attributes: [
             "id",
             "type",
@@ -1452,11 +1458,25 @@ class Requirement_Log extends Room {
             "requirement_id",
             "createdAt"
           ],
+          // attributes: [
+          //   "id",
+          //   "type",
+          //   "requirement_article",
+          //   "response_article",
+          //   "room_id",
+          //   "hotel_id",
+          //   "process_department_id",
+          //   "requirement_id",
+          //   // "created_at",
+          // ],
         })
         .then((response) => {
           if (response.length > 0) {
             var obj = Object.assign({}, message["200_SUCCESS"]);
-            obj.requirement_log = response;
+            obj.requirement_log = response.map((log) => ({
+              ...log.dataValues,
+              // room_name: log.room ? log.room.dataValues.name : null,
+            }));
             return resolve(obj);
           } else {
             return reject(
