@@ -1399,41 +1399,60 @@ class Requirement_Log extends Room {
     super();
   }
 
-  create(question, answer, department_name, room_id){
+  create(question, answer, department_name, room_id) {
     return new Promise((resolve, reject) => {
-      new Department().readOne({
-        token_name : department_name
-      }).then(response => {
-        var department_id = response.department.id
-        new Room().readOne({
-          id : room_id
-        }).then(response => {
-          var hotel_id = response.room.hotel_id
-          models.requirement_log.create({
-            type : "챗봇 요청사항",
-            requirement_article : question,
-            response_article : answer,
-            progress : 0,
-            process_department_id : department_id,
-            room_id : room_id,
-            hotel_id : hotel_id
-          }).then(response => {
-            if(response) return resolve(message["200_SUCCESS"])
-            else return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-          }).catch(error => {
-            console.log(error)
-            return reject(message.issueMessage(message["500_SERVER_INTERNAL_ERROR"], "UNDEFINED_ERROR"))
-          })
-        }).catch(error => {
-          console.log(error)
-          return reject(error)
+      new Department()
+        .readOne({
+          token_name: department_name,
         })
-      }).catch(error => {
-        console.log(error)
-        return reject(error)
-      })
-      
-    })
+        .then((response) => {
+          var department_id = response.department.id;
+          new Room()
+            .readOne({
+              id: room_id,
+            })
+            .then((response) => {
+              var hotel_id = response.room.hotel_id;
+              models.requirement_log
+                .create({
+                  type: "챗봇 요청사항",
+                  requirement_article: question,
+                  response_article: answer,
+                  progress: 0,
+                  process_department_id: department_id,
+                  room_id: room_id,
+                  hotel_id: hotel_id,
+                })
+                .then((response) => {
+                  if (response) return resolve(message["200_SUCCESS"]);
+                  else
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                })
+                .catch((error) => {
+                  console.log(error);
+                  return reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
+                });
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(error);
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
+    });
   }
 
   readMany(condition) {
@@ -1441,22 +1460,22 @@ class Requirement_Log extends Room {
       models.requirement_log
         .findAll({
           where: condition,
-          include: [
-            {
-              model: models.room,
-              attributes: ["name"],
-              // as: "room",
-            },
+          include: {
+            model: models.room,
+            attributes: ["name"],
+            // as: "room",
+          },
           attributes: [
             "id",
             "type",
             "requirement_article",
             "response_article",
+            "progress",
             "room_id",
             "hotel_id",
             "process_department_id",
             "requirement_id",
-            "createdAt"
+            "createdAt",
           ],
           // attributes: [
           //   "id",
