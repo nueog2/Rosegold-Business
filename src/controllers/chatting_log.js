@@ -26,25 +26,32 @@ function createChattingLog(req, res) {
       new ChattingLog()
         .create(req.body.room_id, req.body.question, req.body.answer)
         .then((response) => {
-          if(req.body.department_name != null){
-            new Requirement_Log().create(req.body.question, req.body.answer, req.body.department_name, req.body.room_id).then(response => {
-              return res.status(response.status).send(response);
-            }).catch((error) => {
-              if (error.status) return res.status(error.status).send(error);
-              else
-                return res
-                  .status(message["500_SERVER_INTERNAL_ERROR"].status)
-                  .send(
-                    message.issueMessage(
-                      message["500_SERVER_INTERNAL_ERROR"],
-                      "UNDEFINED_ERROR"
-                    )
-                  );
-            });
-          }else{
+          if (req.body.department_name != null) {
+            new Requirement_Log()
+              .create(
+                req.body.question,
+                req.body.answer,
+                req.body.department_name,
+                req.body.room_id
+              )
+              .then((response) => {
+                return res.status(response.status).send(response);
+              })
+              .catch((error) => {
+                if (error.status) return res.status(error.status).send(error);
+                else
+                  return res
+                    .status(message["500_SERVER_INTERNAL_ERROR"].status)
+                    .send(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+              });
+          } else {
             return res.status(response.status).send(response);
           }
-          
         })
         .catch((error) => {
           if (error.status) return res.status(error.status).send(error);
