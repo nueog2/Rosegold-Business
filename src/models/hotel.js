@@ -1460,11 +1460,17 @@ class Requirement_Log extends Room {
       models.requirement_log
         .findAll({
           where: condition,
-          include: {
-            model: models.room,
-            attributes: ["name"],
-            // as: "room",
-          },
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+              // as: "room",
+            },
+            {
+              model: models.department,
+              attributes: ["name"],
+            },
+          ],
           attributes: [
             "id",
             "type",
@@ -1559,6 +1565,41 @@ class Requirement_Log extends Room {
             .update(
               {
                 progress: progress,
+              },
+              {
+                where: {
+                  id: requirement_log_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  updateDepartment(requirement_log_id, process_department_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: requirement_log_id,
+      })
+        .then((response) => {
+          models.requirement_log
+            .update(
+              {
+                process_department_id: process_department_id,
               },
               {
                 where: {

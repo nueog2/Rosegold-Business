@@ -128,6 +128,41 @@ function updateRequirementLog(req, res) {
     });
 }
 
+function updateRequirementLogDepartment(req, res) {
+  if (
+    req.body.requirement_log_id == null ||
+    req.body.process_department_id == null
+  ) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .updateDepartment(
+      req.body.requirement_log_id,
+      req.body.process_department_id
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function deleteRequirementLog(req, res) {
   if (req.query.requirement_log_id == null) {
     return res
@@ -162,5 +197,6 @@ module.exports = {
   getRequirementLogMany,
   getRequirementLogOne,
   updateRequirementLog,
+  updateRequirementLogDepartment,
   deleteRequirementLog,
 };
