@@ -1460,11 +1460,13 @@ class Requirement_Log extends Room {
       models.requirement_log
         .findAll({
           where: condition,
-          include: {
-            model: models.room,
-            attributes: ["name"],
-            // as: "room",
-          },
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+              // as: "room",
+            },
+          ],
           attributes: [
             "id",
             "type",
