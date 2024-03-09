@@ -1447,6 +1447,7 @@ class Requirement_Log extends Room {
               attributes: ["name"],
               // as: "room",
             },
+          ],
           attributes: [
             "id",
             "type",
