@@ -770,6 +770,36 @@ function getWorkerManyByDepartment(req, res) {
     });
 }
 
+function getWorkerManyByDepartment2(req, res) {
+  if (req.query.department_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const worker = new Worker();
+  worker
+    .readManyByDepartment2(req.query.department_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getWorkerOne(req, res) {
   if (req.query.worker_id == null) {
     return res
@@ -925,8 +955,12 @@ function updateAssignLog(req, res) {
     });
 }
 
-function createRoom(req, res){
-  if(req.body.hotel_id == null || req.body.name == null || req.body.floor == null){
+function createRoom(req, res) {
+  if (
+    req.body.hotel_id == null ||
+    req.body.name == null ||
+    req.body.floor == null
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -934,25 +968,27 @@ function createRoom(req, res){
       );
   }
 
-  const room = new Room()
-  room.create(req.body.hotel_id, req.body.name, req.body.floor).then((response) => {
-    return res.status(response.status).send(response);
-  })
-  .catch((error) => {
-    console.error(error);
-    return res
-      .status(message["500_SERVER_INTERNAL_ERROR"].status)
-      .send(
-        message.issueMessage(
-          message["500_SERVER_INTERNAL_ERROR"],
-          "UNDEFINED_ERROR"
-        )
-      );
-  });
+  const room = new Room();
+  room
+    .create(req.body.hotel_id, req.body.name, req.body.floor)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
 }
 
-function getRoomMany(req, res){
-  if(req.query.hotel_id == null){
+function getRoomMany(req, res) {
+  if (req.query.hotel_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -960,25 +996,27 @@ function getRoomMany(req, res){
       );
   }
 
-  const room = new Room()
-  room.readMany({hotel_id : req.query.hotel_id}).then((response) => {
-    return res.status(response.status).send(response);
-  })
-  .catch((error) => {
-    console.error(error);
-    return res
-      .status(message["500_SERVER_INTERNAL_ERROR"].status)
-      .send(
-        message.issueMessage(
-          message["500_SERVER_INTERNAL_ERROR"],
-          "UNDEFINED_ERROR"
-        )
-      );
-  });
+  const room = new Room();
+  room
+    .readMany({ hotel_id: req.query.hotel_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
 }
 
-function getRoomOne(req, res){
-  if(req.query.room_id == null){
+function getRoomOne(req, res) {
+  if (req.query.room_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -986,25 +1024,31 @@ function getRoomOne(req, res){
       );
   }
 
-  const room = new Room()
-  room.readOne({id : req.query.room_id}).then((response) => {
-    return res.status(response.status).send(response);
-  })
-  .catch((error) => {
-    console.error(error);
-    return res
-      .status(message["500_SERVER_INTERNAL_ERROR"].status)
-      .send(
-        message.issueMessage(
-          message["500_SERVER_INTERNAL_ERROR"],
-          "UNDEFINED_ERROR"
-        )
-      );
-  });
+  const room = new Room();
+  room
+    .readOne({ id: req.query.room_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
 }
 
-function updateRoom(req, res){
-  if(req.body.room_id == null || req.body.name == null || req.body.floor == null){
+function updateRoom(req, res) {
+  if (
+    req.body.room_id == null ||
+    req.body.name == null ||
+    req.body.floor == null
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -1012,25 +1056,27 @@ function updateRoom(req, res){
       );
   }
 
-  const room = new Room()
-  room.update(req.body.room_id, req.body.name, req.body.floor).then((response) => {
-    return res.status(response.status).send(response);
-  })
-  .catch((error) => {
-    console.error(error);
-    return res
-      .status(message["500_SERVER_INTERNAL_ERROR"].status)
-      .send(
-        message.issueMessage(
-          message["500_SERVER_INTERNAL_ERROR"],
-          "UNDEFINED_ERROR"
-        )
-      );
-  });
+  const room = new Room();
+  room
+    .update(req.body.room_id, req.body.name, req.body.floor)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
 }
 
-function deleteRoom(req, res){
-  if(req.body.room_id == null){
+function deleteRoom(req, res) {
+  if (req.body.room_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -1038,21 +1084,23 @@ function deleteRoom(req, res){
       );
   }
 
-  const room = new Room()
-  room.delete(req.body.room_id).then((response) => {
-    return res.status(response.status).send(response);
-  })
-  .catch((error) => {
-    console.error(error);
-    return res
-      .status(message["500_SERVER_INTERNAL_ERROR"].status)
-      .send(
-        message.issueMessage(
-          message["500_SERVER_INTERNAL_ERROR"],
-          "UNDEFINED_ERROR"
-        )
-      );
-  });
+  const room = new Room();
+  room
+    .delete(req.body.room_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
 }
 
 module.exports = {
@@ -1075,6 +1123,7 @@ module.exports = {
   createWorker,
   getWorkerMany,
   getWorkerManyByDepartment,
+  getWorkerManyByDepartment2,
   getWorkerOne,
   updateWorker,
   updateWorkerAdmin,
@@ -1089,6 +1138,5 @@ module.exports = {
   getRoomMany,
   getRoomOne,
   updateRoom,
-  deleteRoom
-
+  deleteRoom,
 };
