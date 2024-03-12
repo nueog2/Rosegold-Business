@@ -9,6 +9,7 @@ router.put(
   "/department",
   requirement_logController.updateRequirementLogDepartment
 );
+router.put("/worker", requirement_logController.updateRequirementLogWorker);
 router.delete("/", requirement_logController.deleteRequirementLog);
 
 module.exports = router;
