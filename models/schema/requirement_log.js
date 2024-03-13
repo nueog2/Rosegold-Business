@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: process.env.NOT_PROGRESS,
       },
+      user_id: {
+        type: DataTypes.INTEGER(),
+        allowNull: true,
+      },
     },
     {
       paranoid: true,

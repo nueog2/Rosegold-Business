@@ -1514,10 +1514,10 @@ class Requirement_Log extends Room {
               model: models.department,
               attributes: ["name"],
             },
-            {
-              model: models.user,
-              attributes: ["name"],
-            },
+            // {
+            //   model: models.user,
+            //   attributes: ["name"],
+            // },
           ],
           attributes: [
             "id",
