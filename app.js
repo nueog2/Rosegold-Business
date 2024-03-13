@@ -15,7 +15,7 @@ app.use(
 
 app.use(express.static("upload"));
 
-app.post("/upload", async (req, res) => {
+app.post("/api/upload", async (req, res) => {
   try {
     if (!req.files || !req.files.file) {
       console.log("400_BAD_REQUEST: 파일 업로드 실패: 파일이 없습니다.");
