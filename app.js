@@ -74,7 +74,7 @@ app.use(express.urlencoded({ limit: "150mb", extended: false }));
 app.set("view engine", "ejs");
 
 app.use("/public", express.static(__dirname + "/public"));
-app.use("/", router);
+app.use("/api", router);
 
 app.all("*", function (req, res) {
   return res
