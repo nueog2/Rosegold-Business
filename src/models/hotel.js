@@ -937,11 +937,13 @@ class Worker extends Hotel {
       department
         .readOne({ id: department_id })
         .then((response) => {
+          console.log(response)
           this.readMany({}, order)
             .then((usersResponse) => {
               var workersList = [];
               var processedCount = 0;
               usersResponse.workers.forEach((worker) => {
+                worker = worker.dataValues
                 if (worker.department_id == department_id) {
                   workersList.push(worker);
                 }
