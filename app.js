@@ -75,7 +75,7 @@ app.set("view engine", "ejs");
 
 app.use("/public", express.static(__dirname + "/public"));
 //app.use("/api", router);
-app.use("/", router);
+app.use("/api", router);
 app.all("*", function (req, res) {
   return res
     .status(message["404_NOT_FOUND"].status)
