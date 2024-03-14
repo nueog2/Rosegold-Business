@@ -13,7 +13,7 @@ app.use(
   })
 );
 
-app.use(express.static("upload"));
+app.use("/upload", express.static("upload"));
 
 app.post("/upload", async (req, res) => {
   try {
