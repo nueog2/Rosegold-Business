@@ -38,7 +38,14 @@ class ChattingLog {
       models.chatting_log
         .findAll({
           where: condition,
-          attributes: ["id", "question", "answer", "room_id", "createdAt"],
+          attributes: [
+            "id",
+            "question",
+            "answer",
+            "room_id",
+            "createdAt",
+            //"department_name",
+          ],
         })
         .then((response) => {
           if (response.length > 0) {
