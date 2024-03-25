@@ -937,7 +937,9 @@ class Worker extends Hotel {
       department
         .readOne({ id: department_id })
         .then((response) => {
+
           console.log(response);
+
           this.readMany({}, order)
             .then((usersResponse) => {
               var workersList = [];
