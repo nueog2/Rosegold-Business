@@ -26,13 +26,17 @@ function createChattingLog(req, res) {
       new ChattingLog()
         .create(req.body.room_id, req.body.question, req.body.answer)
         .then((response) => {
-          if (req.body.department_name != null) {
+          if (
+            req.body.department_name != null &&
+            req.body.summarized_sentence != null
+          ) {
             new Requirement_Log()
               .create(
                 req.body.question,
                 req.body.answer,
                 req.body.department_name,
-                req.body.room_id
+                req.body.room_id,
+                req.body.summarized_sentence
               )
               .then((response) => {
                 return res.status(response.status).send(response);

@@ -1295,13 +1295,39 @@ class Room extends Hotel {
   create(hotel_id, name, floor) {
     return new Promise((resolve, reject) => {
       models.room
-        .create({
-          hotel_id: hotel_id,
-          name: name,
-          floor: floor,
+        .findOne({
+          where: {
+            name: name,
+            hotel_id: hotel_id,
+          },
         })
-        .then((response) => {
-          return resolve(message["200_SUCCESS"]);
+        .then((existingRoom) => {
+          if (existingRoom) {
+            return reject(
+              message.issueMessage(
+                message["409_CONFLICT"],
+                "ROOM_ALREADY_EXISTS"
+              )
+            );
+          } else {
+            models.room
+              .create({
+                hotel_id: hotel_id,
+                name: name,
+                floor: floor,
+              })
+              .then((response) => {
+                return resolve(message["200_SUCCESS"]);
+              })
+              .catch((error) => {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              });
+          }
         })
         .catch((error) => {
           return reject(
@@ -1335,6 +1361,32 @@ class Room extends Hotel {
         })
         .catch((error) => {
           return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  findRoom(condition) {
+    return new Promise((resolve, reject) => {
+      models.room
+        .findOne({
+          where: condition,
+          attributes: ["id", "name", "floor", "hotel_id"],
+        })
+        .then((response) => {
+          if (!response) {
+            // 방을 찾지 못한 경우
+            resolve({ canCreate: true });
+          } else {
+            resolve({ canCreate: false, room: response });
+          }
+        })
+        .catch((error) => {
+          reject(
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
               "UNDEFINED_ERROR"
@@ -1446,7 +1498,7 @@ class Requirement_Log extends Room {
     super();
   }
 
-  create(question, answer, department_name, room_id) {
+  create(question, answer, department_name, room_id, summarized_sentence) {
     return new Promise((resolve, reject) => {
       new Department()
         .readOne({
@@ -1468,18 +1520,19 @@ class Requirement_Log extends Room {
                   progress: 0,
                   process_department_id: department_id,
                   room_id: room_id,
+                  summarized_sentence: summarized_sentence,
                   hotel_id: hotel_id,
                   user_id: null,
                 })
                 .then((response) => {
                   if (response) return resolve(message["200_SUCCESS"]);
-                  else
-                    return reject(
-                      message.issueMessage(
-                        message["500_SERVER_INTERNAL_ERROR"],
-                        "UNDEFINED_ERROR"
-                      )
-                    );
+                  else console.log(error);
+                  return reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
                 })
                 .catch((error) => {
                   console.log(error);
@@ -1535,6 +1588,7 @@ class Requirement_Log extends Room {
             "requirement_id",
             "createdAt",
             "user_id",
+            "summarized_sentence",
           ],
         })
         .then((response) => {

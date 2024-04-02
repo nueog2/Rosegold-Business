@@ -9,7 +9,8 @@ function createRequirementLog(req, res) {
     req.body.room_id == null ||
     req.body.hotel_id == null ||
     req.body.process_department_id == null ||
-    req.body.requirement_id == null
+    req.body.requirement_id == null ||
+    req.body.summarized_sentence == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -28,6 +29,7 @@ function createRequirementLog(req, res) {
       req.body.hotel_id,
       req.body.process_department_id,
       req.body.requirement_id,
+      req.body.summarized_sentence,
       req.body.user_id
     )
     .then((response) => {
