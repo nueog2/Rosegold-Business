@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT(),
         allowNull: false,
       },
+      summarized_sentence: {
+        type: DataTypes.TEXT(),
+        allowNull: false,
+      },
       progress: {
         type: DataTypes.TINYINT(),
         allowNull: false,

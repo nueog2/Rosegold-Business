@@ -969,10 +969,34 @@ function createRoom(req, res) {
   }
 
   const room = new Room();
+
   room
-    .create(req.body.hotel_id, req.body.name, req.body.floor)
-    .then((response) => {
-      return res.status(response.status).send(response);
+    .findRoom({ hotel_id: req.body.hotel_id, name: req.body.name })
+    .then((result) => {
+      if (!result.canCreate) {
+        return res
+          .status(message["409_CONFLICT"].status)
+          .send(
+            message.issueMessage(message["409_CONFLICT"], "ROOM_ALREADY_EXISTS")
+          );
+      } else {
+        room
+          .create(req.body.hotel_id, req.body.name, req.body.floor)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            console.error(error);
+            return res
+              .status(message["500_SERVER_INTERNAL_ERROR"].status)
+              .send(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+          });
+      }
     })
     .catch((error) => {
       console.error(error);
