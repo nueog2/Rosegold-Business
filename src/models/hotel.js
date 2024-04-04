@@ -1496,7 +1496,7 @@ class Requirement_Log extends Room {
     super();
   }
 
-  create(question, answer, department_name, room_id, summarized_sentence) {
+  create(room_id, question, answer, department_name, summarized_sentence) {
     return new Promise((resolve, reject) => {
       new Department()
         .readOne({
@@ -1513,11 +1513,11 @@ class Requirement_Log extends Room {
               models.requirement_log
                 .create({
                   type: "챗봇 요청사항",
+                  room_id: room_id,
                   requirement_article: question,
                   response_article: answer,
                   progress: 0,
                   process_department_id: department_id,
-                  room_id: room_id,
                   summarized_sentence: summarized_sentence,
                   hotel_id: hotel_id,
                   user_id: null,
