@@ -4,9 +4,9 @@ const { Room, Requirement_Log, Hotel } = require("../models/hotel");
 
 function createChattingLog(req, res) {
   if (
+    req.body.room_id == null ||
     req.body.question == null ||
-    req.body.answer == null ||
-    req.body.room_id == null
+    req.body.answer == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -32,10 +32,10 @@ function createChattingLog(req, res) {
           ) {
             new Requirement_Log()
               .create(
+                req.body.room_id,
                 req.body.question,
                 req.body.answer,
                 req.body.department_name,
-                req.body.room_id,
                 req.body.summarized_sentence
               )
               .then((response) => {

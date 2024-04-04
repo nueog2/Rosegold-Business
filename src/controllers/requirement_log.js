@@ -4,9 +4,9 @@ const message = require("../../config/message");
 function createRequirementLog(req, res) {
   if (
     req.body.type == null ||
+    req.body.room_id == null ||
     req.body.requirement_article == null ||
     req.body.response_article == null ||
-    req.body.room_id == null ||
     req.body.hotel_id == null ||
     req.body.process_department_id == null ||
     req.body.requirement_id == null ||
@@ -23,9 +23,9 @@ function createRequirementLog(req, res) {
   requirement_log
     .create(
       req.body.type,
+      req.body.room_id,
       req.body.requirement_article,
       req.body.response_article,
-      req.body.room_id,
       req.body.hotel_id,
       req.body.process_department_id,
       req.body.requirement_id,
