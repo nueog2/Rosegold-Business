@@ -6,6 +6,9 @@ const router = require("./src/routes");
 const db = require("./models");
 const message = require("./config/message");
 const fileUpload = require("express-fileupload");
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
 
 app.use(
   fileUpload({

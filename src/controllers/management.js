@@ -7,6 +7,13 @@ const Role = require("../models/hotel").Role;
 const Worker = require("../models/hotel").Worker;
 const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const app = express();
+
+app.use(express.json());
+app.use(cookieParser());
+
 function createHotel(req, res) {
   if (
     req.body.name == null ||
@@ -591,10 +598,10 @@ function createWorker(req, res) {
     });
 }
 
-// ID/PW 기반 사용자 인증 후 JWT 발급 API
+// ID/PW 기반 사용자 인증 후 Access Token 발급 API
 
 function getTokensByWorkerAccountInfo(req, res) {
-  if (!req.body.user_id || !req.body.user_pwd) {
+  if (!req.query.user_id || !req.query.user_pwd) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -606,8 +613,8 @@ function getTokensByWorkerAccountInfo(req, res) {
   console.log("hello");
   worker
     .readOne({
-      user_id: req.body.user_id,
-      user_pwd: req.body.user_pwd,
+      user_id: req.query.user_id,
+      user_pwd: req.query.user_pwd,
     })
     .then((worker) => {
       if (!worker) {
@@ -616,7 +623,7 @@ function getTokensByWorkerAccountInfo(req, res) {
           .send(
             message.issueMessage(
               message["401_UNAUTHORIZED"],
-              "INVALID_CREDENTIALS"
+              "WORKER_NOT_FOUND"
             )
           );
       }
@@ -631,8 +638,20 @@ function getTokensByWorkerAccountInfo(req, res) {
           user_id: worker.worker.dataValues.user_id,
         })
         .then((response) => {
-          // 토큰을 클라이언트에게 반환
-          return res.status(response.status).send(response);
+          // 토큰을 쿠키에 저장 및 클라이언트에게 반환
+          return (
+            res.cookie("access_token", response.access_token, {
+              httpOnly: true,
+            }),
+            res.cookie("refresh_token", response.refresh_token, {
+              httpOnly: true,
+            }),
+            res.status(message["200_SUCCESS"].status),
+            res.send({
+              message: "로그인이 성공적으로 처리되었습니다.",
+              access_token: response.access_token,
+            })
+          );
         })
         .catch((error) => {
           console.log(error);
@@ -651,16 +670,14 @@ function getTokensByWorkerAccountInfo(req, res) {
     .catch((error) => {
       console.error(error);
       return res
-        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .status(message["401_UNAUTHORIZED"].status)
         .send(
-          message.issueMessage(
-            message["500_SERVER_INTERNAL_ERROR"],
-            "UNDEFINED_ERROR"
-          )
+          message.issueMessage(message["401_UNAUTHORIZED"], "WORKER_NOT_FOUND")
         );
     });
 }
 
+//refresh Token 생성
 function refreshToken(req, res) {
   if (!req.body.refresh_token) {
     return res
@@ -687,6 +704,77 @@ function refreshToken(req, res) {
           );
       else return res.status(error.status).send(error);
     });
+}
+
+//로그인 및 프로필 라우트
+function getProfileByToken(req, res) {
+  if (!req.query.user_id || !req.query.user_pwd) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+  const accessToken = req.cookies.access_token;
+  console.log(accessToken);
+
+  if (!accessToken) {
+    return res
+      .status(message["401_UNAUTHORIZED"].status)
+      .send(
+        message.issueMessage(
+          message["401_UNAUTHORIZED"],
+          "ACCESS_TOKEN_NOT_FOUND"
+        )
+      );
+  }
+
+  const worker = new Worker();
+  worker
+    .readOne({
+      user_id: req.query.user_id,
+      user_pwd: req.query.user_pwd,
+    })
+    .then((worker) => {
+      if (!worker) {
+        return res
+          .status(message["401_UNAUTHORIZED"].status)
+          .send(
+            message.issueMessage(
+              message["401_UNAUTHORIZED"],
+              "WORKER_NOT_FOUND"
+            )
+          );
+      }
+
+      console.log(worker.worker.dataValues);
+      console.log("200_SUCCESS");
+      return res.status(message["200_SUCCESS"].status).send({
+        // message.issueMessage(message["200_SUCCESS"], "LOGIN_SUCCESS"),
+        status: true,
+        message: "LOGIN_SUCCESS",
+        data: worker.worker.dataValues,
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["401_UNAUTHORIZED"].status)
+        .send(
+          message.issueMessage(message["401_UNAUTHORIZED"], "WORKER_NOT_FOUND")
+        );
+    });
+}
+
+//로그아웃 라우트
+function logoutWorker(req, res) {
+  res.clearCookie("access_token");
+
+  console.log("200_SUCCESS");
+  res.send({
+    status: true,
+    message: "LOGOUT_SUCCESS",
+  });
 }
 
 function getWorkerMany(req, res) {
@@ -1153,9 +1241,11 @@ module.exports = {
   updateWorkerAdmin,
   //호텔 최고 관리자 여부 선택 추가
   deleteWorker,
-  //토큰 발행 추가
+  //토큰 발행 및 로그인 추가
   getTokensByWorkerAccountInfo,
   refreshToken,
+  getProfileByToken,
+  logoutWorker,
   //직원-부서 할당 추가
   updateAssignLog,
   createRoom,

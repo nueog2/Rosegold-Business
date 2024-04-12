@@ -39,7 +39,11 @@ function createChattingLog(req, res) {
                 req.body.summarized_sentence
               )
               .then((response) => {
-                return res.status(response.status).send(response);
+                return res.status(response.status).send({
+                  status: "Success",
+                  message: "REQUIREMENT_LOG_CREATED",
+                  data: response,
+                });
               })
               .catch((error) => {
                 if (error.status) return res.status(error.status).send(error);
