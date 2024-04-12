@@ -68,7 +68,9 @@ app.post("/upload", async (req, res) => {
   }
 });
 
-var port = process.env.PORT || 4040;
+var port = process.env.PORT || 6060;
+//실제 프로덕트용 port는 임시로 6060 으로 설정
+//원래는 4040임.
 
 db.sequelizeSync();
 
