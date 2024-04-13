@@ -10,8 +10,8 @@ const TOKEN_INVALID = -2;
 const express = require("express");
 const cookieParser = require("cookie-parser");
 
-app.use(express.json());
-app.use(cookieParser());
+// app.use(express.json());
+// app.use(cookieParser());
 
 function signAccessToken(user) {
   return new Promise((resolve, reject) => {

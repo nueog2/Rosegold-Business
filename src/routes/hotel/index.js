@@ -7,20 +7,25 @@ const chatbot_docsRouter = require("./chatbot_docs");
 const chattingLogRouter = require("./chatting_log");
 const roomRouter = require("./room");
 const requirement_logRouter = require("./requirement_log");
+const auth_util = require("../../middlewares/auth_util");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
 // requirementcategory router 추가
-router.use("/requirement_category", requirement_categoryRouter);
-router.use("/chatbot_docs", chatbot_docsRouter);
-router.use("/chatting_log", chattingLogRouter);
-router.use("/room", roomRouter);
-router.use("/requirement_log", requirement_logRouter);
+router.use(
+  "/requirement_category",
+  auth_util.verifyToken,
+  requirement_categoryRouter
+);
+router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
+router.use("/chatting_log", auth_util.verifyToken, chattingLogRouter);
+router.use("/room", auth_util.verifyToken, roomRouter);
+router.use("/requirement_log", auth_util.verifyToken, requirement_logRouter);
 
 router.post("/", managementController.createHotel);
-router.get("/many", managementController.getHotelMany);
-router.get("/one", managementController.getHotelOne);
+router.get("/many", auth_util.verifyToken, managementController.getHotelMany);
+router.get("/one", auth_util.verifyToken, managementController.getHotelOne);
 router.put("/", managementController.updateHotel);
-router.delete("/", managementController.deleteHotel);
+router.delete("/", auth_util.verifyToken, managementController.deleteHotel);
 
 module.exports = router;

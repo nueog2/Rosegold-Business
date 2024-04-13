@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const managementController = require("../../controllers/management");
 
+router.post("/", managementController.createWorker);
 router.post("/token", managementController.getTokensByWorkerAccountInfo);
 router.post("/token/refresh", managementController.refreshToken);
 router.get("/login", managementController.getProfileByToken);
