@@ -15,22 +15,26 @@ function createChattingLog(req, res) {
       );
   }
 
-  const reqLogCreated =
-    req.body.department_name != null && req.body.summarized_sentence != null
-      ? 1
-      : 0;
+  // const reqLogCreated =
+  //   req.body.department_name != null && req.body.summarized_sentence != null
+  //     ? 1
+  //     : 0;
 
   new Room()
     .readOne({
       id: req.body.room_id,
     })
     .then((response) => {
+      const req_log_created =
+        req.body.department_name != null && req.body.summarized_sentence != null
+          ? 1
+          : 0;
       new ChattingLog()
         .create(
           req.body.room_id,
           req.body.question,
           req.body.answer,
-          reqLogCreated
+          req_log_created
         )
         .then((response) => {
           if (
