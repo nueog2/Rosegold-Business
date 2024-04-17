@@ -15,8 +15,10 @@ function createChattingLog(req, res) {
       );
   }
 
-  //[TODO]
-  // 2. 추후 LLM + RAG AI Chatbot Server와 연동 시 room_id가 속해 있는 호텔의 부서명으로 Filter 처리 하는 로직 추가
+  const reqLogCreated =
+    req.body.department_name != null && req.body.summarized_sentence != null
+      ? 1
+      : 0;
 
   new Room()
     .readOne({
@@ -24,7 +26,12 @@ function createChattingLog(req, res) {
     })
     .then((response) => {
       new ChattingLog()
-        .create(req.body.room_id, req.body.question, req.body.answer)
+        .create(
+          req.body.room_id,
+          req.body.question,
+          req.body.answer,
+          reqLogCreated
+        )
         .then((response) => {
           if (
             req.body.department_name != null &&

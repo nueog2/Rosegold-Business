@@ -4,13 +4,14 @@ const message = require("../../config/message");
 class ChattingLog {
   constructor() {}
 
-  create(room_id, question, answer) {
+  create(room_id, question, answer, req_log_created) {
     return new Promise((resolve, reject) => {
       models.chatting_log
         .create({
           room_id: room_id,
           question: question,
           answer: answer,
+          req_log_created: req_log_created,
         })
         .then((response) => {
           if (response) return resolve(message["200_SUCCESS"]);
@@ -45,6 +46,7 @@ class ChattingLog {
             "room_id",
             "createdAt",
             //"department_name",
+            "req_log_created",
           ],
         })
         .then((response) => {
