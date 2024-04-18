@@ -18,9 +18,9 @@ router.use(
   requirement_categoryRouter
 );
 router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
-router.use("/chatting_log", auth_util.verifyToken, chattingLogRouter);
+router.use("/chatting_log", chattingLogRouter);
 router.use("/room", auth_util.verifyToken, roomRouter);
-router.use("/requirement_log", auth_util.verifyToken, requirement_logRouter);
+router.use("/requirement_log", requirement_logRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);

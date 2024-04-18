@@ -17,6 +17,5 @@ module.exports = {
     /**
      * chatting_logs 테이블에서 req_log_created 칼럼 제거
      */
-    await queryInterface.removeColumn("chatting_logs", "req_log_created");
   },
 };
