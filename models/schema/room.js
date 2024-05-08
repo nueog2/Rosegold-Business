@@ -3,14 +3,19 @@ module.exports = (sequelize, DataTypes) => {
   const room = sequelize.define(
     "room",
     {
-      name : {
-        type : DataTypes.CHAR(6),
-        allowNull : false
+      name: {
+        type: DataTypes.CHAR(6),
+        allowNull: false,
       },
-      floor : {
-        type : DataTypes.INTEGER(),
-        allowNull : false
-      }
+      floor: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+      },
+      price: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       paranoid: true,
@@ -18,20 +23,20 @@ module.exports = (sequelize, DataTypes) => {
   );
   room.associate = function (models) {
     this.belongsTo(models.hotel, {
-        foreignKey : "hotel_id",
-        sourceKey : "id",
-        on_delete : "CASCADE"
-      })
+      foreignKey: "hotel_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
     this.hasMany(models.room, {
-        foreignKey : "room_id",
-        sourceKey : "id",
-        on_delete : "CASCADE"
-      })
-      this.hasMany(models.chatting_log, {
-        foreignKey : "room_id",
-        sourceKey : "id",
-        on_delete : "CASCADE"
-      })
+      foreignKey: "room_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
+    this.hasMany(models.chatting_log, {
+      foreignKey: "room_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
   };
   return room;
 };

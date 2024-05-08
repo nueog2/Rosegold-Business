@@ -1290,7 +1290,7 @@ class Room extends Hotel {
     super();
   }
 
-  create(hotel_id, name, floor) {
+  create(hotel_id, name, floor, price) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
@@ -1313,6 +1313,7 @@ class Room extends Hotel {
                 hotel_id: hotel_id,
                 name: name,
                 floor: floor,
+                price: price,
               })
               .then((response) => {
                 return resolve(message["200_SUCCESS"]);
@@ -1343,7 +1344,7 @@ class Room extends Hotel {
       models.room
         .findAll({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id"],
+          attributes: ["id", "name", "floor", "hotel_id", "price"],
         })
         .then((response) => {
           if (response.length == 0) {
@@ -1373,7 +1374,7 @@ class Room extends Hotel {
       models.room
         .findOne({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id"],
+          attributes: ["id", "name", "floor", "hotel_id", "price"],
         })
         .then((response) => {
           if (!response) {
@@ -1399,7 +1400,7 @@ class Room extends Hotel {
       models.room
         .findOne({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id"],
+          attributes: ["id", "name", "floor", "hotel_id", "price"],
         })
         .then((response) => {
           if (!response) {
@@ -1455,6 +1456,89 @@ class Room extends Hotel {
             });
         })
         .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  // 호텔 방 금액 수정
+  updatePrice(room_id, price) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((response) => {
+          models.room
+            .update(
+              {
+                price: price,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                console.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+  4;
+
+  // 호텔 방 금액 추가
+  addPrice(room_id, additionalPrice) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((room) => {
+          // additionalPrice를 숫자로 변환
+          const additionalPriceNumber = Number(additionalPrice);
+          // 변환에 실패한 경우 (NaN인 경우) 에러를 반환
+          if (isNaN(additionalPriceNumber)) {
+            return reject(new Error("Invalid additionalPrice: Not a number"));
+          }
+          const updatedPrice = room.room.price + additionalPriceNumber;
+          models.room
+            .update(
+              {
+                price: updatedPrice,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                cosole.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          console.log(error);
           return reject(error);
         });
     });

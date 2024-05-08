@@ -1187,6 +1187,63 @@ function updateRoom(req, res) {
     });
 }
 
+function updateRoomPrice(req, res) {
+  if (req.query.room_id == null || req.query.price == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .updatePrice(req.query.room_id, req.query.price)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
+//호텔 방별 금액 추가 API
+function updateRoomPriceAdd(req, res) {
+  if (req.query.room_id == null || req.query.addprice == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(meesage["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .addPrice(req.query.room_id, req.query.addprice)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(meesage["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 function deleteRoom(req, res) {
   if (req.body.room_id == null) {
     return res
@@ -1252,5 +1309,9 @@ module.exports = {
   getRoomMany,
   getRoomOne,
   updateRoom,
+  //객실 가격 수정
+  updateRoomPrice,
+  //객실 가격 추가
+  updateRoomPriceAdd,
   deleteRoom,
 };
