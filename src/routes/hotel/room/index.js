@@ -1,10 +1,12 @@
 const router = require("express").Router();
-const managementController = require("../../../controllers/management")
+const managementController = require("../../../controllers/management");
 
-router.post("/", managementController.createRoom)
-router.get("/many", managementController.getRoomMany)
-router.get("/one", managementController.getRoomOne)
-router.put("/", managementController.updateRoom)
-router.delete("/", managementController.deleteRoom)
+router.post("/", managementController.createRoom);
+router.get("/many", managementController.getRoomMany);
+router.get("/one", managementController.getRoomOne);
+router.put("/", managementController.updateRoom);
+router.put("/price", managementController.updateRoomPrice);
+router.put("/price/add", managementController.updateRoomPriceAdd);
+router.delete("/", managementController.deleteRoom);
 
-module.exports = router 
+module.exports = router;
