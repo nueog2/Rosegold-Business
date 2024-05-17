@@ -72,6 +72,51 @@ function getRequirementLogMany(req, res) {
     });
 }
 
+function getRequirementLogManyByDate(req, res) {
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .readManyByDate(req.query)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
+function getRequirementLogManyByRoom(req, res) {
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .readManyByRoom(req.query)
+    .then((response) => {
+      console.log(response);
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getRequirementLogOne(req, res) {
   if (req.query.requirement_log_id == null) {
     return res
@@ -227,6 +272,8 @@ function deleteRequirementLog(req, res) {
 module.exports = {
   createRequirementLog,
   getRequirementLogMany,
+  getRequirementLogManyByDate,
+  getRequirementLogManyByRoom,
   getRequirementLogOne,
   updateRequirementLog,
   updateRequirementLogDepartment,

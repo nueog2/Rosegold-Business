@@ -1292,7 +1292,7 @@ class Room extends Hotel {
     super();
   }
 
-  create(hotel_id, name, floor, price) {
+  create(hotel_id, name, floor, price, room_grade_id = null) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
@@ -1316,6 +1316,7 @@ class Room extends Hotel {
                 name: name,
                 floor: floor,
                 price: price,
+                room_grade_id: room_grade_id,
               })
               .then((response) => {
                 return resolve(message["200_SUCCESS"]);
@@ -1346,7 +1347,14 @@ class Room extends Hotel {
       models.room
         .findAll({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id", "price"],
+          attributes: [
+            "id",
+            "name",
+            "floor",
+            "hotel_id",
+            "price",
+            "room_grade_id",
+          ],
         })
         .then((response) => {
           if (response.length == 0) {
@@ -1376,7 +1384,14 @@ class Room extends Hotel {
       models.room
         .findOne({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id", "price"],
+          attributes: [
+            "id",
+            "name",
+            "floor",
+            "hotel_id",
+            "price",
+            "room_grade_id",
+          ],
         })
         .then((response) => {
           if (!response) {
@@ -1402,7 +1417,14 @@ class Room extends Hotel {
       models.room
         .findOne({
           where: condition,
-          attributes: ["id", "name", "floor", "hotel_id", "price"],
+          attributes: [
+            "id",
+            "name",
+            "floor",
+            "hotel_id",
+            "price",
+            "room_grade_id",
+          ],
         })
         .then((response) => {
           if (!response) {
@@ -1463,6 +1485,44 @@ class Room extends Hotel {
     });
   }
 
+  // 호텔 방 등급 부여
+  updateGrade(room_id, room_grade_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((response) => {
+          models.room
+            .update(
+              {
+                room_grade_id: room_grade_id,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"], response.dataValues);
+            })
+            .catch((error) => {
+              return reject(
+                console.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          console.log;
+          return reject(error);
+        });
+    });
+  }
+
   // 호텔 방 금액 수정
   updatePrice(room_id, price) {
     return new Promise((resolve, reject) => {
@@ -1499,7 +1559,6 @@ class Room extends Hotel {
         });
     });
   }
-  4;
 
   // 호텔 방 금액 추가
   addPrice(room_id, additionalPrice) {
@@ -1678,6 +1737,7 @@ class Requirement_Log extends Room {
         .then((response) => {
           if (response.length > 0) {
             var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.Total_requirement_log = response.length; // 총 로그 수 반환
             obj.requirement_log = response.map((log) => ({
               ...log.dataValues,
               // room_name: log.room ? log.room.dataValues.name : null,
@@ -1688,6 +1748,137 @@ class Requirement_Log extends Room {
               message.issueMessage(
                 message["404_NOT_FOUND"],
                 "REQUIREMENT_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readManyByDate(createdAt, condition) {
+    return new Promise((resolve, reject) => {
+      const startDate = new Date(createdAt);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(createdAt);
+      endDate.setHours(23, 59, 59, 999);
+
+      console.log(createdAt);
+
+      condition.createdAt = {
+        [models.Sequelize.Op.between]: [startDate, endDate],
+      };
+      console.log(`startDate: ${startDate}, endDate: ${endDate}`);
+
+      models.requirement_log
+        .findAll({
+          where: condition,
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+            },
+            {
+              model: models.department,
+              attributes: ["name"],
+            },
+          ],
+          attributes: [
+            "id",
+            "type",
+            "requirement_article",
+            "response_article",
+            "progress",
+            "room_id",
+            "hotel_id",
+            "process_department_id",
+            "requirement_id",
+            "createdAt",
+            "user_id",
+            "summarized_sentence",
+          ],
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.Total_requirement_log_bydate = response.length; // 총 로그 개수
+            obj.requirement_log = response.map((log) => ({
+              ...log.dataValues,
+            }));
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "REQUIREMENT_LOG_BY_DATE_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readManyByRoom(condition) {
+    return new Promise((resolve, reject) => {
+      models.requirement_log
+        .findAll({
+          where: condition,
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+            },
+            {
+              model: models.department,
+              attributes: ["name"],
+            },
+          ],
+          attributes: [
+            "id",
+            "type",
+            "requirement_article",
+            "response_article",
+            "progress",
+            "room_id",
+            "hotel_id",
+            "process_department_id",
+            "requirement_id",
+            "createdAt",
+            "user_id",
+            "summarized_sentence",
+          ],
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.Total_requirement_log_byroom = response.length; // 총 로그 개수
+            obj.requirement_log = response.map((log) => ({
+              ...log.dataValues,
+            }));
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "REQUIREMENT_LOG_BY_ROOM_ID_NOT_FOUND"
               )
             );
           }
