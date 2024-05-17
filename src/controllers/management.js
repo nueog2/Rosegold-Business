@@ -706,15 +706,16 @@ function refreshToken(req, res) {
     });
 }
 
-//로그인 및 프로필 라우트
+//토큰 값 기반 로그인 및 프로필 라우트
 function getProfileByToken(req, res) {
-  if (!req.query.user_id || !req.query.user_pwd) {
-    return res
-      .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
-      );
-  }
+  // if (!req.query.user_id || !req.query.user_pwd) {
+  //   return res
+  //     .status(message["400_BAD_REQUEST"].status)
+  //     .send(
+  //       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+  //     );
+  // }
+
   const accessToken = req.cookies.access_token;
   console.log(accessToken);
 
@@ -729,42 +730,91 @@ function getProfileByToken(req, res) {
       );
   }
 
-  const worker = new Worker();
-  worker
-    .readOne({
-      user_id: req.query.user_id,
-      user_pwd: req.query.user_pwd,
-    })
-    .then((worker) => {
-      if (!worker) {
-        return res
-          .status(message["401_UNAUTHORIZED"].status)
-          .send(
-            message.issueMessage(
-              message["401_UNAUTHORIZED"],
-              "WORKER_NOT_FOUND"
-            )
-          );
-      }
+  jwt
+    .verifyToken(accessToken)
+    .then((response) => {
+      const worker = new Worker();
+      worker
+        .readOne({ user_id: response.payload.user_id })
+        .then((worker) => {
+          if (!worker) {
+            return res
+              .status(message["401_UNAUTHORIZED"].status)
+              .send(
+                message.issueMessage(
+                  message["401_UNAUTHORIZED"],
+                  "WORKER_NOT_FOUND"
+                )
+              );
+          }
 
-      console.log(worker.worker.dataValues);
-      console.log("200_SUCCESS");
-      return res.status(message["200_SUCCESS"].status).send({
-        // message.issueMessage(message["200_SUCCESS"], "LOGIN_SUCCESS"),
-        status: true,
-        message: "LOGIN_SUCCESS",
-        data: worker.worker.dataValues,
-      });
+          console.log(worker.worker.dataValues);
+          console.log("200_LOGIN_SUCCESS");
+
+          return res.status(message["200_SUCCESS"].status).send({
+            status: true,
+            message: "LOGIN_SUCCESS",
+            data: worker.worker.dataValues,
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          return res
+            .status(message["401_UNAUTHORIZED"].status)
+            .send(
+              message.issueMessage(
+                message["401_UNAUTHORIZED"],
+                "WORKER_NOT_FOUND"
+              )
+            );
+        });
     })
     .catch((error) => {
       console.error(error);
       return res
-        .status(message["401_UNAUTHORIZED"].status)
+        .status(message["498_INVALID_TOKEN"].status)
         .send(
-          message.issueMessage(message["401_UNAUTHORIZED"], "WORKER_NOT_FOUND")
+          message.issueMessage(message["498_INVALID_TOKEN"], "INVALID_TOKEN")
         );
     });
 }
+
+//   const worker = new Worker();
+//   worker
+//     .readOne({
+//       user_id: req.query.user_id,
+//       user_pwd: req.query.user_pwd,
+//     })
+//     .then((worker) => {
+//       if (!worker) {
+//         return res
+//           .status(message["401_UNAUTHORIZED"].status)
+//           .send(
+//             message.issueMessage(
+//               message["401_UNAUTHORIZED"],
+//               "WORKER_NOT_FOUND"
+//             )
+//           );
+//       }
+
+//       console.log(worker.worker.dataValues);
+//       console.log("200_SUCCESS");
+//       return res.status(message["200_SUCCESS"].status).send({
+//         // message.issueMessage(message["200_SUCCESS"], "LOGIN_SUCCESS"),
+//         status: true,
+//         message: "LOGIN_SUCCESS",
+//         data: worker.worker.dataValues,
+//       });
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//       return res
+//         .status(message["401_UNAUTHORIZED"].status)
+//         .send(
+//           message.issueMessage(message["401_UNAUTHORIZED"], "WORKER_NOT_FOUND")
+//         );
+//     });
+// }
 
 //로그아웃 라우트
 function logoutWorker(req, res) {
@@ -1127,6 +1177,34 @@ function getRoomMany(req, res) {
     });
 }
 
+function getRoomManyByFloor(req, res) {
+  if (req.query.hotel_id == null || req.query.floor == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readMany({ hotel_id: req.query.hotel_id, floor: req.query.floor })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 function getRoomOne(req, res) {
   if (req.query.room_id == null) {
     return res
@@ -1199,6 +1277,35 @@ function updateRoomPrice(req, res) {
   const room = new Room();
   room
     .updatePrice(req.query.room_id, req.query.price)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
+// 호텔 방별 등급 부여 API
+function updateRoomGrade(req, res) {
+  if (req.query.room_id == null || req.query.room_grade_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .updateGrade(req.query.room_id, req.query.room_grade_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -1308,7 +1415,10 @@ module.exports = {
   createRoom,
   getRoomMany,
   getRoomOne,
+  getRoomManyByFloor,
   updateRoom,
+  //객실 등급 수정
+  updateRoomGrade,
   //객실 가격 수정
   updateRoomPrice,
   //객실 가격 추가
