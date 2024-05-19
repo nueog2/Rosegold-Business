@@ -20,5 +20,10 @@ router.post(
   authUtil.verifyToken,
   managementController.updateWorkStatus
 );
+router.get(
+  "/mobile/profile",
+  authUtil.verifyToken,
+  managementController.readProfileInfo
+);
 
 module.exports = router;

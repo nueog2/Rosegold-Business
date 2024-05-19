@@ -1487,6 +1487,19 @@ function updateWorkStatus(req, res) {
     });
 }
 
+function readProfileInfo(req, res) {
+  var worker = new Worker();
+  worker
+    .readProfileInfo(req.user.id)
+    .then((profile) => {
+      return res.status(profile.status).send(profile);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
 module.exports = {
   createHotel,
   getHotelMany,
@@ -1534,4 +1547,5 @@ module.exports = {
   deleteRoom,
   getAccessTokenByAccount,
   updateWorkStatus,
+  readProfileInfo,
 };

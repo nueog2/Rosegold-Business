@@ -1098,6 +1098,61 @@ class Worker extends Hotel {
     });
   }
 
+  readProfileInfo(user_id) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findOne({
+          include: [{ model: models.hotel, attributes: ["id", "name"] }],
+          where: {
+            id: user_id,
+          },
+          attributes: ["id", "name", "hotel_id"],
+        })
+        .then((profileResponse) => {
+          if (profileResponse != null) {
+            this.readWorkLogMany({ user_id: user_id })
+              .then((workLogsResponse) => {
+                var requirementLog = new Requirement_Log();
+                requirementLog
+                  .readMany({
+                    user_id: user_id,
+                    progress: 2,
+                  })
+                  .then((requirementLogResponse) => {
+                    var obj = Object.assign({}, message["200_SUCCESS"]);
+                    obj.profile = profileResponse.dataValues;
+                    obj.profile.last_work_log =
+                      workLogsResponse.work_logs[0].dataValues;
+                    obj.profile.processed_count =
+                      requirementLogResponse.Total_requirement_log;
+                    return resolve(obj);
+                  })
+                  .catch((error) => {
+                    if (error.status == message["404_NOT_FOUND"].status) {
+                      var obj = Object.assign({}, message["200_SUCCESS"]);
+                      obj.profile = profileResponse.dataValues;
+                      obj.profile.last_work_log =
+                        workLogsResponse.work_logs[0].dataValues;
+                      obj.profile.processed_count = 0;
+                      return resolve(obj);
+                    } else {
+                      return reject(error);
+                    }
+                  });
+              })
+              .catch((error) => {
+                return reject(error);
+              });
+          } else {
+            return reject(message["404_NOT_FOUND"]);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
   update(user_id, name, phone, role_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
