@@ -710,9 +710,12 @@ function refreshToken(req, res) {
 function getProfileByToken(req, res) {
   // if (!req.query.user_id || !req.query.user_pwd) {
   //   return res
-  //     .status(message["400_BAD_REQUEST"].status)
+  //     .status(message["401_UNAUTHORIZED"].status)
   //     .send(
-  //       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+  //       message.issueMessage(
+  //         message["401_UNAUTHORIZED"],
+  //         "ACCESS_TOKEN_NOT_FOUND"
+  //       )
   //     );
   // }
 
