@@ -7,6 +7,7 @@ const chatbot_docsRouter = require("./chatbot_docs");
 const chattingLogRouter = require("./chatting_log");
 const roomRouter = require("./room");
 const requirement_logRouter = require("./requirement_log");
+const messageRouter = require("./message");
 const auth_util = require("../../middlewares/auth_util");
 
 router.use("/department", departmentRouter);
@@ -17,6 +18,7 @@ router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
 router.use("/room", auth_util.verifyToken, roomRouter);
 router.use("/requirement_log", requirement_logRouter);
+router.use("/message", messageRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);

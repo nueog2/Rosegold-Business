@@ -1843,6 +1843,7 @@ class Requirement_Log extends Room {
             "user_id",
             "summarized_sentence",
           ],
+          order: [["createdAt", "DESC"]],
         })
         .then((response) => {
           if (response.length > 0) {
@@ -2171,6 +2172,84 @@ class Requirement_Log extends Room {
   }
 }
 
+class Message {
+  sendMessage(to_user_id, message_article, user_id) {
+    return new Promise((resolve, reject) => {
+      var worker = new Worker();
+
+      worker
+        .readOne({
+          id: to_user_id,
+        })
+        .then((response) => {
+          models.message
+            .create({
+              to_user_id: to_user_id,
+              message_article: message_article,
+              user_id: user_id,
+            })
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(message["500_SERVER_INTERNAL_ERROR"]);
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.message
+        .findAll({
+          where: condition,
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.messages = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "MESSAGE_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
+  update(message_id, status) {
+    return new Promise((resolve, reject) => {
+      models.message
+        .update(
+          {
+            status: status,
+          },
+          {
+            where: {
+              id: message_id,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+}
+
 module.exports = {
   Hotel,
   Department,
@@ -2179,4 +2258,5 @@ module.exports = {
   Role_Assign_Log,
   Room,
   Requirement_Log,
+  Message,
 };

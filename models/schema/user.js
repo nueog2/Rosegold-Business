@@ -50,6 +50,12 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
+
+    this.hasMany(models.message, {
+      foreignKey: "user_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
   };
   return user;
 };

@@ -1,6 +1,6 @@
 const jwt = require("../modules/jwt");
 const message = require("../../config/message");
-const { Room } = require("../models/hotel");
+const { Room, Requirement_Log, Message } = require("../models/hotel");
 const Hotel = require("../models/hotel").Hotel;
 const Department = require("../models/hotel").Department;
 const Role = require("../models/hotel").Role;
@@ -9,6 +9,7 @@ const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const { sequelize, Sequelize } = require("../../models");
 const app = express();
 
 app.use(express.json());
@@ -1500,6 +1501,125 @@ function readProfileInfo(req, res) {
     });
 }
 
+function readWorkerProcessingReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      user_id: req.user.id,
+      progress: 1,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readWorkerNotAssignReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      progress: 0,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readWorkerProcessedReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      progress: 2,
+      user_id: req.user.id,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function setAssignWorker(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .update(req.body.requirement_log_id, req.body.progress)
+    .then((response) => {
+      requireLog
+        .updateWorker(req.body.requirement_log_id, req.user.id)
+        .then((response) => {
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          return res.status(error.status).send(error);
+        });
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function sendMessage(req, res) {
+  if (!req.body.to_user_id || !req.body.message_article) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var message = new Message();
+  message
+    .sendMessage(req.body.to_user_id, req.body.message_article, req.user.id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readMessages(req, res) {
+  var message = new Message();
+  message
+    .readMany({
+      [Sequelize.Op.or]: [
+        { user_id: req.user.id },
+        { to_user_id: req.user.id },
+      ],
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function okMessage(req, res) {
+  if (!req.body.message_id || !req.body.status) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+  var message = new Message();
+  message
+    .update(req.body.message_id, req.body.status)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
 module.exports = {
   createHotel,
   getHotelMany,
@@ -1548,4 +1668,11 @@ module.exports = {
   getAccessTokenByAccount,
   updateWorkStatus,
   readProfileInfo,
+  readWorkerProcessingReqLog,
+  readWorkerNotAssignReqLog,
+  readWorkerProcessedReqLog,
+  setAssignWorker,
+  sendMessage,
+  readMessages,
+  okMessage,
 };

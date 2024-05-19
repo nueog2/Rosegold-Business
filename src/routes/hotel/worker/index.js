@@ -26,4 +26,28 @@ router.get(
   managementController.readProfileInfo
 );
 
+router.get(
+  "/mobile/work/me/ing",
+  authUtil.verifyToken,
+  managementController.readWorkerProcessingReqLog
+);
+
+router.get(
+  "/mobile/work/not-assign",
+  authUtil.verifyToken,
+  managementController.readWorkerNotAssignReqLog
+);
+
+router.get(
+  "/mobile/work/me/finished",
+  authUtil.verifyToken,
+  managementController.readWorkerProcessedReqLog
+);
+
+router.post(
+  "/mobile/work/assign",
+  authUtil.verifyToken,
+  managementController.setAssignWorker
+);
+
 module.exports = router;
