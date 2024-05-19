@@ -1139,6 +1139,28 @@ class Worker extends Hotel {
     });
   }
 
+  updateFCMToken(user_id, fcm_token) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .update(
+          {
+            fcm_token: fcm_token,
+          },
+          {
+            where: {
+              id: user_id,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
   // UPDATE hotel_admin_user
   updateAdmin(user_id, hotel_admin_user) {
     return new Promise((resolve, reject) => {

@@ -1382,6 +1382,56 @@ function deleteRoom(req, res) {
     });
 }
 
+function getAccessTokenByAccount(req, res) {
+  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+
+  worker
+    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
+    .then((workerInfoResponse) => {
+      jwt
+        .signAccessToken({
+          id: workerInfoResponse.worker.id,
+          name: workerInfoResponse.worker.name,
+          user_id: workerInfoResponse.worker.user_id,
+        })
+        .then((tokenResponse) => {
+          if (
+            workerInfoResponse.worker.dataValues.fcm_token == null ||
+            workerInfoResponse.worker.dataValues.fcm_token == undefined
+          ) {
+            workerInfoResponse.worker.dataValues.fcm_token = "[]";
+          }
+          console.log(workerInfoResponse.worker.dataValues);
+          var fcmTokenJSON = JSON.parse(
+            workerInfoResponse.worker.dataValues.fcm_token
+          );
+          if (req.query.fcm_token in fcmTokenJSON) {
+            return res.status(tokenResponse.status).send(tokenResponse);
+          } else {
+            fcmTokenJSON.push(req.query.fcm_token);
+            worker
+              .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
+              .then((response) => {
+                return res.status(tokenResponse.status).send(tokenResponse);
+              })
+              .catch((error) => {
+                return res.status(error.status).send(error);
+              });
+          }
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
 module.exports = {
   createHotel,
   getHotelMany,
@@ -1427,4 +1477,5 @@ module.exports = {
   //객실 가격 추가
   updateRoomPriceAdd,
   deleteRoom,
+  getAccessTokenByAccount,
 };

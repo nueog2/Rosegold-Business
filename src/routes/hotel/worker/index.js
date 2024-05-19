@@ -13,4 +13,6 @@ router.delete("/", managementController.deleteWorker);
 
 router.put("/role", managementController.updateAssignLog);
 
+router.get("/mobile/sign-in", managementController.getAccessTokenByAccount);
+
 module.exports = router;
