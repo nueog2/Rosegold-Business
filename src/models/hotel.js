@@ -859,6 +859,40 @@ class Worker extends Hotel {
     });
   }
 
+  readWorkLogMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .findAll({ where: condition, order: [["createdAt", "DESC"]] })
+        .then((response) => {
+          if (response.length == 0) {
+            return reject(message["404_NOT_FOUND"]);
+          } else {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.work_logs = response;
+            return resolve(obj);
+          }
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
+  createWorkLog(user_id, status) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .create({
+          user_id: user_id,
+          status: status,
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
   readMany(condition, order) {
     return new Promise((resolve, reject) => {
       models.user

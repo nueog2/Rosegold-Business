@@ -1408,9 +1408,7 @@ function getAccessTokenByAccount(req, res) {
             workerInfoResponse.worker.dataValues.fcm_token = "[]";
           }
           console.log(workerInfoResponse.worker.dataValues);
-          var fcmTokenJSON = JSON.parse(
-            workerInfoResponse.worker.dataValues.fcm_token
-          );
+          var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
           if (req.query.fcm_token in fcmTokenJSON) {
             return res.status(tokenResponse.status).send(tokenResponse);
           } else {
@@ -1429,6 +1427,63 @@ function getAccessTokenByAccount(req, res) {
     .catch((error) => {
       console.log(error);
       return res.status(error.status).send(error);
+    });
+}
+
+function updateWorkStatus(req, res) {
+  if (!req.user || !req.body.status) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+  worker
+    .readWorkLogMany({
+      user_id: req.user.id,
+    })
+    .then((workLogResponse) => {
+      if (
+        workLogResponse.work_logs.length == 0 ||
+        workLogResponse.work_logs[0].dataValues.status != req.body.status
+      ) {
+        if (
+          workLogResponse.work_logs[0].dataValues.status == "LEAVE" &&
+          req.body.status == "REST"
+        ) {
+          return res
+            .status(message["400_BAD_REQUEST"].status)
+            .send(
+              message.issueMessage(message["400_BAD_REQUEST"], "UNVALID_STATUS")
+            );
+        }
+        worker
+          .createWorkLog(req.user.id, req.body.status)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            return res.status(error.status).send(error);
+          });
+      } else {
+        return res
+          .status(message["200_SUCCESS"].status)
+          .send(message["200_SUCCESS"]);
+      }
+    })
+    .catch((error) => {
+      if (error.status == message["404_NOT_FOUND"].status) {
+        worker
+          .createWorkLog(req.user.id, req.body.status)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            return res.status(error.status).send(error);
+          });
+      } else {
+        return res.status(error.status).send(error);
+      }
     });
 }
 
@@ -1478,4 +1533,5 @@ module.exports = {
   updateRoomPriceAdd,
   deleteRoom,
   getAccessTokenByAccount,
+  updateWorkStatus,
 };
