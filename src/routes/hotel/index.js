@@ -12,11 +12,7 @@ const auth_util = require("../../middlewares/auth_util");
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
 // requirementcategory router 추가
-router.use(
-  "/requirement_category",
-  auth_util.verifyToken,
-  requirement_categoryRouter
-);
+router.use("/requirement_category", requirement_categoryRouter);
 router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
 router.use("/room", auth_util.verifyToken, roomRouter);
