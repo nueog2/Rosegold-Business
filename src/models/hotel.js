@@ -937,7 +937,6 @@ class Worker extends Hotel {
       department
         .readOne({ id: department_id })
         .then((response) => {
-
           console.log(response);
 
           this.readMany({}, order)
@@ -1764,17 +1763,18 @@ class Requirement_Log extends Room {
     });
   }
 
-  readManyByDate(createdAt, condition) {
+  readManyByDate(query) {
     return new Promise((resolve, reject) => {
-      const startDate = new Date(createdAt);
-      startDate.setHours(0, 0, 0, 0);
+      var createdAt = query.created_at;
+      var hotelID = query.hotel_id;
+      var condition = { hotel_id: hotelID };
+      const startDate = createdAt + " 00:00:00";
 
-      const endDate = new Date(createdAt);
-      endDate.setHours(23, 59, 59, 999);
+      const endDate = createdAt + " 23:59:59";
 
       console.log(createdAt);
 
-      condition.createdAt = {
+      condition["createdAt"] = {
         [models.Sequelize.Op.between]: [startDate, endDate],
       };
       console.log(`startDate: ${startDate}, endDate: ${endDate}`);
