@@ -816,6 +816,7 @@ class Worker extends Hotel {
                   user_pwd: user_pwd,
                   phone: phone,
                   hotel_id: hotel_id,
+                  fcm_token: {},
                 })
                 .then((response) => {
                   if (response) {
@@ -1064,7 +1065,7 @@ class Worker extends Hotel {
     });
   }
 
-  update(user_id, name, phone, role_id) {
+  update(user_id, name, phone, user_pwd, role_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
         .then((response) => {
@@ -1073,6 +1074,7 @@ class Worker extends Hotel {
               {
                 name: name,
                 phone: phone,
+                user_pwd: user_pwd,
               },
               {
                 where: {
