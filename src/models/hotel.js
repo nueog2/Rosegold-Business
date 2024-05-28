@@ -1065,7 +1065,82 @@ class Worker extends Hotel {
     });
   }
 
-  update(user_id, name, phone, user_pwd, role_id) {
+  update(user_id, name, phone, role_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: user_id })
+        .then((response) => {
+          models.user
+            .update(
+              {
+                name: name,
+                phone: phone,
+              },
+              {
+                where: {
+                  id: user_id,
+                },
+              }
+            )
+            .then((response) => {
+              const role = new Role();
+              role
+                .readAssignLogOne({ user_id: user_id })
+                .then((response) => {
+                  console.log(response.role_assign_log);
+                  if (response.role_assign_log.role_id == role_id) {
+                    return resolve(message["200_SUCCESS"]);
+                  } else {
+                    role
+                      .deleteAssignLogByUserID(user_id)
+                      .then((response) => {
+                        role
+                          .createAssignLog(role_id, user_id)
+                          .then((response) => {
+                            return resolve(message["200_SUCCESS"]);
+                          })
+                          .catch((error) => {
+                            return reject(error);
+                          });
+                      })
+                      .catch((error) => {
+                        return reject(error);
+                      });
+                  }
+                })
+                .catch((error) => {
+                  if (
+                    error.status != null &&
+                    error.status == message["404_NOT_FOUND"].status
+                  ) {
+                    role
+                      .createAssignLog(role_id, user_id)
+                      .then((response) => {
+                        return resolve(message["200_SUCCESS"]);
+                      })
+                      .catch((error) => {
+                        return reject(error);
+                      });
+                  } else {
+                    return reject(error);
+                  }
+                });
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  updateProfile(user_id, name, phone, role_id, user_pwd) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
         .then((response) => {
@@ -1140,6 +1215,37 @@ class Worker extends Hotel {
         });
     });
   }
+
+  // updateProfile(user_id,name,phone,department_id,user_pwd) {
+  //   return new Promise((resolve,reject) => {
+  //     this.readOne({ id: user_id })
+  //       .then((response) => {
+  //         models.user
+  //           .update({
+  //             name: name,
+  //             phone:phone,
+  //             user_pwd:user_pwd
+  //           },
+  //           {
+  //             where: {
+  //               id: user_id
+  //             }
+  //           }
+  //         )
+  //         .then((response) => {
+  //           models.role_assign_log({ user_id: user_id})
+  //             .then((response) => {
+  //               models.requirement_log
+  //                 .update({
+  //                   role_id
+  //                 })
+  //             })
+  //             }
+  //         })
+  //   });
+  //       });
+  //   }
+  // }
 
   // UPDATE hotel_admin_user
   updateAdmin(user_id, hotel_admin_user) {
@@ -1365,6 +1471,41 @@ class Room extends Hotel {
           } else {
             var obj = Object.assign({}, message["200_SUCCESS"]);
             obj.rooms = response;
+
+            return resolve(obj);
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readManyFloors(condition) {
+    return new Promise((resolve, reject) => {
+      models.room
+        .findAll({
+          where: condition,
+          attributes: [
+            [
+              models.sequelize.fn("DISTINCT", models.sequelize.col("floor")),
+              "floor",
+            ],
+          ],
+        })
+        .then((response) => {
+          if (response.length == 0) {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "FLOORS_NOT_FOUND")
+            );
+          } else {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.floors = response.map((room) => room.floor);
 
             return resolve(obj);
           }

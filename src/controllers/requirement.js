@@ -7,6 +7,7 @@ const Worker = require("../models/hotel").Worker;
 const Requirement_Category =
   require("../models/requirement_category").Requirement_Category;
 const Requirement = require("../models/requirement").Requirement;
+const upload = require("../modules/multer");
 
 function createRequirement(req, res) {
   if (
@@ -14,7 +15,7 @@ function createRequirement(req, res) {
     req.body.able_start_time == null ||
     req.body.able_end_time == null ||
     req.body.price == null ||
-    req.body.thumbnail_image_url == null ||
+    req.file == null ||
     req.body.description == null ||
     req.body.requirement_category_id == null
   ) {
@@ -32,7 +33,7 @@ function createRequirement(req, res) {
       req.body.able_start_time,
       req.body.able_end_time,
       req.body.price,
-      req.body.thumbnail_image_url,
+      req.file.path,
       req.body.description,
       req.body.requirement_category_id
     )
@@ -45,6 +46,7 @@ function createRequirement(req, res) {
         return res
           .status(message["500_SERVER_INTERNAL_ERROR"].status)
           .send(
+            error,
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
               "UNDEFINED_ERROR"
@@ -163,7 +165,7 @@ function updateRequirement(req, res) {
     req.body.able_start_time == null ||
     req.body.able_end_time == null ||
     req.body.price == null ||
-    req.body.thumbnail_image_url == null ||
+    req.file == null ||
     req.body.description == null
   ) {
     return res
@@ -181,7 +183,7 @@ function updateRequirement(req, res) {
       req.body.able_start_time,
       req.body.able_end_time,
       req.body.price,
-      req.body.thumbnail_image_url,
+      req.file.path,
       req.body.description
     )
     .then((response) => {

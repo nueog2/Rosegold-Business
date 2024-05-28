@@ -10,25 +10,34 @@ class Room_Grade extends Hotel {
 
   create(hotel_id, name, max_occupancy, price_multiplier) {
     return new Promise((resolve, reject) => {
-      models.room_grade
-        .create({
-          hotel_id: hotel_id,
-          name: name,
-          max_occupancy: max_occupancy,
-          price_multiplier: price_multiplier,
-        })
+      super
+        .readOne(hotel_id)
         .then((response) => {
-          resolve(response, message["200_SUCCESS"]);
+          models.room_grade
+            .create({
+              hotel_id: hotel_id,
+              name: name,
+              max_occupancy: max_occupancy,
+              price_multiplier: price_multiplier,
+            })
+            .then((response) => {
+              var obj = Object.assign({}, message["200_SUCCESS"]);
+              obj.room_grade = response;
+              return resolve(obj);
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(
+                error,
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
         })
         .catch((error) => {
-          console.log(errpr);
-          return reject(
-            error,
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
+          return reject(error);
         });
     });
   }

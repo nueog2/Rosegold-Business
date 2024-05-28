@@ -18,6 +18,7 @@ function createRoomGrade(req, res) {
   }
 
   const room_grade = new Room_Grade();
+
   room_grade
     .create(
       req.body.hotel_id,
@@ -30,23 +31,20 @@ function createRoomGrade(req, res) {
     })
     .catch((error) => {
       console.log(error);
-      if (!error.status)
-        return res
-          .status(message["500_SERVER_INTERNAL_ERROR"].status)
-          .send(
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
-      else return res.status(error.status).send(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
     });
 }
 
 function updateRoomGrade(req, res) {
   if (
     req.body.id == null ||
-    req.body.hotel_id == null ||
     req.body.name == null ||
     req.body.max_occupancy == null ||
     req.body.price_multiplier == null
@@ -62,7 +60,6 @@ function updateRoomGrade(req, res) {
   room_grade
     .update(
       req.body.id,
-      req.body.hotel_id,
       req.body.name,
       req.body.max_occupancy,
       req.body.price_multiplier
@@ -137,7 +134,7 @@ function getRoomGradeOne(req, res) {
 }
 
 function deleteRoomGrade(req, res) {
-  if (req.body.room_grade_id == null) {
+  if (req.query.room_grade_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -147,7 +144,7 @@ function deleteRoomGrade(req, res) {
 
   const room_grade = new Room_Grade();
   room_grade
-    .delete(req.body.room_grade_id)
+    .delete(req.query.room_grade_id)
     .then((response) => {
       res.status(response.status).send(response);
     })
