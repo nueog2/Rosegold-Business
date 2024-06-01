@@ -10,10 +10,16 @@ class Chatbot_Docs extends Hotel {
   }
 
   create(docs_dir, file_name, hotel_id) {
+    console.log("Creating Chatbot_Docs with:", {
+      docs_dir,
+      file_name,
+      hotel_id,
+    });
     return new Promise((resolve, reject) => {
       super
-        .readOne(hotel_id)
+        .readOne({ id: hotel_id })
         .then((response) => {
+          console.log("Hotel readOne response:", response);
           models.chatbot_docs
             .create({
               docs_dir: docs_dir,
@@ -21,6 +27,7 @@ class Chatbot_Docs extends Hotel {
               hotel_id: hotel_id,
             })
             .then((response) => {
+              console.log("chatbot_docs.create response:", response);
               if (response) {
                 return resolve(message["200_SUCCESS"]);
               } else {
@@ -33,7 +40,7 @@ class Chatbot_Docs extends Hotel {
               }
             })
             .catch((error) => {
-              console.log(error);
+              console.log("Error in models.chatbot_docs.create:", error);
               return reject(
                 message.issueMessage(
                   message["500_SERVER_INTERNAL_ERROR"],
@@ -43,6 +50,7 @@ class Chatbot_Docs extends Hotel {
             });
         })
         .catch((error) => {
+          console.log("Error in super.readOne:", error);
           return reject(error);
         });
     });

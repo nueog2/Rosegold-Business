@@ -2,10 +2,11 @@ const jwt = require("../modules/jwt");
 const message = require("../../config/message");
 const Chatbot_Docs = require("../models/chatbot_docs").Chatbot_Docs;
 const Hotel = require("../models/hotel").Hotel;
+const upload = require("../modules/multer2");
 
 function createChatbot_Docs(req, res) {
   if (
-    req.body.docs_dir == null ||
+    req.file == null ||
     req.body.file_name == null ||
     req.body.hotel_id == null
   ) {
@@ -18,12 +19,12 @@ function createChatbot_Docs(req, res) {
 
   const chatbot_docs = new Chatbot_Docs();
   chatbot_docs
-    .create(req.body.docs_dir, req.body.file_name, req.body.hotel_id)
+    .create(req.file.path, req.body.file_name, req.body.hotel_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
     .catch((error) => {
-      console.log(error);
+      console.log("Error in createChatbot_Docs:", error);
       if (!error.status)
         return res
           .status(message["500_SERVER_INTERNAL_ERROR"].status)
