@@ -2,10 +2,12 @@ require("dotenv").config();
 
 const express = require("express");
 const app = express();
+const path = require("path");
 const router = require("./src/routes");
 const db = require("./models");
 const message = require("./config/message");
 //const fileUpload = require("express-fileupload");
+
 const cookieParser = require("cookie-parser");
 const multer = require("./src/modules/multer");
 const multer2 = require("./src/modules/multer2");
@@ -82,13 +84,20 @@ app.set("view engine", "ejs");
 
 app.use("/public", express.static(__dirname + "/public"));
 
+//정적 파일 제공
+app.use("/chatbot_docs", express.static(path.join(__dirname, "chatbot_docs")));
+app.use("/req_thumb", express.static(path.join(__dirname, "req_thumb")));
+
+//라우터 설정
 app.use("/api", router);
+
 app.all("*", function (req, res) {
   return res
     .status(message["404_NOT_FOUND"].status)
     .send(message["404_NOT_FOUND"]);
 });
 
+//포트 설정 및 서버 실행
 app.listen(port, function () {
   console.log(`Server is listening at localhost:{$port}`);
 });
