@@ -1,6 +1,7 @@
 const models = require("../../models");
 const message = require("../../config/message");
 const { Hotel } = require("./hotel");
+const requirement = require("../../models/schema/requirement");
 
 class Requirement_Category extends Hotel {
   constructor() {

@@ -21,14 +21,17 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 0,
       },
       thumbnail_image_url: {
-        type: DataTypes.STRING(),
-        allowNull: false,
-        defaultValue: "",
+        type: DataTypes.STRING(512),
+        allowNull: true,
       },
       description: {
         type: DataTypes.TEXT(),
         allowNull: false,
         defaultValue: "",
+      },
+      requirement_category_id: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
       },
     },
     {

@@ -10,6 +10,9 @@ const Requirement = require("../models/requirement").Requirement;
 const upload = require("../modules/multer");
 
 function createRequirement(req, res) {
+  console.log("Request Body:", req.body);
+  console.log("Uploaded File:", req.file);
+
   if (
     req.body.name == null ||
     req.body.able_start_time == null ||
@@ -19,6 +22,7 @@ function createRequirement(req, res) {
     req.body.description == null ||
     req.body.requirement_category_id == null
   ) {
+    console.log("Missing parameters");
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -38,15 +42,15 @@ function createRequirement(req, res) {
       req.body.requirement_category_id
     )
     .then((response) => {
+      console.log("Requirement created successfully:", response);
       return res.status(response.status).send(response);
     })
     .catch((error) => {
-      console.log(error);
+      console.log("Error creating requirement:", error);
       if (!error.status)
         return res
           .status(message["500_SERVER_INTERNAL_ERROR"].status)
           .send(
-            error,
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
               "UNDEFINED_ERROR"

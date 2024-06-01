@@ -28,7 +28,7 @@ class Requirement extends Requirement_Category {
       });
 
       super
-        .readOne(requirement_category_id)
+        .readOne({ id: requirement_category_id })
         .then((response) => {
           console.log("Requirement category found:", response);
 
