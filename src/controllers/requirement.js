@@ -31,13 +31,17 @@ function createRequirement(req, res) {
   }
 
   const requirement = new Requirement();
+  const domain = "http://223.130.137.39:6060"; // 도메인 주소 추가
+  const filePath = req.file.path.replace(/\\/g, "/"); // 경로에서 백슬래시를 슬래시로 변경
+  const thumbnail_image_url = `${domain}/${filePath}`;
+
   requirement
     .create(
       req.body.name,
       req.body.able_start_time,
       req.body.able_end_time,
       req.body.price,
-      req.file.path,
+      thumbnail_image_url,
       req.body.description,
       req.body.requirement_category_id
     )
@@ -180,6 +184,10 @@ function updateRequirement(req, res) {
   }
 
   const requirement = new Requirement();
+  const domain = "http://223.130.137.39:6060";
+  const filePath = req.file.path.replace(/\\/g, "/");
+  const thumbnail_image_url = `${domain}/${filePath}`;
+
   requirement
     .update(
       req.body.requirement_id,
@@ -187,7 +195,7 @@ function updateRequirement(req, res) {
       req.body.able_start_time,
       req.body.able_end_time,
       req.body.price,
-      req.file.path,
+      thumbnail_image_url,
       req.body.description
     )
     .then((response) => {

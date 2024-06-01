@@ -18,8 +18,12 @@ function createChatbot_Docs(req, res) {
   }
 
   const chatbot_docs = new Chatbot_Docs();
+  const domain = "http://223.130.137.39:6060"; // 도메인 주소 추가
+  const filePath = req.file.path.replace(/\\/g, "/"); // 경로에서 백슬래시를 슬래시로 변경
+  const docs_dir = `${domain}/${filePath}`;
+
   chatbot_docs
-    .create(req.file.path, req.body.file_name, req.body.hotel_id)
+    .create(docs_dir, req.body.file_name, req.body.hotel_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -104,7 +108,7 @@ function getChatbot_DocsOne(req, res) {
 function updateChatbot_Docs(req, res) {
   if (
     req.body.chatbot_docs_id == null ||
-    req.body.docs_dir == null ||
+    req.file == null ||
     req.body.file_name == null
   ) {
     return res
@@ -115,8 +119,12 @@ function updateChatbot_Docs(req, res) {
   }
 
   const chatbot_docs = new Chatbot_Docs();
+  const domain = "http://223.130.137.39:6060"; // 도메인 주소 추가
+  const filePath = req.file.path.replace(/\\/g, "/"); // 경로에서 백슬래시를 슬래시로 변경
+  const docs_dir = `${domain}/${filePath}`;
+
   chatbot_docs
-    .update(req.body.chatbot_docs_id, req.body.docs_dir, req.body.file_name)
+    .update(req.body.chatbot_docs_id, docs_dir, req.body.file_name)
     .then((response) => {
       return res.status(response.status).send(response);
     })
