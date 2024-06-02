@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const managementController = require("../../../controllers/management");
+const authUtil = require("../../../middlewares/auth_util");
 
 router.post("/", managementController.createWorker);
 router.get("/many", managementController.getWorkerMany);
@@ -13,5 +14,41 @@ router.put("/admin", managementController.updateWorkerAdmin);
 router.delete("/", managementController.deleteWorker);
 
 router.put("/role", managementController.updateAssignLog);
+
+router.get("/mobile/sign-in", managementController.getAccessTokenByAccount);
+router.post(
+  "/mobile/work/status",
+  authUtil.verifyToken,
+  managementController.updateWorkStatus
+);
+router.get(
+  "/mobile/profile",
+  authUtil.verifyToken,
+  managementController.readProfileInfo
+);
+
+router.get(
+  "/mobile/work/me/ing",
+  authUtil.verifyToken,
+  managementController.readWorkerProcessingReqLog
+);
+
+router.get(
+  "/mobile/work/not-assign",
+  authUtil.verifyToken,
+  managementController.readWorkerNotAssignReqLog
+);
+
+router.get(
+  "/mobile/work/me/finished",
+  authUtil.verifyToken,
+  managementController.readWorkerProcessedReqLog
+);
+
+router.post(
+  "/mobile/work/assign",
+  authUtil.verifyToken,
+  managementController.setAssignWorker
+);
 
 module.exports = router;

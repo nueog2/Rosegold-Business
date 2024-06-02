@@ -825,6 +825,40 @@ class Worker extends Hotel {
     });
   }
 
+  readWorkLogMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .findAll({ where: condition, order: [["createdAt", "DESC"]] })
+        .then((response) => {
+          if (response.length == 0) {
+            return reject(message["404_NOT_FOUND"]);
+          } else {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.work_logs = response;
+            return resolve(obj);
+          }
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
+  createWorkLog(user_id, status) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .create({
+          user_id: user_id,
+          status: status,
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
   readMany(condition, order) {
     return new Promise((resolve, reject) => {
       models.user
@@ -1030,6 +1064,61 @@ class Worker extends Hotel {
     });
   }
 
+  readProfileInfo(user_id) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findOne({
+          include: [{ model: models.hotel, attributes: ["id", "name"] }],
+          where: {
+            id: user_id,
+          },
+          attributes: ["id", "name", "hotel_id"],
+        })
+        .then((profileResponse) => {
+          if (profileResponse != null) {
+            this.readWorkLogMany({ user_id: user_id })
+              .then((workLogsResponse) => {
+                var requirementLog = new Requirement_Log();
+                requirementLog
+                  .readMany({
+                    user_id: user_id,
+                    progress: 2,
+                  })
+                  .then((requirementLogResponse) => {
+                    var obj = Object.assign({}, message["200_SUCCESS"]);
+                    obj.profile = profileResponse.dataValues;
+                    obj.profile.last_work_log =
+                      workLogsResponse.work_logs[0].dataValues;
+                    obj.profile.processed_count =
+                      requirementLogResponse.Total_requirement_log;
+                    return resolve(obj);
+                  })
+                  .catch((error) => {
+                    if (error.status == message["404_NOT_FOUND"].status) {
+                      var obj = Object.assign({}, message["200_SUCCESS"]);
+                      obj.profile = profileResponse.dataValues;
+                      obj.profile.last_work_log =
+                        workLogsResponse.work_logs[0].dataValues;
+                      obj.profile.processed_count = 0;
+                      return resolve(obj);
+                    } else {
+                      return reject(error);
+                    }
+                  });
+              })
+              .catch((error) => {
+                return reject(error);
+              });
+          } else {
+            return reject(message["404_NOT_FOUND"]);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
   update(user_id, name, phone, role_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
@@ -1104,6 +1193,7 @@ class Worker extends Hotel {
         });
     });
   }
+
 
   updateProfile(user_id, name, user_num, phone, role_id, user_pwd) {
     return new Promise((resolve, reject) => {
@@ -1183,36 +1273,27 @@ class Worker extends Hotel {
     });
   }
 
-  // updateProfile(user_id,name,phone,department_id,user_pwd) {
-  //   return new Promise((resolve,reject) => {
-  //     this.readOne({ id: user_id })
-  //       .then((response) => {
-  //         models.user
-  //           .update({
-  //             name: name,
-  //             phone:phone,
-  //             user_pwd:user_pwd
-  //           },
-  //           {
-  //             where: {
-  //               id: user_id
-  //             }
-  //           }
-  //         )
-  //         .then((response) => {
-  //           models.role_assign_log({ user_id: user_id})
-  //             .then((response) => {
-  //               models.requirement_log
-  //                 .update({
-  //                   role_id
-  //                 })
-  //             })
-  //             }
-  //         })
-  //   });
-  //       });
-  //   }
-  // }
+  updateFCMToken(user_id, fcm_token) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .update(
+          {
+            fcm_token: fcm_token,
+          },
+          {
+            where: {
+              id: user_id,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
 
   // UPDATE hotel_admin_user
   updateAdmin(user_id, hotel_admin_user) {
@@ -1853,6 +1934,7 @@ class Requirement_Log extends Room {
             "user_id",
             "summarized_sentence",
           ],
+          order: [["createdAt", "DESC"]],
         })
         .then((response) => {
           if (response.length > 0) {
@@ -2181,6 +2263,84 @@ class Requirement_Log extends Room {
   }
 }
 
+class Message {
+  sendMessage(to_user_id, message_article, user_id) {
+    return new Promise((resolve, reject) => {
+      var worker = new Worker();
+
+      worker
+        .readOne({
+          id: to_user_id,
+        })
+        .then((response) => {
+          models.message
+            .create({
+              to_user_id: to_user_id,
+              message_article: message_article,
+              user_id: user_id,
+            })
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(message["500_SERVER_INTERNAL_ERROR"]);
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.message
+        .findAll({
+          where: condition,
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.messages = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "MESSAGE_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
+  update(message_id, status) {
+    return new Promise((resolve, reject) => {
+      models.message
+        .update(
+          {
+            status: status,
+          },
+          {
+            where: {
+              id: message_id,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+}
+
 module.exports = {
   Hotel,
   Department,
@@ -2189,4 +2349,5 @@ module.exports = {
   Role_Assign_Log,
   Room,
   Requirement_Log,
+  Message,
 };
