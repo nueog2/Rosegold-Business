@@ -558,6 +558,7 @@ function deleteRole(req, res) {
 function createWorker(req, res) {
   if (
     req.body.name == null ||
+    req.body.user_num == null ||
     req.body.user_id == null ||
     req.body.user_pwd == null ||
     req.body.phone == null ||
@@ -575,6 +576,7 @@ function createWorker(req, res) {
   worker
     .create(
       req.body.name,
+      req.body.user_num,
       req.body.user_id,
       req.body.user_pwd,
       req.body.phone,
@@ -1006,6 +1008,50 @@ function updateWorker(req, res) {
     });
 }
 
+function updateWorkerProfile(req, res) {
+  if (
+    req.body.worker_id == null ||
+    req.body.name == null ||
+    req.body.user_num == null ||
+    req.body.phone == null ||
+    req.body.role_id == null ||
+    req.body.user_pwd == null
+  ) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const worker = new Worker();
+  worker
+    .updateProfile(
+      req.body.worker_id,
+      req.body.name,
+      req.body.user_num,
+      req.body.phone,
+      req.body.role_id,
+      req.body.user_pwd
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 // hotel_admin_user UPDTATE API
 function updateWorkerAdmin(req, res) {
   if (req.body.worker_id == null || req.body.hotel_admin_user == null) {
@@ -1123,7 +1169,13 @@ function createRoom(req, res) {
           );
       } else {
         room
-          .create(req.body.hotel_id, req.body.name, req.body.floor)
+          .create(
+            req.body.hotel_id,
+            req.body.name,
+            req.body.floor,
+            req.body.price,
+            req.body.room_grade_id
+          )
           .then((response) => {
             return res.status(response.status).send(response);
           })
@@ -1165,6 +1217,34 @@ function getRoomMany(req, res) {
   const room = new Room();
   room
     .readMany({ hotel_id: req.query.hotel_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
+function getRoomFloors(req, res) {
+  if (req.query.hotel_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readManyFloors({ hotel_id: req.query.hotel_id })
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -1643,6 +1723,7 @@ module.exports = {
   getWorkerManyByDepartment2,
   getWorkerOne,
   updateWorker,
+  updateWorkerProfile,
   updateWorkerAdmin,
   //호텔 최고 관리자 여부 선택 추가
   deleteWorker,
@@ -1657,6 +1738,8 @@ module.exports = {
   getRoomMany,
   getRoomOne,
   getRoomManyByFloor,
+  // 객실 층 조회 추가
+  getRoomFloors,
   updateRoom,
   //객실 등급 수정
   updateRoomGrade,

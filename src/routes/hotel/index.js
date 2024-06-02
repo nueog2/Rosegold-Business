@@ -9,6 +9,7 @@ const roomRouter = require("./room");
 const requirement_logRouter = require("./requirement_log");
 const messageRouter = require("./message");
 const auth_util = require("../../middlewares/auth_util");
+const room_gradeRouter = require("./room_grade");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -18,7 +19,10 @@ router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
 router.use("/room", auth_util.verifyToken, roomRouter);
 router.use("/requirement_log", requirement_logRouter);
-router.use("/message", messageRouter);
+
+router.use("/room_grade", room_gradeRouter);
+router.use("/message", messageRouter)
+
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);

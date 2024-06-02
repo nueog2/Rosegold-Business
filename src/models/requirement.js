@@ -17,9 +17,21 @@ class Requirement extends Requirement_Category {
     requirement_category_id
   ) {
     return new Promise((resolve, reject) => {
+      console.log("Creating requirement with data:", {
+        name,
+        able_start_time,
+        able_end_time,
+        price,
+        thumbnail_image_url,
+        description,
+        requirement_category_id,
+      });
+
       super
-        .readOne(requirement_category_id)
+        .readOne({ id: requirement_category_id })
         .then((response) => {
+          console.log("Requirement category found:", response);
+
           models.requirement
             .create({
               name: name,
@@ -32,8 +44,10 @@ class Requirement extends Requirement_Category {
             })
             .then((response) => {
               if (response) {
+                console.log("Requirement created:", response);
                 return resolve(message["200_SUCCESS"]);
               } else {
+                console.log("Requirement creation failed");
                 return reject(
                   message.issueMessage(
                     message["500_SERVER_INTERNAL_ERROR"],
@@ -43,7 +57,7 @@ class Requirement extends Requirement_Category {
               }
             })
             .catch((error) => {
-              console.log(error);
+              console.log("Error creating requirement:", error);
               return reject(
                 message.issueMessage(
                   message["500_SERVER_INTERNAL_ERROR"],
@@ -53,6 +67,7 @@ class Requirement extends Requirement_Category {
             });
         })
         .catch((error) => {
+          console.log("Error finding requirement category:", error);
           return reject(error);
         });
     });

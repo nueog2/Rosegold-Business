@@ -7,6 +7,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(16),
         allowNull: false,
       },
+      user_num: {
+        type: DataTypes.CHAR(),
+        allowNull: false,
+      },
       user_id: {
         type: DataTypes.CHAR(16),
         allowNull: false,
@@ -26,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       fcm_token: {
         type: DataTypes.JSON(),
-        allowNull: false,
+        allowNull: true,
         defaultValue: {},
       },
     },
