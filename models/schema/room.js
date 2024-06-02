@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
       floor: {
         type: DataTypes.INTEGER(),
         allowNull: false,
+        // references: {
+        //   model: 'floors',
+        //   key: 'floor_number' // 변경된 부분
+        // },
+        // onDelete: "CASCADE"
       },
       price: {
         type: DataTypes.INTEGER(),

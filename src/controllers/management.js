@@ -557,6 +557,7 @@ function deleteRole(req, res) {
 function createWorker(req, res) {
   if (
     req.body.name == null ||
+    req.body.user_num == null ||
     req.body.user_id == null ||
     req.body.user_pwd == null ||
     req.body.phone == null ||
@@ -574,6 +575,7 @@ function createWorker(req, res) {
   worker
     .create(
       req.body.name,
+      req.body.user_num,
       req.body.user_id,
       req.body.user_pwd,
       req.body.phone,
@@ -1009,6 +1011,7 @@ function updateWorkerProfile(req, res) {
   if (
     req.body.worker_id == null ||
     req.body.name == null ||
+    req.body.user_num == null ||
     req.body.phone == null ||
     req.body.role_id == null ||
     req.body.user_pwd == null
@@ -1025,6 +1028,7 @@ function updateWorkerProfile(req, res) {
     .updateProfile(
       req.body.worker_id,
       req.body.name,
+      req.body.user_num,
       req.body.phone,
       req.body.role_id,
       req.body.user_pwd
@@ -1164,7 +1168,13 @@ function createRoom(req, res) {
           );
       } else {
         room
-          .create(req.body.hotel_id, req.body.name, req.body.floor)
+          .create(
+            req.body.hotel_id,
+            req.body.name,
+            req.body.floor,
+            req.body.price,
+            req.body.room_grade_id
+          )
           .then((response) => {
             return res.status(response.status).send(response);
           })

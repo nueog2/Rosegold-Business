@@ -360,12 +360,22 @@ class Department extends Hotel {
                   role
                     .readAssignLogOne({ role_id: _role.id })
                     .then((response) => {
-                      return reject(
-                        message.issueMessage(
-                          message["409_CONFLICT"],
-                          "WORKER_ASSIGNED_DEPARTMENT"
-                        )
-                      );
+                      models.role_assign_log
+                        .destroy({
+                          where: {
+                            role_id: _role.id,
+                          },
+                        })
+                        .then((response) => {
+                          models.role.destroy({
+                            where: {
+                              id: _role.id,
+                            },
+                          });
+                        })
+                        .then((response) => {
+                          return resolve(message["200_SUCCESS"]);
+                        });
                     })
                     .catch((error) => {
                       if (
@@ -375,7 +385,6 @@ class Department extends Hotel {
                         processCount++;
 
                         if (processCount == roleResponse.roles.length) {
-                          // 해당 부서에 있는 직책 로그 삭제
                           models.role
                             .destroy({
                               where: {
@@ -425,66 +434,6 @@ class Department extends Hotel {
         });
     });
   }
-
-  // 기존 코드
-  //   delete(department_id) {
-  //     return new Promise((resolve, reject) => {
-  //       this.readOne({ id: department_id })
-  //         .then((response) => {
-  //           var role = new Role();
-  //           role
-  //             .readMany({ department_id: department_id })
-  //             .then((roleResponse) => {
-  //               var processCount = 0;
-
-  //               roleResponse.roles.forEach((_role) => {
-  //                 role
-  //                   .readAssignLogOne({ role_id: _role.id })
-  //                   .then((response) => {
-  //                     console.log(response);
-  //                     return reject(
-  //                       message.issueMessage(
-  //                         message["409_CONFLICT"],
-  //                         "WORKER_ASSIGNED_DEPARTMENT"
-  //                       )
-  //                     );
-  //                   })
-  //                   .catch((error) => {
-  //                     if (
-  //                       error.status != null &&
-  //                       error.status == message["404_NOT_FOUND"].status
-  //                     ) {
-  //                       processCount++;
-
-  //                       if (processCount == roleResponse.roles.length) {
-  //                         models.department
-  //                           .destroy({
-  //                             where: {
-  //                               id: department_id,
-  //                             },
-  //                           })
-  //                           .then((response) => {
-  //                             return resolve(message["200_SUCCESS"]);
-  //                           })
-  //                           .catch((error) => {
-  //                             return reject(
-  //                               message.issueMessage(
-  //                                 message["500_SERVER_INTERNAL_ERROR"],
-  //                                 "UNDEFINED_ERROR"
-  //                               )
-  //                             );
-  //                           });
-  //                       }
-  //                     }
-  //                   });
-  //               });
-  //             });
-  //         })
-  //         .catch((error) => {
-  //           return reject(error);
-  //         });
-  //     });
-  //   }
 }
 
 class Role extends Department {
@@ -661,7 +610,7 @@ class Role extends Department {
         .then((response) => {
           return resolve(message["200_SUCCESS"]);
         })
-        .catch((errror) => {
+        .catch((error) => {
           return reject(
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
@@ -754,12 +703,27 @@ class Role extends Department {
         .then((response) => {
           this.readAssignLogOne({ role_id: role_id })
             .then((response) => {
-              return reject(
-                message.issueMessage(
-                  message["409_CONFLICT"],
-                  "WORKER_ASSIGNED_ROLE"
-                )
-              );
+              models.role_assign_log
+                .destroy({
+                  where: {
+                    role_id: role_id,
+                  },
+                })
+                .then((response) => {
+                  models.role
+                    .destroy({
+                      where: {
+                        id: role_id,
+                      },
+                    })
+                    .then((response) => {
+                      console.log("role delete");
+                      return resolve(message["200_SUCCESS"]);
+                    });
+                })
+                .catch((error) => {
+                  return reject(error);
+                });
             })
             .catch((error) => {
               if (
@@ -800,7 +764,7 @@ class Worker extends Hotel {
     super();
   }
 
-  create(name, user_id, user_pwd, phone, role_id, hotel_id) {
+  create(name, user_num, user_id, user_pwd, phone, role_id, hotel_id) {
     return new Promise((resolve, reject) => {
       super
         .readOne(hotel_id)
@@ -812,6 +776,7 @@ class Worker extends Hotel {
               models.user
                 .create({
                   name: name,
+                  user_num: user_num,
                   user_id: user_id,
                   user_pwd: user_pwd,
                   phone: phone,
@@ -1140,7 +1105,7 @@ class Worker extends Hotel {
     });
   }
 
-  updateProfile(user_id, name, phone, role_id, user_pwd) {
+  updateProfile(user_id, name, user_num, phone, role_id, user_pwd) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
         .then((response) => {
@@ -1148,7 +1113,9 @@ class Worker extends Hotel {
             .update(
               {
                 name: name,
+                user_num: user_num,
                 phone: phone,
+                role_id: role_id,
                 user_pwd: user_pwd,
               },
               {
@@ -1373,12 +1340,23 @@ class Role_Assign_Log extends Role {
           if (response[0] > 0) {
             return resolve(message["200_SUCCESS"]);
           } else {
-            return reject(
-              message.issueMessage(
-                message["404_NOT_FOUND"],
-                "ROLE_ASSIGN_LOG_NOT_FOUND"
-              )
-            );
+            models.role_assign_log
+              .create({
+                role_id: role_id,
+                user_id: user_id,
+              })
+              .then((response) => {
+                return resolve(message["200_SUCCESS"]);
+              })
+              .catch((error) => {
+                console.log(error);
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              });
           }
         })
         .catch((error) => {
@@ -1399,7 +1377,7 @@ class Room extends Hotel {
     super();
   }
 
-  create(hotel_id, name, floor, price, room_grade_id = null) {
+  create(hotel_id, name, floor, price, room_grade_id) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
