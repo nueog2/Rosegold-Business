@@ -4,6 +4,14 @@ const jwtModule = require("../modules/jwt");
 const { updateRole } = require("../controllers/management");
 const { response } = require("express");
 
+const admin = require("firebase-admin");
+
+let serAccount = require("../../config/firebase-key.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serAccount),
+});
+
 class Hotel {
   constructor() {}
 
@@ -1194,7 +1202,6 @@ class Worker extends Hotel {
     });
   }
 
-
   updateProfile(user_id, name, user_num, phone, role_id, user_pwd) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
@@ -1869,8 +1876,61 @@ class Requirement_Log extends Room {
                   user_id: null,
                 })
                 .then((response) => {
-                  if (response) return resolve(message["200_SUCCESS"]);
-                  else console.log(error);
+                  if (response) {
+                    var worker = new Worker();
+                    worker
+                      .readManyByDepartment2(department_id)
+                      .then((workers) => {
+                        var sendTargetFCMTokens = [];
+                        for (var i = 0; i < workers["workers"].length; i++) {
+                          if (
+                            workers["workers"][i].dataValues["fcm_token"]
+                              .length > 0
+                          ) {
+                            sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                              workers["workers"][i].dataValues["fcm_token"]
+                            );
+                          }
+                        }
+                        let message = {
+                          notification: {
+                            title: "새로운 요청 도착!",
+                            body: "빠르게 요청을 배정받아주세요!",
+                          },
+                          data: {
+                            title: "새로운 요청 도착!",
+                            body: "빠르게 요청을 배정받아주세요!",
+                          },
+                          tokens: sendTargetFCMTokens,
+                        };
+                        console.log(message);
+                        admin
+                          .messaging()
+                          .sendMulticast(message)
+                          .then(function (response) {
+                            console.log(
+                              "Successfully sent message: : ",
+                              response
+                            );
+                          })
+                          .catch(function (err) {
+                            console.log("Error Sending message!!! : ", err);
+                          });
+
+                        return resolve(message["200_SUCCESS"]);
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        if (
+                          error.status &&
+                          error.status == message["404_NOT_FOUND"].status
+                        ) {
+                          return resolve(message["200_SUCCESS"]);
+                        } else {
+                          return reject(error);
+                        }
+                      });
+                  } else console.log(error);
                   return reject(
                     message.issueMessage(
                       message["500_SERVER_INTERNAL_ERROR"],
@@ -1934,7 +1994,7 @@ class Requirement_Log extends Room {
             "user_id",
             "summarized_sentence",
           ],
-          order: [["createdAt", "DESC"]],
+          order: [["createdAt", "ASC"]],
         })
         .then((response) => {
           if (response.length > 0) {
@@ -2230,6 +2290,31 @@ class Requirement_Log extends Room {
         })
         .catch((error) => {
           return reject(error);
+        });
+    });
+  }
+
+  updateProcessedInfo(requirement_log_id, processed_info) {
+    return new Promise((resolve, reject) => {
+      console.log(requirement_log_id);
+      models.requirement_log
+        .update(
+          {
+            progress: 2,
+            processed_info: processed_info,
+          },
+          {
+            where: {
+              id: requirement_log_id,
+              progress: 1,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
         });
     });
   }

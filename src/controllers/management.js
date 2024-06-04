@@ -1490,7 +1490,15 @@ function getAccessTokenByAccount(req, res) {
           }
           console.log(workerInfoResponse.worker.dataValues);
           var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
-          if (req.query.fcm_token in fcmTokenJSON) {
+
+          var existFCMToken = false;
+          for (var i = 0; i < fcmTokenJSON.length; ++i) {
+            if (fcmTokenJSON[i] == req.query.fcm_token) {
+              existFCMToken = true;
+              break;
+            }
+          }
+          if (existFCMToken) {
             return res.status(tokenResponse.status).send(tokenResponse);
           } else {
             fcmTokenJSON.push(req.query.fcm_token);
@@ -1648,6 +1656,19 @@ function setAssignWorker(req, res) {
     });
 }
 
+function setWorkFinish(req, res) {
+  var requireLog = new Requirement_Log();
+  console.log(req.body.requirement_log_id);
+  requireLog
+    .updateProcessedInfo(req.body.requirement_log_id, req.body.processed_info)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
 function sendMessage(req, res) {
   if (!req.body.to_user_id || !req.body.message_article) {
     return res
@@ -1758,4 +1779,5 @@ module.exports = {
   sendMessage,
   readMessages,
   okMessage,
+  setWorkFinish,
 };

@@ -28,6 +28,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(),
         allowNull: true,
       },
+      processed_info: {
+        type: DataTypes.TEXT(),
+        allowNull: false,
+        defaultValue: "",
+      },
     },
     {
       paranoid: true,

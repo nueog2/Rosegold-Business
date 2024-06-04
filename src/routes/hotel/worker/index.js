@@ -51,4 +51,10 @@ router.post(
   managementController.setAssignWorker
 );
 
+router.post(
+  "/mobile/work/finish",
+  authUtil.verifyToken,
+  managementController.setWorkFinish
+);
+
 module.exports = router;
