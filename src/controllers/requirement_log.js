@@ -1,5 +1,6 @@
 const Requirement_Log = require("../models/hotel").Requirement_Log;
 const message = require("../../config/message");
+const { Worker } = require("../models/hotel");
 
 function createRequirementLog(req, res) {
   if (
@@ -33,7 +34,25 @@ function createRequirementLog(req, res) {
       req.body.user_id
     )
     .then((response) => {
-      return res.status(response.status).send(response);
+      const worker = new Worker();
+      worker
+        .readManyByDepartment2(req.body.process_department_id)
+        .then((departmentWorkers) => {
+          console.log(departmentWorkers);
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          if (!error.status)
+            return res
+              .status(message["500_SERVER_INTERNAL_ERROR"].status)
+              .send(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+          else return res.status(error.status).send(error);
+        });
     })
     .catch((error) => {
       console.log(error);
