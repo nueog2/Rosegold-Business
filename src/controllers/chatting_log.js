@@ -57,6 +57,7 @@ function createChattingLog(req, res) {
                 });
               })
               .catch((error) => {
+                console.log(error);
                 if (error.status) return res.status(error.status).send(error);
                 else
                   return res
@@ -73,6 +74,7 @@ function createChattingLog(req, res) {
           }
         })
         .catch((error) => {
+          console.log(error);
           if (error.status) return res.status(error.status).send(error);
           else
             return res
@@ -86,6 +88,7 @@ function createChattingLog(req, res) {
         });
     })
     .catch((error) => {
+      console.log(error);
       if (error.status) return res.status(error.status).send(error);
       else
         return res

@@ -1892,32 +1892,36 @@ class Requirement_Log extends Room {
                             );
                           }
                         }
-                        let message = {
-                          notification: {
-                            title: "새로운 요청 도착!",
-                            body: "빠르게 요청을 배정받아주세요!",
-                          },
-                          data: {
-                            title: "새로운 요청 도착!",
-                            body: "빠르게 요청을 배정받아주세요!",
-                          },
-                          tokens: sendTargetFCMTokens,
-                        };
-                        console.log(message);
-                        admin
-                          .messaging()
-                          .sendMulticast(message)
-                          .then(function (response) {
-                            console.log(
-                              "Successfully sent message: : ",
-                              response
-                            );
-                          })
-                          .catch(function (err) {
-                            console.log("Error Sending message!!! : ", err);
-                          });
 
-                        return resolve(message["200_SUCCESS"]);
+                        if (sendTargetFCMTokens.length > 0) {
+                          let _message = {
+                            notification: {
+                              title: "새로운 요청 도착!",
+                              body: "빠르게 요청을 배정받아주세요!",
+                            },
+                            data: {
+                              title: "새로운 요청 도착!",
+                              body: "빠르게 요청을 배정받아주세요!",
+                            },
+                            tokens: sendTargetFCMTokens,
+                          };
+                          admin
+                            .messaging()
+                            .sendMulticast(_message)
+                            .then(function (response) {
+                              console.log(
+                                "Successfully sent message: : ",
+                                response
+                              );
+                              return resolve(message["200_SUCCESS"]);
+                            })
+                            .catch(function (err) {
+                              console.log("Error Sending message!!! : ", err);
+                              return resolve(message["200_SUCCESS"]);
+                            });
+                        } else {
+                          return resolve(message["200_SUCCESS"]);
+                        }
                       })
                       .catch((error) => {
                         console.log(error);
@@ -1930,13 +1934,14 @@ class Requirement_Log extends Room {
                           return reject(error);
                         }
                       });
-                  } else console.log(error);
-                  return reject(
-                    message.issueMessage(
-                      message["500_SERVER_INTERNAL_ERROR"],
-                      "UNDEFINED_ERROR"
-                    )
-                  );
+                  } else {
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  }
                 })
                 .catch((error) => {
                   console.log(error);
