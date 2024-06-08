@@ -13,20 +13,22 @@ const encoding = new Tiktoken(
 
 function encode(text) {
   const tokens = encoding.encode(text);
-  encoding.free();
   console.log(tokens);
   console.log("token length : " + tokens.length);
-
+  //encoding.free();
   return tokens;
 }
 
 function decode(tokens) {
-  return cl100kBase.decode(tokens);
+  let text = new TextDecoder().decode(encoding.decode(tokens));
+  // const text = encoding.decode(tokens);
+  text = text.replace(/�/g, "");
+  return text;
 }
 
 function encode_example() {
   const tokens = encoding.encode("안녕하세요. 반갑습니다.");
-  encoding.free();
+  //encoding.free();
   console.log(tokens);
   console.log("토큰 길이 : " + tokens.length);
   return tokens;

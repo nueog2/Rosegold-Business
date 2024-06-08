@@ -35,21 +35,30 @@ function createChatbot_Docs(req, res) {
 
     // 텍스트 토큰화
     let tokens = tiktoken.encode(data);
-    console.log(tokens);
-    console.log(tokens.length);
+    console.log("Original tokens:", tokens);
+    console.log("Original token length:", tokens.length);
 
-    // 토큰 수가 1500 이상이면 분할
+    // 토큰 수가 1500 이상이면 분할, 줄바꿈 고려
     let segments = [];
-    const segmentSize = 800;
-    for (let i = 0; i < tokens.length; i += segmentSize) {
-      segments.push(tokens.slice(i, i + segmentSize));
-    }
+    const segmentSize = 800; // 기본 세그먼트 크기
+    let currentSize = 0;
 
-    // 각 세그먼트를 텍스트로 변환
-    segments = segments.map((segment) => tiktoken.decode(segment));
+    tokens.forEach((token, index) => {
+      if (currentSize >= segmentSize || segments.length === 0) {
+        segments.push([]);
+        currentSize = 0;
+      }
+      segments[segments.length - 1].push(token);
+      currentSize += token.length;
+      if (token === "\n") currentSize = 0; // 줄바꿈 고려하여 크기 리셋
+    });
 
-    // # 문자 위로 3줄 추가
-    segments = segments.map((segment) => segment.replace(/(#)/g, "\n\n\n$1"));
+    // 각 세그먼트를 텍스트로 변환 및 # 처리
+    segments = segments.map((segment) => {
+      let text = tiktoken.decode(segment);
+      // 첫 번째 # 문자에만 세 줄 추가, 같은 줄의 두 번째 #에는 추가하지 않음
+      return text.replace(/^(.*?#)(.*?#)/gm, "\n\n\n$1$2");
+    });
 
     // 변환된 텍스트를 파일로 저장
     const transformedText = segments.join("\n\n");
@@ -66,6 +75,8 @@ function createChatbot_Docs(req, res) {
             )
           );
       }
+
+      console.log("File transformed and saved: " + transformedFilePath);
 
       const chatbot_docs = new Chatbot_Docs();
       const domain = "http://223.130.137.39:6060";
@@ -94,6 +105,8 @@ function createChatbot_Docs(req, res) {
     });
   });
 }
+//chatbot_docs/1717851438009_transformed.txt
+// http://223.130.137.39:6060/chatbot_docs/1717851438009_transformed.txt
 
 // function createChatbot_Docs(req, res) {
 //   if (
@@ -225,19 +238,30 @@ function updateChatbot_Docs(req, res) {
 
     // 텍스트 토큰화
     let tokens = tiktoken.encode(data);
+    console.log("Original tokens:", tokens);
+    console.log("Original token length:", tokens.length);
 
-    // 토큰 수가 1500 이상이면 분할
+    // 토큰 수가 1500 이상이면 분할, 줄바꿈 고려
     let segments = [];
-    const segmentSize = 800;
-    for (let i = 0; i < tokens.length; i += segmentSize) {
-      segments.push(tokens.slice(i, i + segmentSize));
-    }
+    const segmentSize = 800; // 기본 세그먼트 크기
+    let currentSize = 0;
 
-    // 각 세그먼트를 텍스트로 변환
-    segments = segments.map((segment) => tiktoken.decode(segment));
+    tokens.forEach((token, index) => {
+      if (currentSize >= segmentSize || segments.length === 0) {
+        segments.push([]);
+        currentSize = 0;
+      }
+      segments[segments.length - 1].push(token);
+      currentSize += token.length;
+      if (token === "\n") currentSize = 0; // 줄바꿈 고려하여 크기 리셋
+    });
 
-    // # 문자 위로 3줄 추가
-    segments = segments.map((segment) => segment.replace(/(#)/g, "\n\n\n$1"));
+    // 각 세그먼트를 텍스트로 변환 및 # 처리
+    segments = segments.map((segment) => {
+      let text = tiktoken.decode(segment);
+      // 첫 번째 # 문자에만 세 줄 추가, 같은 줄의 두 번째 #에는 추가하지 않음
+      return text.replace(/^(.*?#)(.*?#)/gm, "\n\n\n$1$2");
+    });
 
     // 변환된 텍스트를 파일로 저장
     const transformedText = segments.join("\n\n");
@@ -255,6 +279,8 @@ function updateChatbot_Docs(req, res) {
           );
       }
 
+      console.log("File transformed and saved: " + transformedFilePath);
+
       const chatbot_docs = new Chatbot_Docs();
       const domain = "http://223.130.137.39:6060";
       const docs_dir = `${domain}/${transformedFilePath.replace(/\\/g, "/")}`;
@@ -270,7 +296,7 @@ function updateChatbot_Docs(req, res) {
           return res.status(response.status).send(response);
         })
         .catch((error) => {
-          console.log(error);
+          console.log("Error in updateChatbot_Docs:", error);
           if (!error.status)
             return res
               .status(message["500_SERVER_INTERNAL_ERROR"].status)
