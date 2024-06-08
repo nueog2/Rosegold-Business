@@ -1377,7 +1377,7 @@ class Room extends Hotel {
     super();
   }
 
-  create(hotel_id, name, floor, price, room_grade_id) {
+  create(hotel_id, name, floor_id, price, room_grade_id) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
@@ -1399,7 +1399,7 @@ class Room extends Hotel {
               .create({
                 hotel_id: hotel_id,
                 name: name,
-                floor: floor,
+                floor_id: floor_id,
                 price: price,
                 room_grade_id: room_grade_id,
               })
@@ -1432,10 +1432,16 @@ class Room extends Hotel {
       models.room
         .findAll({
           where: condition,
+          include: [
+            {
+              model: models.floor,
+              attributes: ["floor_number"],
+            },
+          ],
           attributes: [
             "id",
             "name",
-            "floor",
+            "floor_id",
             "hotel_id",
             "price",
             "room_grade_id",
@@ -1464,50 +1470,56 @@ class Room extends Hotel {
     });
   }
 
-  readManyFloors(condition) {
-    return new Promise((resolve, reject) => {
-      models.room
-        .findAll({
-          where: condition,
-          attributes: [
-            [
-              models.sequelize.fn("DISTINCT", models.sequelize.col("floor")),
-              "floor",
-            ],
-          ],
-        })
-        .then((response) => {
-          if (response.length == 0) {
-            return reject(
-              message.issueMessage(message["404_NOT_FOUND"], "FLOORS_NOT_FOUND")
-            );
-          } else {
-            var obj = Object.assign({}, message["200_SUCCESS"]);
-            obj.floors = response.map((room) => room.floor);
+  // readManyFloors(condition) {
+  //   return new Promise((resolve, reject) => {
+  //     models.room
+  //       .findAll({
+  //         where: condition,
+  //         attributes: [
+  //           [
+  //             models.sequelize.fn("DISTINCT", models.sequelize.col("floor")),
+  //             "floor",
+  //           ],
+  //         ],
+  //       })
+  //       .then((response) => {
+  //         if (response.length == 0) {
+  //           return reject(
+  //             message.issueMessage(message["404_NOT_FOUND"], "FLOORS_NOT_FOUND")
+  //           );
+  //         } else {
+  //           var obj = Object.assign({}, message["200_SUCCESS"]);
+  //           obj.floors = response.map((room) => room.floor);
 
-            return resolve(obj);
-          }
-        })
-        .catch((error) => {
-          return reject(
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
-        });
-    });
-  }
+  //           return resolve(obj);
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         return reject(
+  //           message.issueMessage(
+  //             message["500_SERVER_INTERNAL_ERROR"],
+  //             "UNDEFINED_ERROR"
+  //           )
+  //         );
+  //       });
+  //   });
+  // }
 
   findRoom(condition) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
           where: condition,
+          include: [
+            {
+              model: models.floor,
+              attributes: ["floor_number"],
+            },
+          ],
           attributes: [
             "id",
             "name",
-            "floor",
+            "floor_id",
             "hotel_id",
             "price",
             "room_grade_id",
@@ -1537,10 +1549,16 @@ class Room extends Hotel {
       models.room
         .findOne({
           where: condition,
+          include: [
+            {
+              model: models.floor,
+              attributes: ["floor_number"],
+            },
+          ],
           attributes: [
             "id",
             "name",
-            "floor",
+            "floor_id",
             "hotel_id",
             "price",
             "room_grade_id",
@@ -1569,7 +1587,7 @@ class Room extends Hotel {
     });
   }
 
-  update(room_id, name, floor) {
+  update(room_id, name, floor_id) {
     return new Promise((resolve, reject) => {
       this.readOne({
         id: room_id,
@@ -1579,7 +1597,7 @@ class Room extends Hotel {
             .update(
               {
                 name: name,
-                floor: floor,
+                floor_id: floor_id,
               },
               {
                 where: {

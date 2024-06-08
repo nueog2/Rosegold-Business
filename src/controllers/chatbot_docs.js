@@ -35,6 +35,8 @@ function createChatbot_Docs(req, res) {
 
     // 텍스트 토큰화
     let tokens = tiktoken.encode(data);
+    console.log(tokens);
+    console.log(tokens.length);
 
     // 토큰 수가 1500 이상이면 분할
     let segments = [];
@@ -314,10 +316,17 @@ function deleteChatbot_Docs(req, res) {
     });
 }
 
+function changeTest(req, res) {
+  tiktoken.encode_example((response) => {
+    return send(response);
+  });
+}
+
 module.exports = {
   createChatbot_Docs,
   getChatbot_DocsMany,
   getChatbot_DocsOne,
   updateChatbot_Docs,
   deleteChatbot_Docs,
+  changeTest,
 };

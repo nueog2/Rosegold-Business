@@ -1146,7 +1146,7 @@ function createRoom(req, res) {
   if (
     req.body.hotel_id == null ||
     req.body.name == null ||
-    req.body.floor == null
+    req.body.floor_id == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -1171,7 +1171,7 @@ function createRoom(req, res) {
           .create(
             req.body.hotel_id,
             req.body.name,
-            req.body.floor,
+            req.body.floor_id,
             req.body.price,
             req.body.room_grade_id
           )
@@ -1261,7 +1261,7 @@ function getRoomFloors(req, res) {
 }
 
 function getRoomManyByFloor(req, res) {
-  if (req.query.hotel_id == null || req.query.floor == null) {
+  if (req.query.hotel_id == null || req.query.floor_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -1271,7 +1271,7 @@ function getRoomManyByFloor(req, res) {
 
   const room = new Room();
   room
-    .readMany({ hotel_id: req.query.hotel_id, floor: req.query.floor })
+    .readMany({ hotel_id: req.query.hotel_id, floor_id: req.query.floor_id })
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -1320,7 +1320,7 @@ function updateRoom(req, res) {
   if (
     req.body.room_id == null ||
     req.body.name == null ||
-    req.body.floor == null
+    req.body.floor_id == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -1331,7 +1331,7 @@ function updateRoom(req, res) {
 
   const room = new Room();
   room
-    .update(req.body.room_id, req.body.name, req.body.floor)
+    .update(req.body.room_id, req.body.name, req.body.floor_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
