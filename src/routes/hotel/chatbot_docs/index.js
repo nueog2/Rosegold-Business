@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const chatbot_docsController = require("../../../controllers/chatbot_docs");
 const multer2 = require("../../../modules/multer2");
+const tiktoken = require("../../../modules/tiktoken");
 
 router.post(
   "/",
@@ -11,5 +12,6 @@ router.get("/many", chatbot_docsController.getChatbot_DocsMany);
 router.get("/one", chatbot_docsController.getChatbot_DocsOne);
 router.put("/", chatbot_docsController.updateChatbot_Docs);
 router.delete("/", chatbot_docsController.deleteChatbot_Docs);
+router.get("/test", chatbot_docsController.changeTest);
 
 module.exports = router;

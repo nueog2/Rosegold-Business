@@ -7,15 +7,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(6),
         allowNull: false,
       },
-      floor: {
-        type: DataTypes.INTEGER(),
-        allowNull: false,
-        // references: {
-        //   model: 'floors',
-        //   key: 'floor_number' // 변경된 부분
-        // },
-        // onDelete: "CASCADE"
-      },
+      // floor: {
+      //   type: DataTypes.INTEGER(),
+      //   allowNull: false,
+      //   // references: {
+      //   //   model: 'floors',
+      //   //   key: 'floor_number' // 변경된 부분
+      //   // },
+      //   // onDelete: "CASCADE"
+      // },
       price: {
         type: DataTypes.INTEGER(),
         allowNull: false,
@@ -29,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
   room.associate = function (models) {
     this.belongsTo(models.hotel, {
       foreignKey: "hotel_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
+    this.belongsTo(models.floor, {
+      foreignKey: "floor_id",
       sourceKey: "id",
       on_delete: "CASCADE",
     });

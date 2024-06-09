@@ -41,6 +41,7 @@ class Requirement extends Requirement_Category {
               thumbnail_image_url: thumbnail_image_url,
               description: description,
               requirement_category_id: requirement_category_id,
+              g,
             })
             .then((response) => {
               if (response) {
@@ -143,7 +144,8 @@ class Requirement extends Requirement_Category {
     able_end_time,
     price,
     thumbnail_image_url,
-    description
+    description,
+    requirement_category_id
   ) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: requirement_id })
@@ -157,6 +159,7 @@ class Requirement extends Requirement_Category {
                 price: price,
                 thumbnail_image_url: thumbnail_image_url,
                 description: description,
+                requirement_category_id: requirement_category_id,
               },
               {
                 where: {

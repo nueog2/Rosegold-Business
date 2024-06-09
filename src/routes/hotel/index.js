@@ -10,6 +10,7 @@ const requirement_logRouter = require("./requirement_log");
 const messageRouter = require("./message");
 const auth_util = require("../../middlewares/auth_util");
 const room_gradeRouter = require("./room_grade");
+const floorRouter = require("./floor");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -21,8 +22,9 @@ router.use("/room", auth_util.verifyToken, roomRouter);
 router.use("/requirement_log", requirement_logRouter);
 
 router.use("/room_grade", room_gradeRouter);
-router.use("/message", messageRouter)
 
+router.use("/floor", floorRouter);
+router.use("/message", messageRouter)
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);

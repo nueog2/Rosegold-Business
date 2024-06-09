@@ -174,7 +174,8 @@ function updateRequirement(req, res) {
     req.body.able_end_time == null ||
     req.body.price == null ||
     req.file == null ||
-    req.body.description == null
+    req.body.description == null ||
+    req.body.requirement_category_id == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -196,7 +197,8 @@ function updateRequirement(req, res) {
       req.body.able_end_time,
       req.body.price,
       thumbnail_image_url,
-      req.body.description
+      req.body.description,
+      req.body.requirement_category_id
     )
     .then((response) => {
       return res.status(response.status).send(response);
