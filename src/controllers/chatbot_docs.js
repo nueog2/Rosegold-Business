@@ -11,7 +11,8 @@ function createChatbot_Docs(req, res) {
   if (
     req.file == null ||
     req.body.file_name == null ||
-    req.body.hotel_id == null
+    req.body.hotel_id == null ||
+    req.body.tag_name == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -21,6 +22,7 @@ function createChatbot_Docs(req, res) {
   }
 
   const filePath = req.file.path;
+  const tag_name = req.body.tag_name;
 
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
@@ -41,17 +43,23 @@ function createChatbot_Docs(req, res) {
 
     // 토큰 수가 1500 이상이면 분할, 줄바꿈 고려
     let segments = [];
-    const segmentSize = 800; // 기본 세그먼트 크기
-    let currentSize = 0;
+    let segmentSize = 800; // 기본 세그먼트 크기
+    if (tokens.length > 2000) {
+      segmentSize = 1000; // 2000자를 넘었을 때 세그먼트 크기 조정
+    }
 
+    let currentSize = 0;
     tokens.forEach((token, index) => {
       if (currentSize >= segmentSize || segments.length === 0) {
+        if (segments.length > 0) {
+          segments[segments.length - 1].push("\n#" + tag_name + "#\n"); // 세그먼트 사이에 tag_name 추가
+        }
         segments.push([]);
         currentSize = 0;
       }
       segments[segments.length - 1].push(token);
       currentSize += token.length;
-      if (token === "\n") currentSize = 0; // 줄바꿈 고려하여 크기 리셋
+      if (token === "\n") currentSize = 0;
     });
 
     // 각 세그먼트를 텍스트로 변환 및 # 처리
@@ -125,7 +133,7 @@ function createChatbot_Docs(req, res) {
           console.error("API request failed:", error);
           return res
             .status(error.status)
-            .send("API 요청에 실패했습니다 : " + error);
+            // .send("API 요청에 실패했습니다 : " + error);
         });
     });
   });
