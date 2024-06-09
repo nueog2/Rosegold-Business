@@ -30,8 +30,9 @@ module.exports = (sequelize, DataTypes) => {
       },
       fcm_token: {
         type: DataTypes.JSON(),
-        allowNull: true,
-        defaultValue: {},
+
+        allowNull: false,
+        defaultValue: [],
       },
     },
     {
@@ -50,6 +51,12 @@ module.exports = (sequelize, DataTypes) => {
       on_delete: "CASCADE",
     });
     this.hasMany(models.requirement_log, {
+      foreignKey: "user_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
+
+    this.hasMany(models.message, {
       foreignKey: "user_id",
       sourceKey: "id",
       on_delete: "CASCADE",

@@ -1,6 +1,6 @@
 const jwt = require("../modules/jwt");
 const message = require("../../config/message");
-const { Room } = require("../models/hotel");
+const { Room, Requirement_Log, Message } = require("../models/hotel");
 const Hotel = require("../models/hotel").Hotel;
 const Department = require("../models/hotel").Department;
 const Role = require("../models/hotel").Role;
@@ -9,6 +9,7 @@ const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const { sequelize, Sequelize } = require("../../models");
 const app = express();
 
 app.use(express.json());
@@ -1462,6 +1463,264 @@ function deleteRoom(req, res) {
     });
 }
 
+function getAccessTokenByAccount(req, res) {
+  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+
+  worker
+    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
+    .then((workerInfoResponse) => {
+      jwt
+        .signAccessToken({
+          id: workerInfoResponse.worker.id,
+          name: workerInfoResponse.worker.name,
+          user_id: workerInfoResponse.worker.user_id,
+        })
+        .then((tokenResponse) => {
+          if (
+            workerInfoResponse.worker.dataValues.fcm_token == null ||
+            workerInfoResponse.worker.dataValues.fcm_token == undefined
+          ) {
+            workerInfoResponse.worker.dataValues.fcm_token = "[]";
+          }
+          console.log(workerInfoResponse.worker.dataValues);
+          var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
+
+          var existFCMToken = false;
+          for (var i = 0; i < fcmTokenJSON.length; ++i) {
+            if (fcmTokenJSON[i] == req.query.fcm_token) {
+              existFCMToken = true;
+              break;
+            }
+          }
+          if (existFCMToken) {
+            return res.status(tokenResponse.status).send(tokenResponse);
+          } else {
+            fcmTokenJSON.push(req.query.fcm_token);
+            worker
+              .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
+              .then((response) => {
+                return res.status(tokenResponse.status).send(tokenResponse);
+              })
+              .catch((error) => {
+                return res.status(error.status).send(error);
+              });
+          }
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
+function updateWorkStatus(req, res) {
+  if (!req.user || !req.body.status) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+  worker
+    .readWorkLogMany({
+      user_id: req.user.id,
+    })
+    .then((workLogResponse) => {
+      if (
+        workLogResponse.work_logs.length == 0 ||
+        workLogResponse.work_logs[0].dataValues.status != req.body.status
+      ) {
+        if (
+          workLogResponse.work_logs[0].dataValues.status == "LEAVE" &&
+          req.body.status == "REST"
+        ) {
+          return res
+            .status(message["400_BAD_REQUEST"].status)
+            .send(
+              message.issueMessage(message["400_BAD_REQUEST"], "UNVALID_STATUS")
+            );
+        }
+        worker
+          .createWorkLog(req.user.id, req.body.status)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            return res.status(error.status).send(error);
+          });
+      } else {
+        return res
+          .status(message["200_SUCCESS"].status)
+          .send(message["200_SUCCESS"]);
+      }
+    })
+    .catch((error) => {
+      if (error.status == message["404_NOT_FOUND"].status) {
+        worker
+          .createWorkLog(req.user.id, req.body.status)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            return res.status(error.status).send(error);
+          });
+      } else {
+        return res.status(error.status).send(error);
+      }
+    });
+}
+
+function readProfileInfo(req, res) {
+  var worker = new Worker();
+  worker
+    .readProfileInfo(req.user.id)
+    .then((profile) => {
+      return res.status(profile.status).send(profile);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
+function readWorkerProcessingReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      user_id: req.user.id,
+      progress: 1,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readWorkerNotAssignReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      progress: 0,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readWorkerProcessedReqLog(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .readMany({
+      progress: 2,
+      user_id: req.user.id,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function setAssignWorker(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .update(req.body.requirement_log_id, req.body.progress)
+    .then((response) => {
+      requireLog
+        .updateWorker(req.body.requirement_log_id, req.user.id)
+        .then((response) => {
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          return res.status(error.status).send(error);
+        });
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function setWorkFinish(req, res) {
+  var requireLog = new Requirement_Log();
+  console.log(req.body.requirement_log_id);
+  requireLog
+    .updateProcessedInfo(req.body.requirement_log_id, req.body.processed_info)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function sendMessage(req, res) {
+  if (!req.body.to_user_id || !req.body.message_article) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var message = new Message();
+  message
+    .sendMessage(req.body.to_user_id, req.body.message_article, req.user.id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function readMessages(req, res) {
+  var message = new Message();
+  message
+    .readMany({
+      [Sequelize.Op.or]: [
+        { user_id: req.user.id },
+        { to_user_id: req.user.id },
+      ],
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function okMessage(req, res) {
+  if (!req.body.message_id || !req.body.status) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+  var message = new Message();
+  message
+    .update(req.body.message_id, req.body.status)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
 module.exports = {
   createHotel,
   getHotelMany,
@@ -1510,4 +1769,15 @@ module.exports = {
   //객실 가격 추가
   updateRoomPriceAdd,
   deleteRoom,
+  getAccessTokenByAccount,
+  updateWorkStatus,
+  readProfileInfo,
+  readWorkerProcessingReqLog,
+  readWorkerNotAssignReqLog,
+  readWorkerProcessedReqLog,
+  setAssignWorker,
+  sendMessage,
+  readMessages,
+  okMessage,
+  setWorkFinish,
 };

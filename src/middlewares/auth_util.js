@@ -3,17 +3,22 @@ const message = require("../../config/message");
 const secretKey = require("../../config/secret_key").secretKey;
 
 async function verifyToken(req, res, next) {
-  if (!req.cookies.access_token)
+  if (!req.cookies.access_token && !req.headers.authorization)
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_TOKEN"));
-  var token = req.cookies.access_token;
+  var token =
+    req.cookies.access_token == null
+      ? req.headers.authorization
+      : req.cookies.access_token;
   // "Bearer " 접두어가 있는 경우와 없는 경우를 나누어 처리하는 것 고려
   // 위에는 없는 case
 
   if (!token)
     return res.status(400).json({ message: "BAD_REQUEST", detail_cause: "" });
 
+  if (token.indexOf("Bearer") != -1) token = token.replace("Bearer ", "");
+  console.log(token);
   jwt
     .verifyToken(token, secretKey)
     .then((response) => {
