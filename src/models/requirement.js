@@ -41,7 +41,6 @@ class Requirement extends Requirement_Category {
               thumbnail_image_url: thumbnail_image_url,
               description: description,
               requirement_category_id: requirement_category_id,
-              g,
             })
             .then((response) => {
               if (response) {
