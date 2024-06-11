@@ -3,6 +3,7 @@ const message = require("../../config/message");
 const Chatbot_Docs = require("../models/chatbot_docs").Chatbot_Docs;
 const Hotel = require("../models/hotel").Hotel;
 const upload = require("../modules/multer2");
+
 const axios = require("axios");
 const tiktoken = require("../modules/tiktoken");
 const fs = require("fs");
@@ -14,6 +15,8 @@ function createChatbot_Docs(req, res) {
     req.body.hotel_id == null ||
     req.body.tag_name == null
   ) {
+    console.log("Request Body:", req.body);
+    console.log("Request File:", req.file);
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -119,7 +122,7 @@ function createChatbot_Docs(req, res) {
 
       // axios를 사용하여 POST 요청 전송
       axios
-        .post("http://223.130.137.39:7070/api/hotel_information", formData, {
+        .put("http://223.130.137.39:7070/api/hotel_information", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -127,17 +130,16 @@ function createChatbot_Docs(req, res) {
         .then((apiResponse) => {
           // API 응답 처리
           console.log("API response:", apiResponse.data);
-          // 변환된 텍스트를 파일로 저장하는 코드는 여기에...
         })
         .catch((error) => {
           console.error("API request failed:", error);
-          return res
-            .status(error.status)
-            // .send("API 요청에 실패했습니다 : " + error);
+          return res.status(error.status);
+          // .send("API 요청에 실패했습니다 : " + error);
         });
     });
   });
 }
+
 //chatbot_docs/1717851438009_transformed.txt
 // http://223.130.137.39:6060/chatbot_docs/1717851438009_transformed.txt
 
