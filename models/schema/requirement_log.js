@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       requirement_article: {
         type: DataTypes.TEXT(),
-        allowNull: false,
+        allowNull: true,
       },
       response_article: {
         type: DataTypes.TEXT(),
-        allowNull: false,
+        allowNull: true,
       },
       summarized_sentence: {
         type: DataTypes.TEXT(),

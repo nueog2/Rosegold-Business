@@ -3,6 +3,7 @@ const message = require("../../config/message");
 const Chatbot_Docs = require("../models/chatbot_docs").Chatbot_Docs;
 const Hotel = require("../models/hotel").Hotel;
 const upload = require("../modules/multer2");
+
 const axios = require("axios");
 const tiktoken = require("../modules/tiktoken");
 const fs = require("fs");
@@ -11,8 +12,11 @@ function createChatbot_Docs(req, res) {
   if (
     req.file == null ||
     req.body.file_name == null ||
-    req.body.hotel_id == null
+    req.body.hotel_id == null ||
+    req.body.tag_name == null
   ) {
+    console.log("Request Body:", req.body);
+    console.log("Request File:", req.file);
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -21,6 +25,7 @@ function createChatbot_Docs(req, res) {
   }
 
   const filePath = req.file.path;
+  const tag_name = req.body.tag_name;
 
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
@@ -41,17 +46,23 @@ function createChatbot_Docs(req, res) {
 
     // 토큰 수가 1500 이상이면 분할, 줄바꿈 고려
     let segments = [];
-    const segmentSize = 800; // 기본 세그먼트 크기
-    let currentSize = 0;
+    let segmentSize = 800; // 기본 세그먼트 크기
+    if (tokens.length > 2000) {
+      segmentSize = 1000; // 2000자를 넘었을 때 세그먼트 크기 조정
+    }
 
+    let currentSize = 0;
     tokens.forEach((token, index) => {
       if (currentSize >= segmentSize || segments.length === 0) {
+        if (segments.length > 0) {
+          segments[segments.length - 1].push("\n#" + tag_name + "#\n"); // 세그먼트 사이에 tag_name 추가
+        }
         segments.push([]);
         currentSize = 0;
       }
       segments[segments.length - 1].push(token);
       currentSize += token.length;
-      if (token === "\n") currentSize = 0; // 줄바꿈 고려하여 크기 리셋
+      if (token === "\n") currentSize = 0;
     });
 
     // 각 세그먼트를 텍스트로 변환 및 # 처리
@@ -104,32 +115,87 @@ function createChatbot_Docs(req, res) {
           else return res.status(error.status).send(error);
         });
 
-      const formData = new FormData();
-      formData.append("hotel_id", req.body.hotel_id);
-      formData.append("file_name", req.body.file_name);
-      formData.append("text", transformedText);
+      // const formData = new FormData();
+      // formData.append("hotel_id", req.body.hotel_id);
+      // formData.append("file_name", req.body.file_name);
+      // formData.append("text", transformedText);
 
-      // axios를 사용하여 POST 요청 전송
-      axios
-        .post("http://223.130.137.39:7070/api/hotel_information", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((apiResponse) => {
-          // API 응답 처리
-          console.log("API response:", apiResponse.data);
-          // 변환된 텍스트를 파일로 저장하는 코드는 여기에...
-        })
-        .catch((error) => {
-          console.error("API request failed:", error);
-          return res
-            .status(error.status)
-            .send("API 요청에 실패했습니다 : " + error);
-        });
+      // // axios를 사용하여 POST 요청 전송
+      // axios
+      //   .put("http://223.130.137.39:7070/api/hotel_information", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   })
+      //   .then((apiResponse) => {
+      //     // API 응답 처리
+      //     console.log("API response:", apiResponse.data);
+      //     return res.status(apiResponse.status).send(apiResponse.data);
+      //   })
+      //   .catch((error) => {
+      //     console.error("API request failed:", error);
+      //     return res.status(error.response?.status || 500).send({
+      //       message: "API 요청에 실패했습니다",
+      //       error: error.message,
+      //     });
+      //   });
+    }).catch((error) => {
+      console.log("Error in createChatbot_Docs:", error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
     });
   });
 }
+
+//           return res.status(response.status).send(response);
+//         })
+//         .catch((error) => {
+//           console.log("Error in createChatbot_Docs:", error);
+//           if (!error.status)
+//             return res
+//               .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//               .send(
+//                 message.issueMessage(
+//                   message["500_SERVER_INTERNAL_ERROR"],
+//                   "UNDEFINED_ERROR"
+//                 )
+//               );
+//           else return res.status(error.status).send(error);
+//         });
+
+//       const formData = new FormData();
+//       formData.append("hotel_id", req.body.hotel_id);
+//       formData.append("file_name", req.body.file_name);
+//       formData.append("text", transformedText);
+
+//       // axios를 사용하여 POST 요청 전송
+//       axios
+//         .put("http://223.130.137.39:7070/api/hotel_information", formData, {
+//           headers: {
+//             "Content-Type": "multipart/form-data",
+//           },
+//         })
+//         .then((apiResponse) => {
+//           // API 응답 처리
+//           console.log("API response:", apiResponse.data);
+//         })
+//         .catch((error) => {
+//           console.error("API request failed:", error);
+//           return res.status(error.status);
+//           // .send("API 요청에 실패했습니다 : " + error);
+//         });
+//     });
+//   });
+// }
+
 //chatbot_docs/1717851438009_transformed.txt
 // http://223.130.137.39:6060/chatbot_docs/1717851438009_transformed.txt
 
