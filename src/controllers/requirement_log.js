@@ -69,6 +69,48 @@ function createRequirementLog(req, res) {
     });
 }
 
+function createRequirementLogbyMenu(req, res) {
+  if (
+    req.body.room_id == null ||
+    req.body.department_name == null ||
+    req.body.menu == null ||
+    req.body.price == null ||
+    req.body.num == null
+  ) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .createbymenu(
+      req.body.room_id,
+      req.body.department_name,
+      req.body.menu,
+      req.body.price,
+      req.body.num
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getRequirementLogMany(req, res) {
   const requirement_log = new Requirement_Log();
   requirement_log
@@ -290,6 +332,7 @@ function deleteRequirementLog(req, res) {
 
 module.exports = {
   createRequirementLog,
+  createRequirementLogbyMenu,
   getRequirementLogMany,
   getRequirementLogManyByDate,
   getRequirementLogManyByRoom,

@@ -84,7 +84,7 @@ function getFloorOne(req, res) {
 }
 
 function deleteFloor(req, res) {
-  if (req.query.floor_id == null) {
+  if (req.body.floor_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -94,7 +94,7 @@ function deleteFloor(req, res) {
 
   const floor = new Floor();
   floor
-    .delete(req.query.floor_id)
+    .delete(req.body.floor_id)
     .then((response) => {
       res.status(response.status).send(response);
     })
