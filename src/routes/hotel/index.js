@@ -18,13 +18,13 @@ router.use("/worker", workerRouter);
 router.use("/requirement_category", requirement_categoryRouter);
 router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
-router.use("/room", auth_util.verifyToken, roomRouter);
+router.use("/room", roomRouter);
 router.use("/requirement_log", requirement_logRouter);
 
 router.use("/room_grade", room_gradeRouter);
 
 router.use("/floor", floorRouter);
-router.use("/message", messageRouter)
+router.use("/message", messageRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);
