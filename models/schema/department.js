@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       onDelete: "CASCADE",
     });
+
+    // this.hasMany(models.service_category, {
+    //   foreignKey: "department_id",
+    //   sourceKey: "id",
+    //   onDelete: "CASCADE",
+    // });
   };
   return department;
 };
