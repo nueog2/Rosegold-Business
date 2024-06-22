@@ -112,10 +112,10 @@ function createRequirementLog(req, res) {
 // }
 
 function createRequirementLogbyMenu(req, res) {
-  const { room_id, results } = req.body;
+  const { results } = req.body;
 
   // room_id와 results 배열이 존재하는지 확인
-  if (!room_id || !Array.isArray(results)) {
+  if (!Array.isArray(results)) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -125,10 +125,10 @@ function createRequirementLogbyMenu(req, res) {
 
   // results 배열의 각 항목을 순회하면서 Requirement_Log 인스턴스를 생성, 처리
   const promises = results.map((requirement) => {
-    const { department_name, menu, price, num } = requirement;
+    const { room_id, department_name, menu, price, num } = requirement;
 
     // 각 항목의 필수 값 존재 여부 확인
-    if (!department_name || !menu || !price || !num) {
+    if (!room_id || !department_name || !menu || !price || !num) {
       return Promise.reject({
         status: message["400_BAD_REQUEST"].status,
         message: message.issueMessage(

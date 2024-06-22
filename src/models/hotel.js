@@ -1812,6 +1812,7 @@ class Room extends Hotel {
               }
             )
             .then((response) => {
+              console.log(response);
               return resolve(message["200_SUCCESS"]);
             })
             .catch((error) => {
@@ -1995,6 +1996,7 @@ class Requirement_Log extends Room {
           new Room()
             .addPrice(room_id, price)
             .then((response) => {
+              console.log(response);
               new Room()
                 .readOne({
                   id: room_id,
