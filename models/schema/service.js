@@ -35,6 +35,12 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
+
+    this.hasMany(models.service_assign_log, {
+      foreignKey: "service_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
     // this.hasMany(models.service, {
     //   foreignKey: "service_id",
     //   sourceKey: "id",

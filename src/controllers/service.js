@@ -3,6 +3,7 @@
 
 const message = require("../../config/message");
 const service = require("../../models/schema/service");
+const ServiceAssignLog = require("../models/service_assign_log").ServiceAssignLog;
 const Hotel = require("../models/hotel").Hotel;
 const Service = require("../models/service").Service;
 
@@ -152,7 +153,7 @@ function deleteService(req, res) {
       );
   }
 
-  const serice = new Service();
+  const service = new Service();
   service
     .delete(req.query.service_id)
     .then((response) => {
@@ -173,10 +174,52 @@ function deleteService(req, res) {
     });
 }
 
+function createServiceAssignLog(req, res){
+  if(req.body.service_id == null || req.body.department_id == null){
+    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+  }
+
+  const serviceAssignLog = new ServiceAssignLog()
+  serviceAssignLog.create(req.body.service_id, req.body.department_id).then(response => {
+    return res.status(response.status).send(response)
+  }).catch(error => {
+    return res.status(error.status).send(error)
+  })
+}
+
+function getServiceAssignLogByDepartmentID(req, res){
+  if(req.query.department_id == null){
+    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+  }
+
+  const serviceAssignLog = new ServiceAssignLog()
+  serviceAssignLog.readMany({ department_id : req.query.department_id}).then(response => {
+    return res.status(response.status).send(response)
+  }).catch(error => {
+    return res.status(error.status).send(error)
+  })
+}
+
+function deleteServiceAssignLog(req, res){
+  if(req.body.service_assign_log_id == null){
+    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+  }
+
+  const serviceAssignLog = new ServiceAssignLog()
+  serviceAssignLog.delete(req.body.service_assign_log_id).then(response => {
+    return res.status(response.status).send(response)
+  }).catch(error => {
+    return res.status(error.status).send(error)
+  })
+}
+
 module.exports = {
   createService,
   getServiceMany,
   getServiceOne,
   updateService,
   deleteService,
+  createServiceAssignLog,
+  getServiceAssignLogByDepartmentID,
+  deleteServiceAssignLog
 };

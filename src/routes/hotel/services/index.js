@@ -8,4 +8,7 @@ router.get("/one", managementController.getServiceOne);
 router.put("/", managementController.updateService);
 router.delete("/", managementController.deleteService);
 
+router.post("/assign", managementController.createServiceAssignLog)
+router.get("/assign/many/department", managementController.getServiceAssignLogByDepartmentID)
+router.delete("/assign", managementController.deleteServiceAssignLog)
 module.exports = router;
