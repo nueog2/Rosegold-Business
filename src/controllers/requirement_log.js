@@ -118,9 +118,7 @@ function createRequirementLogbyMenu(req, res) {
   if (!Array.isArray(results)) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
   // results 배열의 각 항목을 순회하면서 Requirement_Log 인스턴스를 생성, 처리

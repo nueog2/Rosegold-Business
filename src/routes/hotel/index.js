@@ -11,6 +11,8 @@ const messageRouter = require("./message");
 const auth_util = require("../../middlewares/auth_util");
 const room_gradeRouter = require("./room_grade");
 const floorRouter = require("./floor");
+const serviceRouter = require("./services");
+const service_categoryRouter = require("./service_category");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -25,6 +27,8 @@ router.use("/room_grade", room_gradeRouter);
 
 router.use("/floor", floorRouter);
 router.use("/message", messageRouter);
+router.use("/service", serviceRouter);
+router.use("/service_category", service_categoryRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);
