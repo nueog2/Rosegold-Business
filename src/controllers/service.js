@@ -175,12 +175,12 @@ function deleteService(req, res) {
 }
 
 function createServiceAssignLog(req, res){
-  if(req.body.service_id == null || req.body.department_id == null){
+  if(req.body.service_ids == null || req.body.department_id == null){
     return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
   }
 
   const serviceAssignLog = new ServiceAssignLog()
-  serviceAssignLog.create(req.body.service_id, req.body.department_id).then(response => {
+  serviceAssignLog.create(req.body.service_ids, req.body.department_id).then(response => {
     return res.status(response.status).send(response)
   }).catch(error => {
     return res.status(error.status).send(error)

@@ -4,16 +4,24 @@ const models = require("../../models");
 
 
 class ServiceAssignLog{
-    create(service_id, department_id){
+    create(service_ids, department_id){
         return new Promise((resolve, reject) => {
-            models.service_assign_log.create({
-                department_id : department_id,
-                service_id : service_id
-            }).then(response => {
-                return resolve(message["200_SUCCESS"])
-            }).catch(error => {
-                return reject(message["500_SERVER_INTERNAL_ERROR"])
-            })
+            var processedCount = 0
+            service_ids.forEach(service_id => {
+                models.service_assign_log.create({
+                    department_id : department_id,
+                    service_id : service_id
+                }).then(response => {
+                    processedCount++;
+                    if(processedCount == service_ids.length){
+                        return resolve(message["200_SUCCESS"])
+                    }
+                    
+                }).catch(error => {
+                    return reject(message["500_SERVER_INTERNAL_ERROR"])
+                })
+            });
+            
         })
     }
 
