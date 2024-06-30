@@ -10,6 +10,7 @@ const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { sequelize, Sequelize } = require("../../models");
+const { token } = require("morgan");
 const app = express();
 
 app.use(express.json());
@@ -191,23 +192,46 @@ function deleteHotel(req, res) {
 }
 
 function createDepartment(req, res) {
-  if (
-    req.body.name == null ||
-    req.body.token_name == null ||
-    req.body.hotel_id == null
-  ) {
+  const { dep_array } = req.body;
+
+  if (!Array.isArray(dep_array) || dep_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const department = new Department();
-  department
-    .create(req.body.name, req.body.token_name, req.body.hotel_id)
-    .then((response) => {
-      return res.status(response.status).send(response);
+  const promises = dep_array.map((deps) => {
+    const { name, token_name, hotel_id } = deps;
+
+    if (name == null || token_name == null || hotel_id == null) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const department = new Department();
+    department.create(name, token_name, hotel_id);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        console.log(errorResponse);
+        return res.status(errorResponse.status).send(errorResponse);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -301,24 +325,48 @@ function getDepartmentOne(req, res) {
     });
 }
 
+// 배열로 입력받게끔 수정
 function updateDepartment(req, res) {
-  if (
-    req.body.department_id == null ||
-    req.body.name == null ||
-    req.body.token_name == null
-  ) {
+  const { dep_array } = req.body;
+
+  if (!Array.isArray(dep_array) || dep_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const department = new Department();
-  department
-    .update(req.body.department_id, req.body.name, req.body.token_name)
-    .then((response) => {
-      return res.status(response.status).send(response);
+  const promises = dep_array.map((deps) => {
+    const { department_id, name, token_name } = deps;
+
+    if (department_id == null || name == null || token_name == null) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const department = new Department();
+    department.update(department_id, name, token_name);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        console.log(errorResponse);
+        return res.status(errorResponse.status).send(errorResponse);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -555,36 +603,57 @@ function deleteRole(req, res) {
     });
 }
 
+// 배열로 입력받게끔 수정
 function createWorker(req, res) {
-  if (
-    req.body.name == null ||
-    req.body.user_num == null ||
-    req.body.user_id == null ||
-    req.body.user_pwd == null ||
-    req.body.phone == null ||
-    req.body.role_id == null ||
-    req.body.hotel_id == null
-  ) {
+  const { worker_array } = req.body;
+
+  if (!Array.isArray(worker_array) || worker_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const worker = new Worker();
-  worker
-    .create(
-      req.body.name,
-      req.body.user_num,
-      req.body.user_id,
-      req.body.user_pwd,
-      req.body.phone,
-      req.body.role_id,
-      req.body.hotel_id
-    )
-    .then((response) => {
-      return res.status(response.status).send(response);
+  const promises = worker_array.map((workers) => {
+    const { name, user_num, user_id, user_pwd, phone, role_id, hotel_id } =
+      workers;
+
+    if (
+      name == null ||
+      user_num == null ||
+      user_id == null ||
+      user_pwd == null ||
+      phone == null ||
+      role_id == null ||
+      hotel_id == null
+    ) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const worker = new Worker();
+    worker.create(name, user_num, user_id, user_pwd, phone, role_id, hotel_id);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        console.log(errorResponse);
+        return res.status(errorResponse.status).send(errorResponse);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -653,6 +722,7 @@ function getTokensByWorkerAccountInfo(req, res) {
             res.send({
               message: "로그인이 성공적으로 처리되었습니다.",
               access_token: response.access_token,
+              hotel_id: worker.worker.dataValues.hotel_id,
             })
           );
         })
@@ -974,24 +1044,44 @@ function getWorkerOne(req, res) {
 }
 
 function updateWorker(req, res) {
-  if (
-    req.body.worker_id == null ||
-    req.body.name == null ||
-    req.body.phone == null ||
-    req.body.role_id == null
-  ) {
+  const { worker_array } = req.body;
+
+  if (!Array.isArray(worker_array) || worker_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
+  const promises = worker_array.map((workers) => {
+    const { worker_id, name, phone, role_id } = workers;
 
-  const worker = new Worker();
-  worker
-    .update(req.body.worker_id, req.body.name, req.body.phone, req.body.role_id)
-    .then((response) => {
-      return res.status(response.status).send(response);
+    if (worker_id == null || name == null || phone == null || role_id == null) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const worker = new Worker();
+    worker.update(worker_id, name, phone, role_id);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -1009,33 +1099,53 @@ function updateWorker(req, res) {
 }
 
 function updateWorkerProfile(req, res) {
-  if (
-    req.body.worker_id == null ||
-    req.body.name == null ||
-    req.body.user_num == null ||
-    req.body.phone == null ||
-    req.body.role_id == null ||
-    req.body.user_pwd == null
-  ) {
+  const { worker_array } = req.body;
+
+  if (!Array.isArray(worker_array) || worker_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const worker = new Worker();
-  worker
-    .updateProfile(
-      req.body.worker_id,
-      req.body.name,
-      req.body.user_num,
-      req.body.phone,
-      req.body.role_id,
-      req.body.user_pwd
-    )
-    .then((response) => {
-      return res.status(response.status).send(response);
+  const promises = worker_array.map((workers) => {
+    const { worker_id, name, user_num, phone, role_id, user_pwd } = workers;
+
+    if (
+      worker_id == null ||
+      name == null ||
+      user_num == null ||
+      phone == null ||
+      role_id == null ||
+      user_pwd == null
+    ) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const worker = new Worker();
+    worker.updateProfile(worker_id, name, user_num, phone, role_id, user_pwd);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        console.log(errorResponse);
+        return res.status(errorResponse.status).send(errorResponse);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -1144,23 +1254,44 @@ function updateAssignLog(req, res) {
 }
 
 function createRoom(req, res) {
-  if (
-    req.body.hotel_id == null ||
-    req.body.name == null ||
-    req.body.floor_id == null
-  ) {
+  const { room_array } = req.body;
+
+  if (!Array.isArray(room_array) || room_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const room = new Room();
+  const promises = room_array.map((rooms) => {
+    const {
+      hotel_id,
+      name,
+      floor_id,
+      price,
+      room_grade_id,
+      additional_service,
+    } = rooms;
 
-  room
-    .findRoom({ hotel_id: req.body.hotel_id, name: req.body.name })
-    .then((result) => {
+    if (
+      hotel_id == null ||
+      name == null ||
+      floor_id == null ||
+      price == null ||
+      room_grade_id == null ||
+      additional_service == null
+    ) {
+      return res
+        .status(message["400_BAD_REQUEST"].status)
+        .send(
+          message.issueMessage(
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
+          )
+        );
+    }
+
+    const room = new Room();
+    room.findRoom({ hotel_id: hotel_id, name: name }).then((result) => {
       if (!result.canCreate) {
         return res
           .status(message["409_CONFLICT"].status)
@@ -1168,42 +1299,134 @@ function createRoom(req, res) {
             message.issueMessage(message["409_CONFLICT"], "ROOM_ALREADY_EXISTS")
           );
       } else {
-        room
-          .create(
-            req.body.hotel_id,
-            req.body.name,
-            req.body.floor_id,
-            req.body.price,
-            req.body.room_grade_id
-          )
-          .then((response) => {
-            return res.status(response.status).send(response);
-          })
-          .catch((error) => {
-            console.error(error);
-            return res
-              .status(message["500_SERVER_INTERNAL_ERROR"].status)
-              .send(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
-          });
+        room.create(
+          hotel_id,
+          name,
+          floor_id,
+          price,
+          room_grade_id,
+          additional_service
+        );
+      }
+    });
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
       }
     })
     .catch((error) => {
-      console.error(error);
-      return res
-        .status(message["500_SERVER_INTERNAL_ERROR"].status)
-        .send(
-          message.issueMessage(
-            message["500_SERVER_INTERNAL_ERROR"],
-            "UNDEFINED_ERROR"
-          )
-        );
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
     });
 }
+//       .then((response) => {
+//         return res.status(response.status).send(response);
+//       })
+//       .catch((error) => {
+//         console.error(error);
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       });
+//   }
+// })
+// .catch((error) => {
+//   console.error(error);
+//   return res
+//     .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//     .send(
+//       message.issueMessage(
+//         message["500_SERVER_INTERNAL_ERROR"],
+//         "UNDEFINED_ERROR"
+//       )
+//     );
+// });
+
+// if (
+//   req.body.hotel_id == null ||
+//   req.body.name == null ||
+//   req.body.floor_id == null
+// ) {
+//   return res
+//     .status(message["400_BAD_REQUEST"].status)
+//     .send(
+//       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+//     );
+// }
+
+// const room = new Room();
+
+// room
+//   .findRoom({ hotel_id: req.body.hotel_id, name: req.body.name })
+//   .then((result) => {
+//     if (!result.canCreate) {
+//       return res
+//         .status(message["409_CONFLICT"].status)
+//         .send(
+//           message.issueMessage(message["409_CONFLICT"], "ROOM_ALREADY_EXISTS")
+//         );
+//     } else {
+//       room
+//         .create(
+//           req.body.hotel_id,
+//           req.body.name,
+//           req.body.floor_id,
+//           req.body.price,
+//           req.body.room_grade_id
+//         )
+//         .then((response) => {
+//           return res.status(response.status).send(response);
+//         })
+//         .catch((error) => {
+//           console.error(error);
+//           return res
+//             .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//             .send(
+//               message.issueMessage(
+//                 message["500_SERVER_INTERNAL_ERROR"],
+//                 "UNDEFINED_ERROR"
+//               )
+//             );
+//         });
+//     }
+//   })
+//   .catch((error) => {
+//     console.error(error);
+//     return res
+//       .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//       .send(
+//         message.issueMessage(
+//           message["500_SERVER_INTERNAL_ERROR"],
+//           "UNDEFINED_ERROR"
+//         )
+//       );
+//   });
+//}
 
 function getRoomMany(req, res) {
   if (req.query.hotel_id == null) {
@@ -1318,36 +1541,105 @@ function getRoomOne(req, res) {
 }
 
 function updateRoom(req, res) {
-  if (
-    req.body.room_id == null ||
-    req.body.name == null ||
-    req.body.floor_id == null
-  ) {
+  const { room_array } = req.body;
+
+  if (!Array.isArray(room_array) || room_array.length === 0) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
-  const room = new Room();
-  room
-    .update(req.body.room_id, req.body.name, req.body.floor_id)
-    .then((response) => {
-      return res.status(response.status).send(response);
-    })
-    .catch((error) => {
-      console.error(error);
+  const promises = room_array.map((rooms) => {
+    const { room_id, name, floor_id } = rooms;
+
+    if (room_id == null || name == null || floor_id == null) {
       return res
-        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .status(message["400_BAD_REQUEST"].status)
         .send(
           message.issueMessage(
-            message["500_SERVER_INTERNAL_ERROR"],
-            "UNDEFINED_ERROR"
+            message["400_BAD_REQUEST"],
+            "SEND_ALL_PARAMETERS"
           )
         );
+    }
+
+    const room = new Room();
+    room.update(room_id, name, floor_id);
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
     });
 }
+// .then((response) => {
+//   return res.status(response.status).send(response);
+// })
+// .catch((error) => {
+//   console.log(error);
+//   return res
+//     .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//     .send(
+//       message.issueMessage(
+//         message["500_SERVER_INTERNAL_ERROR"],
+//         "UNDEFINED_ERROR"
+//       )
+//     );
+// });
+
+// if (
+//   req.body.room_id == null ||
+//   req.body.name == null ||
+//   req.body.floor_id == null
+// ) {
+//   return res
+//     .status(message["400_BAD_REQUEST"].status)
+//     .send(
+//       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+//     );
+// }
+
+// const room = new Room();
+// room
+//   .update(req.body.room_id, req.body.name, req.body.floor_id)
+//   .then((response) => {
+//     return res.status(response.status).send(response);
+//   })
+//   .catch((error) => {
+//     console.error(error);
+//     return res
+//       .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//       .send(
+//         message.issueMessage(
+//           message["500_SERVER_INTERNAL_ERROR"],
+//           "UNDEFINED_ERROR"
+//         )
+//       );
+//   });
+//}
 
 function updateRoomPrice(req, res) {
   if (req.query.room_id == null || req.query.price == null) {
@@ -1433,6 +1725,36 @@ function updateRoomPriceAdd(req, res) {
           )
         );
     });
+}
+
+function checkoutRoom(req, res) {
+  if (req.query.room_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room.updatePrice(req.query.room_id, 0).then((response) => {
+    room
+      .updateAdditionalService(req.query.room_id, 0)
+      .then((response) => {
+        return res.status(response.status).send(response);
+      })
+      .catch((error) => {
+        console.error(error);
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      });
+  });
 }
 
 function deleteRoom(req, res) {
@@ -1769,6 +2091,8 @@ module.exports = {
   //객실 가격 추가
   updateRoomPriceAdd,
   deleteRoom,
+  //객실 체크아웃
+  checkoutRoom,
   getAccessTokenByAccount,
   updateWorkStatus,
   readProfileInfo,

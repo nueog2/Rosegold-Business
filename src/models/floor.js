@@ -1,6 +1,7 @@
 const models = require("../../models");
 const message = require("../../config/message");
 const { Hotel } = require("./hotel");
+const { where } = require("sequelize");
 
 class Floor extends Hotel {
   constructor() {
@@ -31,6 +32,31 @@ class Floor extends Hotel {
             );
           });
       });
+    });
+  }
+
+  findFloor(hotel_id, floor_number) {
+    return new Promise((resolve, reject) => {
+      models.floor
+        .findOne({
+          where: { hotel_id: hotel_id, floor_number: floor_number },
+          attributes: ["id", "hotel_id", "floor_number"],
+        })
+        .then((response) => {
+          if (!response) {
+            resolve({ canCreate: true });
+          } else {
+            resolve({ canCreate: false, floor: response });
+          }
+        })
+        .catch((error) => {
+          reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
     });
   }
 
@@ -97,7 +123,7 @@ class Floor extends Hotel {
       this.readOne({ id: floor_id })
         .then((response) => {
           models.floor
-            .destory({
+            .destroy({
               where: { id: floor_id },
             })
             .then((response) => {

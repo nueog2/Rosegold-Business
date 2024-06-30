@@ -10,6 +10,7 @@ router.put("/", managementController.updateRoom);
 router.put("/grade", managementController.updateRoomGrade);
 router.put("/price", managementController.updateRoomPrice);
 router.put("/price/add", managementController.updateRoomPriceAdd);
+router.post("/checkout", managementController.checkoutRoom);
 router.delete("/", managementController.deleteRoom);
 
 module.exports = router;

@@ -3,12 +3,19 @@
 
 const message = require("../../config/message");
 const service = require("../../models/schema/service");
-const ServiceAssignLog = require("../models/service_assign_log").ServiceAssignLog;
+const ServiceAssignLog =
+  require("../models/service_assign_log").ServiceAssignLog;
 const Hotel = require("../models/hotel").Hotel;
 const Service = require("../models/service").Service;
 
 function createService(req, res) {
-  if (req.body.name == null || req.body.service_category_id == null) {
+  if (
+    req.body.name == null ||
+    req.body.eng_name == null ||
+    req.body.content == null ||
+    req.body.purpose == null ||
+    req.body.service_category_id == null
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -19,7 +26,13 @@ function createService(req, res) {
   const service = new Service();
 
   service
-    .create(req.body.name, req.body.service_category_id)
+    .create(
+      req.body.name,
+      req.body.eng_name,
+      req.body.content,
+      req.body.purpose,
+      req.body.service_category_id
+    )
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -99,7 +112,7 @@ function updateService(req, res) {
   }
 
   const promises = update.map((services) => {
-    const { service_id, service_category_id } = services;
+    const { service_id, content, purpose, service_category_id } = services;
 
     if (!service_id || !service_category_id) {
       return new Promise.reject({
@@ -112,7 +125,7 @@ function updateService(req, res) {
     }
 
     const service = new Service();
-    return service.update(service_id, service_category_id);
+    return service.update(service_id, content, purpose, service_category_id);
   });
 
   // 모든 Promise가 처리된 후 응답
@@ -145,7 +158,7 @@ function updateService(req, res) {
 }
 
 function deleteService(req, res) {
-  if (req.query.service_id == null) {
+  if (req.body.service_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -155,7 +168,7 @@ function deleteService(req, res) {
 
   const service = new Service();
   service
-    .delete(req.query.service_id)
+    .delete(req.body.service_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -174,43 +187,58 @@ function deleteService(req, res) {
     });
 }
 
-function createServiceAssignLog(req, res){
-  if(req.body.service_ids == null || req.body.department_id == null){
-    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+function createServiceAssignLog(req, res) {
+  if (req.body.service_ids == null || req.body.department_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
   }
 
-  const serviceAssignLog = new ServiceAssignLog()
-  serviceAssignLog.create(req.body.service_ids, req.body.department_id).then(response => {
-    return res.status(response.status).send(response)
-  }).catch(error => {
-    return res.status(error.status).send(error)
-  })
+  const serviceAssignLog = new ServiceAssignLog();
+  serviceAssignLog
+    .create(req.body.service_ids, req.body.department_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
 }
 
-function getServiceAssignLogByDepartmentID(req, res){
-  if(req.query.department_id == null){
-    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+function getServiceAssignLogByDepartmentID(req, res) {
+  if (req.query.department_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
   }
 
-  const serviceAssignLog = new ServiceAssignLog()
-  serviceAssignLog.readMany({ department_id : req.query.department_id}).then(response => {
-    return res.status(response.status).send(response)
-  }).catch(error => {
-    return res.status(error.status).send(error)
-  })
+  const serviceAssignLog = new ServiceAssignLog();
+  serviceAssignLog
+    .readMany({ department_id: req.query.department_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
 }
 
-function deleteServiceAssignLog(req, res){
-  if(req.body.service_assign_log_id == null){
-    return res.status(message["400_BAD_REQUEST"].status).send(message["400_BAD_REQUEST"])
+function deleteServiceAssignLog(req, res) {
+  if (req.body.service_assign_log_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
   }
 
-  const serviceAssignLog = new ServiceAssignLog()
-  serviceAssignLog.delete(req.body.service_assign_log_id).then(response => {
-    return res.status(response.status).send(response)
-  }).catch(error => {
-    return res.status(error.status).send(error)
-  })
+  const serviceAssignLog = new ServiceAssignLog();
+  serviceAssignLog
+    .delete(req.body.service_assign_log_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
 }
 
 module.exports = {
@@ -221,5 +249,5 @@ module.exports = {
   deleteService,
   createServiceAssignLog,
   getServiceAssignLogByDepartmentID,
-  deleteServiceAssignLog
+  deleteServiceAssignLog,
 };

@@ -85,7 +85,7 @@ function updateRoomGrade(req, res) {
 function getRoomGradeMany(req, res) {
   const room_grade = new Room_Grade();
   room_grade
-    .readMany()
+    .readMany({ hotel_id: req.query.hotel_id })
     .then((response) => {
       res.status(response.status).send(response);
     })

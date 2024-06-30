@@ -1465,7 +1465,7 @@ class Room extends Hotel {
     super();
   }
 
-  create(hotel_id, name, floor_id, price, room_grade_id) {
+  create(hotel_id, name, floor_id, price, room_grade_id, additional_service) {
     return new Promise((resolve, reject) => {
       models.room
         .findOne({
@@ -1490,6 +1490,7 @@ class Room extends Hotel {
                 floor_id: floor_id,
                 price: price,
                 room_grade_id: room_grade_id,
+                additional_service: additional_service,
               })
               .then((response) => {
                 return resolve(message["200_SUCCESS"]);
@@ -1533,6 +1534,7 @@ class Room extends Hotel {
             "hotel_id",
             "price",
             "room_grade_id",
+            "additional_service",
           ],
         })
         .then((response) => {
@@ -1611,6 +1613,7 @@ class Room extends Hotel {
             "hotel_id",
             "price",
             "room_grade_id",
+            "additional_service",
           ],
         })
         .then((response) => {
@@ -1650,6 +1653,7 @@ class Room extends Hotel {
             "hotel_id",
             "price",
             "room_grade_id",
+            "additional_service",
           ],
         })
         .then((response) => {
@@ -1749,6 +1753,42 @@ class Room extends Hotel {
     });
   }
 
+  updateAdditionalService(room_id, additional_service) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((response) => {
+          models.room
+            .update(
+              {
+                additional_service: additional_service,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                console.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
   // 호텔 방 금액 수정
   updatePrice(room_id, price) {
     return new Promise((resolve, reject) => {
@@ -1781,6 +1821,53 @@ class Room extends Hotel {
             });
         })
         .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  //호텔 방 부가서비스 건수 추가
+  addService(room_id, additionalService) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((room) => {
+          // additionalService를 숫자로 변환
+          const additionalServiceNumber = Number(additionalService);
+          // 변환에 실패한 경우 (NaN인 경우) 에러를 반환
+          if (isNaN(additionalServiceNumber)) {
+            return reject(new Error("Invalid additionalService: Not a number"));
+          }
+          const updatedadditionalService =
+            room.room.additional_service + additionalServiceNumber;
+          models.room
+            .update(
+              {
+                additional_service: updatedadditionalService,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              console.log(response);
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                cosole.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          console.log(error);
           return reject(error);
         });
     });
@@ -1870,247 +1957,257 @@ class Requirement_Log extends Room {
 
   create(room_id, question, answer, department_name, summarized_sentence) {
     return new Promise((resolve, reject) => {
-      new Department()
-        .readOne({
-          token_name: department_name,
-        })
-        .then((response) => {
-          var department_id = response.department.id;
-          new Room()
-            .readOne({
-              id: room_id,
-            })
-            .then((response) => {
-              var hotel_id = response.room.hotel_id;
-              models.requirement_log
-                .create({
-                  type: "챗봇 요청사항",
-                  room_id: room_id,
-                  requirement_article: question,
-                  response_article: answer,
-                  progress: 0,
-                  process_department_id: department_id,
-                  summarized_sentence: summarized_sentence,
-                  hotel_id: hotel_id,
-                  user_id: null,
-                })
-                .then((response) => {
-                  if (response) {
-                    var worker = new Worker();
-                    worker
-                      .readManyByDepartment2(department_id)
-                      .then((workers) => {
-                        var sendTargetFCMTokens = [];
-                        for (var i = 0; i < workers["workers"].length; i++) {
-                          if (
-                            workers["workers"][i].dataValues["fcm_token"]
-                              .length > 0
-                          ) {
-                            sendTargetFCMTokens = sendTargetFCMTokens.concat(
-                              workers["workers"][i].dataValues["fcm_token"]
-                            );
-                          }
-                        }
-
-                        if (sendTargetFCMTokens.length > 0) {
-                          let _message = {
-                            notification: {
-                              title: "새로운 요청 도착!",
-                              body: "빠르게 요청을 배정받아주세요!",
-                            },
-                            data: {
-                              title: "새로운 요청 도착!",
-                              body: "빠르게 요청을 배정받아주세요!",
-                            },
-                            tokens: sendTargetFCMTokens,
-                          };
-                          admin
-                            .messaging()
-                            .sendMulticast(_message)
-                            .then(function (response) {
-                              console.log(
-                                "Successfully sent message: : ",
-                                response
-                              );
-                              return resolve(message["200_SUCCESS"]);
-                            })
-                            .catch(function (err) {
-                              console.log("Error Sending message!!! : ", err);
-                              return resolve(message["200_SUCCESS"]);
-                            });
-                        } else {
-                          return resolve(message["200_SUCCESS"]);
-                        }
-                      })
-                      .catch((error) => {
-                        console.log(error);
-                        if (
-                          error.status &&
-                          error.status == message["404_NOT_FOUND"].status
-                        ) {
-                          return resolve(message["200_SUCCESS"]);
-                        } else {
-                          return reject(error);
-                        }
-                      });
-                  } else {
-                    return reject(
-                      message.issueMessage(
-                        message["500_SERVER_INTERNAL_ERROR"],
-                        "UNDEFINED_ERROR"
-                      )
-                    );
-                  }
-                })
-                .catch((error) => {
-                  console.log(error);
-                  return reject(
-                    message.issueMessage(
-                      message["500_SERVER_INTERNAL_ERROR"],
-                      "UNDEFINED_ERROR"
-                    )
-                  );
-                });
-            })
-            .catch((error) => {
-              console.log(error);
-              return reject(error);
-            });
-        })
-        .catch((error) => {
-          console.log(error);
-          return reject(error);
-        });
-    });
-  }
-
-  createbymenu(room_id, department_name, menu, price, num) {
-    return new Promise((resolve, reject) => {
-      new Department()
-        .readOne({
-          token_name: department_name,
-        })
-        .then((response) => {
-          var department_id = response.department.id;
-          var summarized_sentence = `${menu} ${num}개 주문`;
-          new Room()
-            .addPrice(room_id, price)
-            .then((response) => {
-              console.log(response);
-              new Room()
-                .readOne({
-                  id: room_id,
-                })
-                .then((response) => {
-                  var hotel_id = response.room.hotel_id;
-                  models.requirement_log
-                    .create({
-                      type: "메뉴판 요청사항",
-                      room_id: room_id,
-                      requirement_article: null,
-                      response_article: null,
-                      progress: 0,
-                      process_department_id: department_id,
-                      summarized_sentence: summarized_sentence,
-                      hotel_id: hotel_id,
-                      user_id: null,
-                    })
-                    .then((response) => {
-                      if (response) {
-                        var worker = new Worker();
-                        worker
-                          .readManyByDepartment2(department_id)
-                          .then((workers) => {
-                            var sendTargetFCMTokens = [];
-                            for (
-                              var i = 0;
-                              i < workers["workers"].length;
-                              i++
-                            ) {
-                              if (
-                                workers["workers"][i].dataValues["fcm_token"]
-                                  .length > 0
-                              ) {
-                                sendTargetFCMTokens =
-                                  sendTargetFCMTokens.concat(
-                                    workers["workers"][i].dataValues[
-                                      "fcm_token"
-                                    ]
-                                  );
-                              }
-                            }
-
-                            if (sendTargetFCMTokens.length > 0) {
-                              let _message = {
-                                notification: {
-                                  title: "새로운 요청 도착!",
-                                  body: "빠르게 요청을 배정받아주세요!",
-                                },
-                                data: {
-                                  title: "새로운 요청 도착!",
-                                  body: "빠르게 요청을 배정받아주세요!",
-                                },
-                                tokens: sendTargetFCMTokens,
-                              };
-                              admin
-                                .messaging()
-                                .sendMulticast(_message)
-                                .then(function (response) {
-                                  console.log(
-                                    "Successfully sent message: : ",
-                                    response
-                                  );
-                                  return resolve(message["200_SUCCESS"]);
-                                })
-                                .catch(function (err) {
-                                  console.log(
-                                    "Error Sending message!!! : ",
-                                    err
-                                  );
-                                  return resolve(message["200_SUCCESS"]);
-                                });
-                            } else {
-                              return resolve(message["200_SUCCESS"]);
-                            }
-                          })
-                          .catch((error) => {
-                            console.log(error);
+      new Room().addService(room_id, 1).then((response) => {
+        new Room()
+          .readOne({
+            id: room_id,
+          })
+          .then((response) => {
+            var hotel_id = response.room.hotel_id;
+            new Department()
+              .readOne({
+                token_name: department_name,
+                hotel_id: hotel_id,
+              })
+              .then((response) => {
+                var department_id = response.department.id;
+                models.requirement_log
+                  .create({
+                    type: "챗봇 요청사항",
+                    room_id: room_id,
+                    requirement_article: question,
+                    response_article: answer,
+                    progress: 0,
+                    process_department_id: department_id,
+                    summarized_sentence: summarized_sentence,
+                    hotel_id: hotel_id,
+                    user_id: null,
+                  })
+                  .then((response) => {
+                    if (response) {
+                      var worker = new Worker();
+                      worker
+                        .readManyByDepartment2(department_id)
+                        .then((workers) => {
+                          var sendTargetFCMTokens = [];
+                          for (var i = 0; i < workers["workers"].length; i++) {
                             if (
-                              error.status &&
-                              error.status == message["404_NOT_FOUND"].status
+                              workers["workers"][i].dataValues["fcm_token"]
+                                .length > 0
                             ) {
-                              return resolve(message["200_SUCCESS"]);
-                            } else {
-                              return reject(error);
+                              sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                                workers["workers"][i].dataValues["fcm_token"]
+                              );
                             }
-                          });
-                      } else {
-                        return reject(
-                          message.issueMessage(
-                            message["500_SERVER_INTERNAL_ERROR"],
-                            "UNDEFINED_ERROR"
-                          )
-                        );
-                      }
-                    })
-                    .catch((error) => {
-                      console.log(error);
+                          }
+
+                          if (sendTargetFCMTokens.length > 0) {
+                            let _message = {
+                              notification: {
+                                title: "새로운 요청 도착!",
+                                body: "빠르게 요청을 배정받아주세요!",
+                              },
+                              data: {
+                                title: "새로운 요청 도착!",
+                                body: "빠르게 요청을 배정받아주세요!",
+                              },
+                              tokens: sendTargetFCMTokens,
+                            };
+                            admin
+                              .messaging()
+                              .sendMulticast(_message)
+                              .then(function (response) {
+                                console.log(
+                                  "Successfully sent message: : ",
+                                  response
+                                );
+                                return resolve(message["200_SUCCESS"]);
+                              })
+                              .catch(function (err) {
+                                console.log("Error Sending message!!! : ", err);
+                                return resolve(message["200_SUCCESS"]);
+                              });
+                          } else {
+                            return resolve(message["200_SUCCESS"]);
+                          }
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          if (
+                            error.status &&
+                            error.status == message["404_NOT_FOUND"].status
+                          ) {
+                            return resolve(message["200_SUCCESS"]);
+                          } else {
+                            return reject(error);
+                          }
+                        });
+                    } else {
                       return reject(
                         message.issueMessage(
                           message["500_SERVER_INTERNAL_ERROR"],
                           "UNDEFINED_ERROR"
                         )
                       );
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  });
+              })
+              .catch((error) => {
+                console.log(error);
+                return reject(error);
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+            return reject(error);
+          });
+      });
+    });
+  }
+
+  createbymenu(room_id, department_name, menu, price, num) {
+    return new Promise((resolve, reject) => {
+      new Room()
+        .readOne({
+          id: room_id,
+        })
+        .then((response) => {
+          var hotel_id = response.room.hotel_id;
+          new Department()
+            .readOne({
+              token_name: department_name,
+              hotel_id: hotel_id,
+            })
+            .then((response) => {
+              var department_id = response.department.id;
+              var summarized_sentence = `${menu} ${num}개 주문`;
+              new Room()
+                .addService(room_id, 1)
+                .then((response) => {
+                  new Room()
+                    .addPrice(room_id, price)
+                    .then((response) => {
+                      console.log(response);
+                      models.requirement_log
+                        .create({
+                          type: "메뉴판 요청사항",
+                          room_id: room_id,
+                          requirement_article: null,
+                          response_article: null,
+                          progress: 0,
+                          process_department_id: department_id,
+                          summarized_sentence: summarized_sentence,
+                          hotel_id: hotel_id,
+                          user_id: null,
+                        })
+                        .then((response) => {
+                          if (response) {
+                            var worker = new Worker();
+                            worker
+                              .readManyByDepartment2(department_id)
+                              .then((workers) => {
+                                var sendTargetFCMTokens = [];
+                                for (
+                                  var i = 0;
+                                  i < workers["workers"].length;
+                                  i++
+                                ) {
+                                  if (
+                                    workers["workers"][i].dataValues[
+                                      "fcm_token"
+                                    ].length > 0
+                                  ) {
+                                    sendTargetFCMTokens =
+                                      sendTargetFCMTokens.concat(
+                                        workers["workers"][i].dataValues[
+                                          "fcm_token"
+                                        ]
+                                      );
+                                  }
+                                }
+
+                                if (sendTargetFCMTokens.length > 0) {
+                                  let _message = {
+                                    notification: {
+                                      title: "새로운 요청 도착!",
+                                      body: "빠르게 요청을 배정받아주세요!",
+                                    },
+                                    data: {
+                                      title: "새로운 요청 도착!",
+                                      body: "빠르게 요청을 배정받아주세요!",
+                                    },
+                                    tokens: sendTargetFCMTokens,
+                                  };
+                                  admin
+                                    .messaging()
+                                    .sendMulticast(_message)
+                                    .then(function (response) {
+                                      console.log(
+                                        "Successfully sent message: : ",
+                                        response
+                                      );
+                                      return resolve(message["200_SUCCESS"]);
+                                    })
+                                    .catch(function (err) {
+                                      console.log(
+                                        "Error Sending message!!! : ",
+                                        err
+                                      );
+                                      return resolve(message["200_SUCCESS"]);
+                                    });
+                                } else {
+                                  return resolve(message["200_SUCCESS"]);
+                                }
+                              })
+                              .catch((error) => {
+                                console.log(error);
+                                if (
+                                  error.status &&
+                                  error.status ==
+                                    message["404_NOT_FOUND"].status
+                                ) {
+                                  return resolve(message["200_SUCCESS"]);
+                                } else {
+                                  return reject(error);
+                                }
+                              });
+                          } else {
+                            return reject(
+                              message.issueMessage(
+                                message["500_SERVER_INTERNAL_ERROR"],
+                                "UNDEFINED_ERROR"
+                              )
+                            );
+                          }
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          return reject(
+                            message.issueMessage(
+                              message["500_SERVER_INTERNAL_ERROR"],
+                              "UNDEFINED_ERROR"
+                            )
+                          );
+                        });
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                      return reject(error);
                     });
                 })
                 .catch((error) => {
                   console.log(error);
                   return reject(error);
                 });
-            })
-            .catch((error) => {
-              console.log(error);
-              return reject(error);
             });
         });
     });

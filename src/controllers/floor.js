@@ -15,9 +15,35 @@ function createFloor(req, res) {
   const floor = new Floor();
 
   floor
-    .create(req.body.hotel_id, req.body.floor_number)
+    .findFloor(req.body.hotel_id, req.body.floor_number)
     .then((response) => {
-      return res.status(response.status).send(response);
+      if (!response.canCreate) {
+        return res
+          .status(message["409_CONFLICT"].status)
+          .send(
+            message.issueMessage(
+              message["409_CONFLICT"],
+              "FLOOR_ALREADY_EXISTS"
+            )
+          );
+      } else {
+        floor
+          .create(req.body.hotel_id, req.body.floor_number)
+          .then((response) => {
+            return res.status(response.status).send(response);
+          })
+          .catch((error) => {
+            console.log(error);
+            return res
+              .status(message["500_SERVER_INTERNAL_ERROR"].status)
+              .send(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+          });
+      }
     })
     .catch((error) => {
       console.log(error);

@@ -8,14 +8,16 @@ class Service extends Service_Category {
     super();
   }
 
-  create(name, service_category_id) {
+  create(name, eng_name, content, purpose, service_category_id) {
     return new Promise((resolve, reject) => {
       super.readOne(service_category_id).then((response) =>
         models.service
           .create({
             name: name,
+            eng_name: eng_name,
+            content: content,
+            purpose: purpose,
             service_category_id: service_category_id,
-            content: "",
           })
           .then((response) => {
             if (response) {
@@ -97,12 +99,14 @@ class Service extends Service_Category {
     });
   }
 
-  update(service_id, service_category_id) {
+  update(service_id, content, purpose, service_category_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: service_id })
         .then((response) => {
           models.service.update(
             {
+              content: content,
+              purpose: purpose,
               service_category_id: service_category_id,
             },
             {
