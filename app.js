@@ -73,7 +73,8 @@ app.use(cookieParser());
 //   }
 // });
 
-var port = process.env.PORT || 6060;
+var port = process.env.PORT || 8080;
+// 개발용으로 임시로 8080으로 배포
 //실제 프로덕트용 port는 임시로 6060 으로 설정
 //원래는 4040임.
 
