@@ -9,7 +9,21 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
+      eng_name: {
+        type: DataTypes.CHAR(20),
+        allowNull: false,
+        defaultValue: "",
+      },
+    },
+    {
       content: {
+        type: DataTypes.TEXT(),
+        allowNull: true,
+        defaultValue: "",
+      },
+    },
+    {
+      purpose: {
         type: DataTypes.TEXT(),
         allowNull: false,
         defaultValue: "",
@@ -35,7 +49,6 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
-
     this.hasMany(models.service_assign_log, {
       foreignKey: "service_id",
       sourceKey: "id",

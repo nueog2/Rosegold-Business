@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      additional_service: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       paranoid: true,
