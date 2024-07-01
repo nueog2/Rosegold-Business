@@ -14,6 +14,7 @@ function createService(req, res) {
     req.body.eng_name == null ||
     req.body.content == null ||
     req.body.purpose == null ||
+    req.body.description == null ||
     req.body.service_category_id == null
   ) {
     return res
@@ -31,6 +32,7 @@ function createService(req, res) {
       req.body.eng_name,
       req.body.content,
       req.body.purpose,
+      req.body.description,
       req.body.service_category_id
     )
     .then((response) => {
@@ -112,7 +114,8 @@ function updateService(req, res) {
   }
 
   const promises = update.map((services) => {
-    const { service_id, content, purpose, service_category_id } = services;
+    const { service_id, content, purpose, description, service_category_id } =
+      services;
 
     if (!service_id || !service_category_id) {
       return new Promise.reject({
@@ -125,7 +128,13 @@ function updateService(req, res) {
     }
 
     const service = new Service();
-    return service.update(service_id, content, purpose, service_category_id);
+    return service.update(
+      service_id,
+      content,
+      purpose,
+      description,
+      service_category_id
+    );
   });
 
   // 모든 Promise가 처리된 후 응답

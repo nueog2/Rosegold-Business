@@ -8,7 +8,7 @@ class Service extends Service_Category {
     super();
   }
 
-  create(name, eng_name, content, purpose, service_category_id) {
+  create(name, eng_name, content, purpose, description, service_category_id) {
     return new Promise((resolve, reject) => {
       super.readOne(service_category_id).then((response) =>
         models.service
@@ -17,6 +17,7 @@ class Service extends Service_Category {
             eng_name: eng_name,
             content: content,
             purpose: purpose,
+            description: description,
             service_category_id: service_category_id,
           })
           .then((response) => {
@@ -99,7 +100,7 @@ class Service extends Service_Category {
     });
   }
 
-  update(service_id, content, purpose, service_category_id) {
+  update(service_id, content, purpose, description, service_category_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: service_id })
         .then((response) => {
@@ -107,6 +108,7 @@ class Service extends Service_Category {
             {
               content: content,
               purpose: purpose,
+              description: description,
               service_category_id: service_category_id,
             },
             {
