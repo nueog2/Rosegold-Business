@@ -7,6 +7,7 @@ const { response } = require("express");
 const admin = require("firebase-admin");
 
 let serAccount = require("../../config/firebase-key.json");
+const { orderBy } = require("lodash");
 
 admin.initializeApp({
   credential: admin.credential.cert(serAccount),
@@ -1003,6 +1004,11 @@ class Worker extends Hotel {
                 },
               ],
             },
+            {
+              model: models.work_log,
+              limit: 1,
+              order: [["id", "DESC"]],
+            },
           ],
         })
         .then((response) => {
@@ -1017,6 +1023,7 @@ class Worker extends Hotel {
           }
         })
         .catch((error) => {
+          console.log(error);
           return reject(
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
@@ -1990,7 +1997,13 @@ class Requirement_Log extends Room {
                         .readManyByDepartment2(department_id)
                         .then((workers) => {
                           var sendTargetFCMTokens = [];
+                        
                           for (var i = 0; i < workers["workers"].length; i++) {
+                          if (
+                            workers["workers"][i]["work_logs"].length > 0 &&
+                            workers["workers"][i]["work_logs"][0]["status"] ==
+                              "WORK"
+                          ) {
                             if (
                               workers["workers"][i].dataValues["fcm_token"]
                                 .length > 0
@@ -2244,8 +2257,10 @@ class Requirement_Log extends Room {
             "process_department_id",
             "requirement_id",
             "createdAt",
+            "updatedAt",
             "user_id",
             "summarized_sentence",
+            "processed_info",
           ],
           order: [["createdAt", "ASC"]],
         })
@@ -2610,7 +2625,7 @@ class Message {
         .readOne({
           id: to_user_id,
         })
-        .then((response) => {
+        .then((workerInfoResponse) => {
           models.message
             .create({
               to_user_id: to_user_id,
@@ -2618,6 +2633,34 @@ class Message {
               user_id: user_id,
             })
             .then((response) => {
+              var token = workerInfoResponse.dataValues["fcm_token"];
+
+              if (sendTargetFCMTokens.length > 0) {
+                let _message = {
+                  notification: {
+                    title: "새로운 알림 도착!",
+                    body: "알림을 확인해주세요",
+                  },
+                  data: {
+                    title: "새로운 알림 도착!",
+                    body: "알림을 확인해주세요",
+                  },
+                  tokens: token,
+                };
+                admin
+                  .messaging()
+                  .sendMulticast(_message)
+                  .then(function (response) {
+                    console.log("Successfully sent message: : ", response);
+                    return resolve(message["200_SUCCESS"]);
+                  })
+                  .catch(function (err) {
+                    console.log("Error Sending message!!! : ", err);
+                    return resolve(message["200_SUCCESS"]);
+                  });
+              } else {
+                return resolve(message["200_SUCCESS"]);
+              }
               return resolve(message["200_SUCCESS"]);
             })
             .catch((error) => {
@@ -2634,6 +2677,7 @@ class Message {
     return new Promise((resolve, reject) => {
       models.message
         .findAll({
+          include: [{ model: models.user }],
           where: condition,
         })
         .then((response) => {

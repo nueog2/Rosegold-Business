@@ -3,10 +3,6 @@ module.exports = (sequelize, DataTypes) => {
   const work_log = sequelize.define(
     "work_log",
     {
-      user_id: {
-        type: DataTypes.INTEGER(),
-        allowNull: false,
-      },
       status: {
         type: DataTypes.CHAR(),
         allowNull: false,
