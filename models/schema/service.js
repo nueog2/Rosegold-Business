@@ -7,26 +7,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(20),
         allowNull: false,
       },
-    },
-    {
       eng_name: {
-        type: DataTypes.CHAR(20),
-        allowNull: false,
-        defaultValue: "",
+        type: DataTypes.TEXT(),
+        allowNull: true,
       },
-    },
-    {
       content: {
         type: DataTypes.TEXT(),
         allowNull: true,
-        defaultValue: "",
       },
-    },
-    {
       purpose: {
         type: DataTypes.TEXT(),
-        allowNull: false,
-        defaultValue: "",
+        allowNull: true,
       },
     },
     {

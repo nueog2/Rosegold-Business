@@ -1966,16 +1966,11 @@ class Requirement_Log extends Room {
     return new Promise((resolve, reject) => {
       new Room().addService(room_id, 1).then((response) => {
         new Room()
-          .readOne({
-            id: room_id,
-          })
+          .readOne({ id: room_id })
           .then((response) => {
             var hotel_id = response.room.hotel_id;
             new Department()
-              .readOne({
-                token_name: department_name,
-                hotel_id: hotel_id,
-              })
+              .readOne({ token_name: department_name, hotel_id: hotel_id })
               .then((response) => {
                 var department_id = response.department.id;
                 models.requirement_log
@@ -1997,20 +1992,24 @@ class Requirement_Log extends Room {
                         .readManyByDepartment2(department_id)
                         .then((workers) => {
                           var sendTargetFCMTokens = [];
-                        
+
                           for (var i = 0; i < workers["workers"].length; i++) {
-                          if (
-                            workers["workers"][i]["work_logs"].length > 0 &&
-                            workers["workers"][i]["work_logs"][0]["status"] ==
-                              "WORK"
-                          ) {
                             if (
-                              workers["workers"][i].dataValues["fcm_token"]
-                                .length > 0
+                              workers["workers"][i]["work_logs"].length > 0 &&
+                              workers["workers"][i]["work_logs"][0]["status"] ==
+                                "WORK"
                             ) {
-                              sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                              if (
                                 workers["workers"][i].dataValues["fcm_token"]
-                              );
+                                  .length > 0
+                              ) {
+                                sendTargetFCMTokens =
+                                  sendTargetFCMTokens.concat(
+                                    workers["workers"][i].dataValues[
+                                      "fcm_token"
+                                    ]
+                                  );
+                              }
                             }
                           }
 
@@ -2086,6 +2085,130 @@ class Requirement_Log extends Room {
       });
     });
   }
+
+  // create(room_id, question, answer, department_name, summarized_sentence) {
+  //   return new Promise((resolve, reject) => {
+  //     new Room().addService(room_id, 1).then((response) => {
+  //       new Room()
+  //         .readOne({
+  //           id: room_id,
+  //         })
+  //         .then((response) => {
+  //           var hotel_id = response.room.hotel_id;
+  //           new Department()
+  //             .readOne({
+  //               token_name: department_name,
+  //               hotel_id: hotel_id,
+  //             })
+  //             .then((response) => {
+  //               var department_id = response.department.id;
+  //               models.requirement_log
+  //                 .create({
+  //                   type: "챗봇 요청사항",
+  //                   room_id: room_id,
+  //                   requirement_article: question,
+  //                   response_article: answer,
+  //                   progress: 0,
+  //                   process_department_id: department_id,
+  //                   summarized_sentence: summarized_sentence,
+  //                   hotel_id: hotel_id,
+  //                   user_id: null,
+  //                 })
+  //                 .then((response) => {
+  //                   if (response) {
+  //                     var worker = new Worker();
+  //                     worker
+  //                       .readManyByDepartment2(department_id)
+  //                       .then((workers) => {
+  //                         var sendTargetFCMTokens = [];
+
+  //                         for (var i = 0; i < workers["workers"].length; i++) {
+  //                         if (
+  //                           workers["workers"][i]["work_logs"].length > 0 &&
+  //                           workers["workers"][i]["work_logs"][0]["status"] ==
+  //                             "WORK"
+  //                         ) {
+  //                           if (
+  //                             workers["workers"][i].dataValues["fcm_token"]
+  //                               .length > 0
+  //                           ) {
+  //                             sendTargetFCMTokens = sendTargetFCMTokens.concat(
+  //                               workers["workers"][i].dataValues["fcm_token"]
+  //                             );
+  //                           }
+  //                         }
+
+  //                         if (sendTargetFCMTokens.length > 0) {
+  //                           let _message = {
+  //                             notification: {
+  //                               title: "새로운 요청 도착!",
+  //                               body: "빠르게 요청을 배정받아주세요!",
+  //                             },
+  //                             data: {
+  //                               title: "새로운 요청 도착!",
+  //                               body: "빠르게 요청을 배정받아주세요!",
+  //                             },
+  //                             tokens: sendTargetFCMTokens,
+  //                           };
+  //                           admin
+  //                             .messaging()
+  //                             .sendMulticast(_message)
+  //                             .then(function (response) {
+  //                               console.log(
+  //                                 "Successfully sent message: : ",
+  //                                 response
+  //                               );
+  //                               return resolve(message["200_SUCCESS"]);
+  //                             })
+  //                             .catch(function (err) {
+  //                               console.log("Error Sending message!!! : ", err);
+  //                               return resolve(message["200_SUCCESS"]);
+  //                             });
+  //                         } else {
+  //                           return resolve(message["200_SUCCESS"]);
+  //                         }
+  //                         .catch((error) => {
+  //                         console.log(error);
+  //                         if (
+  //                           error.status &&
+  //                           error.status == message["404_NOT_FOUND"].status
+  //                         ) {
+  //                           return resolve(message["200_SUCCESS"]);
+  //                         } else {
+  //                           return reject(error);
+  //                         }
+  //                       });
+  //                   } else {
+  //                     return reject(
+  //                       message.issueMessage(
+  //                         message["500_SERVER_INTERNAL_ERROR"],
+  //                         "UNDEFINED_ERROR"
+  //                       )
+  //                     );
+  //                   }
+  //                 })})
+  //                 .catch((error) => {
+  //                   console.log(error);
+  //                   return reject(
+  //                     message.issueMessage(
+  //                       message["500_SERVER_INTERNAL_ERROR"],
+  //                       "UNDEFINED_ERROR"
+  //                     )
+  //                   );
+  //                 });
+  //             })
+  //             .catch((error) => {
+  //               console.log(error);
+  //               return reject(error);
+  //             });
+  //         })
+  //         .catch((error) => {
+  //           console.log(error);
+  //           return reject(error);
+  //         });
+  //     });
+  //   });
+  // }
 
   createbymenu(room_id, department_name, menu, price, num) {
     return new Promise((resolve, reject) => {
