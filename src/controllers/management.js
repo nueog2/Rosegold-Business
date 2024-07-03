@@ -673,7 +673,7 @@ function createWorker(req, res) {
 // ID/PW 기반 사용자 인증 후 Access Token 발급 API
 
 function getTokensByWorkerAccountInfo(req, res) {
-  if (!req.query.user_id || !req.query.user_pwd) {
+  if (!req.query.user_id || !req.query.user_pwd || !req.query.hotel_id) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -682,14 +682,77 @@ function getTokensByWorkerAccountInfo(req, res) {
   }
 
   const worker = new Worker();
-  console.log("hello");
-  worker
-    .readOne({
-      user_id: req.query.user_id,
-      user_pwd: req.query.user_pwd,
-    })
-    .then((worker) => {
-      if (!worker) {
+  const hotel = new Hotel();
+
+  hotel.readOne({ id: req.query.hotel_id }).then((hotel) => {
+    if (!hotel) {
+      return res
+        .status(message["401_UNAUTHORIZED"].status)
+        .send(
+          message.issueMessage(message["401_UNAUTHORIZED"], "HOTEL_NOT_FOUND")
+        );
+    }
+
+    console.log("hello");
+    worker
+      .readOne({
+        user_id: req.query.user_id,
+        user_pwd: req.query.user_pwd,
+      })
+      .then((worker) => {
+        if (!worker) {
+          return res
+            .status(message["401_UNAUTHORIZED"].status)
+            .send(
+              message.issueMessage(
+                message["401_UNAUTHORIZED"],
+                "WORKER_NOT_FOUND"
+              )
+            );
+        }
+
+        console.log(worker.worker.dataValues);
+
+        // 사용자가 인증 후 JWT 토큰 발행
+        jwt
+          .signAccessToken({
+            id: worker.worker.dataValues.id,
+            name: worker.worker.dataValues.name,
+            user_id: worker.worker.dataValues.user_id,
+          })
+          .then((response) => {
+            // 토큰을 쿠키에 저장 및 클라이언트에게 반환
+            return (
+              res.cookie("access_token", response.access_token, {
+                httpOnly: true,
+              }),
+              res.cookie("refresh_token", response.refresh_token, {
+                httpOnly: true,
+              }),
+              res.status(message["200_SUCCESS"].status),
+              res.send({
+                message: "로그인이 성공적으로 처리되었습니다.",
+                access_token: response.access_token,
+                hotel_id: worker.worker.dataValues.hotel_id,
+              })
+            );
+          })
+          .catch((error) => {
+            console.log(error);
+            if (error.status) {
+              return res.status(error.status).send(error);
+            } else {
+              return res.status(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            }
+          });
+      })
+      .catch((error) => {
+        console.error(error);
         return res
           .status(message["401_UNAUTHORIZED"].status)
           .send(
@@ -698,56 +761,8 @@ function getTokensByWorkerAccountInfo(req, res) {
               "WORKER_NOT_FOUND"
             )
           );
-      }
-
-      console.log(worker.worker.dataValues);
-
-      // 사용자가 인증 후 JWT 토큰 발행
-      jwt
-        .signAccessToken({
-          id: worker.worker.dataValues.id,
-          name: worker.worker.dataValues.name,
-          user_id: worker.worker.dataValues.user_id,
-        })
-        .then((response) => {
-          // 토큰을 쿠키에 저장 및 클라이언트에게 반환
-          return (
-            res.cookie("access_token", response.access_token, {
-              httpOnly: true,
-            }),
-            res.cookie("refresh_token", response.refresh_token, {
-              httpOnly: true,
-            }),
-            res.status(message["200_SUCCESS"].status),
-            res.send({
-              message: "로그인이 성공적으로 처리되었습니다.",
-              access_token: response.access_token,
-              hotel_id: worker.worker.dataValues.hotel_id,
-            })
-          );
-        })
-        .catch((error) => {
-          console.log(error);
-          if (error.status) {
-            return res.status(error.status).send(error);
-          } else {
-            return res.status(
-              message.issueMessage(
-                message["500_SERVER_INTERNAL_ERROR"],
-                "UNDEFINED_ERROR"
-              )
-            );
-          }
-        });
-    })
-    .catch((error) => {
-      console.error(error);
-      return res
-        .status(message["401_UNAUTHORIZED"].status)
-        .send(
-          message.issueMessage(message["401_UNAUTHORIZED"], "WORKER_NOT_FOUND")
-        );
-    });
+      });
+  });
 }
 
 //refresh Token 생성

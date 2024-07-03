@@ -33,6 +33,18 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: "",
       },
+      menu: {
+        type: DataTypes.TEXT(),
+        allowNull: true,
+      },
+      price: {
+        type: DataTypes.INTEGER(),
+        allowNull: true,
+      },
+      num: {
+        type: DataTypes.INTEGER(),
+        allowNull: true,
+      },
     },
     {
       paranoid: true,
