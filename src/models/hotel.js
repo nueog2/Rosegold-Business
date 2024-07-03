@@ -2243,6 +2243,9 @@ class Requirement_Log extends Room {
                           process_department_id: department_id,
                           summarized_sentence: summarized_sentence,
                           hotel_id: hotel_id,
+                          menu: menu,
+                          price: price,
+                          num: num,
                           user_id: null,
                         })
                         .then((response) => {
@@ -2533,6 +2536,59 @@ class Requirement_Log extends Room {
               message.issueMessage(
                 message["404_NOT_FOUND"],
                 "REQUIREMENT_LOG_BY_ROOM_ID_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readManyMenuPriceNum(condition) {
+    return new Promise((resolve, reject) => {
+      models.requirement_log
+        .findAll({
+          where: condition,
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+              // as: "room",
+            },
+          ],
+          attributes: [
+            "id",
+            "type",
+            "room_id",
+            "menu",
+            "price",
+            "num",
+            "summarized_sentence",
+          ],
+          order: [["createdAt", "ASC"]],
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.Total_requirement_log = response.length; // 총 로그 수 반환
+            obj.requirement_log = response.map((log) => ({
+              ...log.dataValues,
+              // room_name: log.room ? log.room.dataValues.name : null,
+            }));
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "REQUIREMENT_LOG_NOT_FOUND"
               )
             );
           }

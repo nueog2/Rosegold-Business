@@ -242,6 +242,29 @@ function getRequirementLogManyByRoom(req, res) {
     });
 }
 
+function getRequirementLogManyDetail(req, res) {
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .readManyMenuPriceNum(req.query)
+    .then((response) => {
+      console.log(response);
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getRequirementLogOne(req, res) {
   if (req.query.requirement_log_id == null) {
     return res
@@ -400,6 +423,7 @@ module.exports = {
   getRequirementLogMany,
   getRequirementLogManyByDate,
   getRequirementLogManyByRoom,
+  getRequirementLogManyDetail,
   getRequirementLogOne,
   updateRequirementLog,
   updateRequirementLogDepartment,

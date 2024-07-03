@@ -116,7 +116,7 @@ function getService_CategoryOne(req, res) {
 }
 
 function deleteService_Category(req, res) {
-  if (req.query.department_id == null) {
+  if (req.query.service_category_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -126,7 +126,7 @@ function deleteService_Category(req, res) {
 
   const service_category = new Service_Category();
   service_category
-    .delete(req.query.department_id)
+    .delete(req.query.service_category_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
