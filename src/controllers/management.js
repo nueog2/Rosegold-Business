@@ -719,6 +719,7 @@ function getTokensByWorkerAccountInfo(req, res) {
             id: worker.worker.dataValues.id,
             name: worker.worker.dataValues.name,
             user_id: worker.worker.dataValues.user_id,
+            hotel_id: worker.worker.dataValues.hotel_id,
           })
           .then((response) => {
             // 토큰을 쿠키에 저장 및 클라이언트에게 반환
@@ -806,6 +807,11 @@ function getProfileByToken(req, res) {
   //       )
   //     );
   // }
+  if (!req.query.hotel_id) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_HOTEL_ID"));
+  }
 
   const accessToken = req.cookies.access_token;
   console.log(accessToken);
@@ -835,6 +841,17 @@ function getProfileByToken(req, res) {
                 message.issueMessage(
                   message["401_UNAUTHORIZED"],
                   "WORKER_NOT_FOUND"
+                )
+              );
+          }
+
+          if (req.query.hotel_id != response.payload.hotel_id) {
+            return res
+              .status(message["401_UNAUTHORIZED"].status)
+              .send(
+                message.issueMessage(
+                  message["401_UNAUTHORIZED"],
+                  "HOTEL_NOT_MATCH"
                 )
               );
           }
