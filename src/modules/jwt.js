@@ -19,6 +19,7 @@ function signAccessToken(user) {
       id: user.id,
       name: user.name,
       user_id: user.user_id,
+      hotel_id: user.hotel_id,
     };
     var refreshToken = randToken.uid(256);
     var accessToken = jwt.sign(payload, secretKey, options);
