@@ -168,14 +168,15 @@ function getRequirementOne(req, res) {
 
 function updateRequirement(req, res) {
   if (
+    req.body.requirement_id == null ||
     req.body.name == null ||
     req.body.able_start_time == null ||
     req.body.able_end_time == null ||
     req.body.price == null ||
     //req.file == null ||
     req.body.description == null ||
-    req.body.requirement_category_id == null ||
-    (req.file == null && req.body.thumbnail_image_url == null)
+    req.body.requirement_category_id == null
+    // (req.file == null && req.body.thumbnail_image_url == null)
   ) {
     console.log("Missing parameters");
     return res
@@ -186,43 +187,49 @@ function updateRequirement(req, res) {
   }
 
   const requirement = new Requirement();
-  let thumbnail_image_url;
+  const requirement_id = req.body.requirement_id;
 
-  if (req.file) {
-    const domain = "http://223.130.137.39:6060"; // 도메인 주소 추가
-    const filePath = req.file.path.replace(/\\/g, "/"); // 경로에서 백슬래시를 슬래시로 변경
-    thumbnail_image_url = `${domain}/${filePath}`;
-  } else {
-    thumbnail_image_url = req.body.thumbnail_image_url;
-  }
+  requirement.readOne({ id: requirement_id }).then((response) => {
+    let thumbnail_image_url;
 
-  requirement
-    .update(
-      req.body.requirement_id,
-      req.body.name,
-      req.body.able_start_time,
-      req.body.able_end_time,
-      req.body.price,
-      thumbnail_image_url,
-      req.body.description,
-      req.body.requirement_category_id
-    )
-    .then((response) => {
-      return res.status(response.status).send(response);
-    })
-    .catch((error) => {
-      console.log(error);
-      if (!error.status)
-        return res
-          .status(message["500_SERVER_INTERNAL_ERROR"].status)
-          .send(
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
-      else return res.status(error.status).send(error);
-    });
+    if (req.file) {
+      const domain = "http://223.130.137.39:6060"; // 도메인 주소 추가
+      const filePath = req.file.path.replace(/\\/g, "/"); // 경로에서 백슬래시를 슬래시로 변경
+      thumbnail_image_url = `${domain}/${filePath}`;
+      console.log("file changed-> image update");
+    } else {
+      thumbnail_image_url = response.thumbnail_image_url;
+      console.log("file not changed-> image not update");
+    }
+
+    requirement
+      .update(
+        req.body.requirement_id,
+        req.body.name,
+        req.body.able_start_time,
+        req.body.able_end_time,
+        req.body.price,
+        thumbnail_image_url,
+        req.body.description,
+        req.body.requirement_category_id
+      )
+      .then((response) => {
+        return res.status(response.status).send(response);
+      })
+      .catch((error) => {
+        console.log(error);
+        if (!error.status)
+          return res
+            .status(message["500_SERVER_INTERNAL_ERROR"].status)
+            .send(
+              message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+            );
+        else return res.status(error.status).send(error);
+      });
+  });
 }
 
 function deleteRequirement(req, res) {
