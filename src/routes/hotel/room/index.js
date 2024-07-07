@@ -6,6 +6,7 @@ router.get("/many", managementController.getRoomMany);
 router.get("/many/floor", managementController.getRoomManyByFloor);
 router.get("/floor", managementController.getRoomFloors);
 router.get("/one", managementController.getRoomOne);
+router.get("/one/name", managementController.getRoomOneByName);
 router.put("/", managementController.updateRoom);
 router.put("/grade", managementController.updateRoomGrade);
 router.put("/price", managementController.updateRoomPrice);

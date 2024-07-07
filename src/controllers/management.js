@@ -1112,53 +1112,33 @@ function updateWorker(req, res) {
 }
 
 function updateWorkerProfile(req, res) {
-  const { worker_array } = req.body;
-
-  if (!Array.isArray(worker_array) || worker_array.length === 0) {
+  if (
+    req.body.worker_id == null ||
+    req.body.name == null ||
+    req.body.user_num == null ||
+    req.body.phone == null ||
+    req.body.role_id == null ||
+    req.body.user_pwd == null
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
   }
 
-  const promises = worker_array.map((workers) => {
-    const { worker_id, name, user_num, phone, role_id, user_pwd } = workers;
-
-    if (
-      worker_id == null ||
-      name == null ||
-      user_num == null ||
-      phone == null ||
-      role_id == null ||
-      user_pwd == null
-    ) {
-      return res
-        .status(message["400_BAD_REQUEST"].status)
-        .send(
-          message.issueMessage(
-            message["400_BAD_REQUEST"],
-            "SEND_ALL_PARAMETERS"
-          )
-        );
-    }
-
-    const worker = new Worker();
-    worker.updateProfile(worker_id, name, user_num, phone, role_id, user_pwd);
-  });
-
-  // 모든 Promise가 처리된 후 응답
-  Promise.all(promises)
-    .then((responses) => {
-      // 모든 응답이 성공적인지 확인
-      if (responses.every((response) => response.status === 200)) {
-        return res.status(message["200_SUCCESS"].status).send(responses);
-      } else {
-        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
-        const errorResponse = responses.find(
-          (response) => response.status !== 200
-        );
-        console.log(errorResponse);
-        return res.status(errorResponse.status).send(errorResponse);
-      }
+  const worker = new Worker();
+  worker
+    .updateProfile(
+      req.body.worker_id,
+      req.body.name,
+      req.body.user_num,
+      req.body.phone,
+      req.body.role_id,
+      req.body.user_pwd
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);
@@ -1174,6 +1154,69 @@ function updateWorkerProfile(req, res) {
       else return res.status(error.status).send(error);
     });
 }
+
+//   // const { worker_array } = req.body;
+
+//   // if (!Array.isArray(worker_array) || worker_array.length === 0) {
+//   //   return res
+//   //     .status(message["400_BAD_REQUEST"].status)
+//   //     .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+//   // }
+
+//   // const promises = worker_array.map((workers) => {
+//   //   const { worker_id, name, user_num, phone, role_id, user_pwd } = workers;
+
+//   if (
+//     worker_id == null ||
+//     name == null ||
+//     user_num == null ||
+//     phone == null ||
+//     role_id == null ||
+//     user_pwd == null
+//   ) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(
+//         message.issueMessage(
+//           message["400_BAD_REQUEST"],
+//           "SEND_ALL_PARAMETERS"
+//         )
+//       );
+//   }
+
+//   const worker = new Worker();
+//   worker.updateProfile(worker_id, name, user_num, phone, role_id, user_pwd);
+//   };
+
+//   // // 모든 Promise가 처리된 후 응답
+//   // Promise.all(promises)
+//   //   .then((responses) => {
+//   //     // 모든 응답이 성공적인지 확인
+//   //     if (responses.every((response) => response.status === 200)) {
+//   //       return res.status(message["200_SUCCESS"].status).send(responses);
+//   //     } else {
+//   //       // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+//   //       const errorResponse = responses.find(
+//   //         (response) => response.status !== 200
+//   //       );
+//   //       console.log(errorResponse);
+//   //       return res.status(errorResponse.status).send(errorResponse);
+//   //     }
+//   //   })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
 
 // hotel_admin_user UPDTATE API
 function updateWorkerAdmin(req, res) {
@@ -1537,6 +1580,34 @@ function getRoomOne(req, res) {
   const room = new Room();
   room
     .readOne({ id: req.query.room_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
+function getRoomOneByName(req, res) {
+  if (req.query.room_name == null || req.query.hotel_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readOne({ name: req.query.room_name, hotel_id: req.query.hotel_id })
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -2097,6 +2168,7 @@ module.exports = {
   createRoom,
   getRoomMany,
   getRoomOne,
+  getRoomOneByName,
   getRoomManyByFloor,
   // 객실 층 조회 추가
   getRoomFloors,
