@@ -1883,9 +1883,7 @@ class Room extends Hotel {
   // 호텔 방 금액 추가
   addPrice(room_id, additionalPrice) {
     return new Promise((resolve, reject) => {
-      this.readOne({
-        id: room_id,
-      })
+      this.readOne({ id: room_id })
         .then((room) => {
           // additionalPrice를 숫자로 변환
           const additionalPriceNumber = Number(additionalPrice);
@@ -1895,23 +1893,14 @@ class Room extends Hotel {
           }
           const updatedPrice = room.room.price + additionalPriceNumber;
           models.room
-            .update(
-              {
-                price: updatedPrice,
-              },
-              {
-                where: {
-                  id: room_id,
-                },
-              }
-            )
+            .update({ price: updatedPrice }, { where: { id: room_id } })
             .then((response) => {
               console.log(response);
               return resolve(message["200_SUCCESS"]);
             })
             .catch((error) => {
               return reject(
-                cosole.log(error),
+                console.log(error),
                 message.issueMessage(
                   message["500_SERVER_INTERNAL_ERROR"],
                   "UNDEFINED_ERROR"
@@ -2212,13 +2201,15 @@ class Requirement_Log extends Room {
 
   createbymenu(room_id, department_name, menu, price, num) {
     return new Promise((resolve, reject) => {
-      new Room()
+      const room = new Room();
+      const department = new Department();
+      room
         .readOne({
           id: room_id,
         })
         .then((response) => {
           var hotel_id = response.room.hotel_id;
-          new Department()
+          department
             .readOne({
               token_name: department_name,
               hotel_id: hotel_id,
@@ -2226,130 +2217,118 @@ class Requirement_Log extends Room {
             .then((response) => {
               var department_id = response.department.id;
               var summarized_sentence = `${menu} ${num}개 주문`;
-              new Room()
-                .addService(room_id, 1)
+              // room
+              //   .addService(room_id, 1)
+              //   .then((response) => {
+              //     room
+              //       .addPrice(room_id, price)
+              //       .then((response) => {
+              console.log(response);
+              models.requirement_log
+                .create({
+                  type: "메뉴판 요청사항",
+                  room_id: room_id,
+                  requirement_article: null,
+                  response_article: null,
+                  progress: 0,
+                  process_department_id: department_id,
+                  summarized_sentence: summarized_sentence,
+                  hotel_id: hotel_id,
+                  menu: menu,
+                  price: price,
+                  num: num,
+                  user_id: null,
+                })
                 .then((response) => {
-                  new Room()
-                    .addPrice(room_id, price)
-                    .then((response) => {
-                      console.log(response);
-                      models.requirement_log
-                        .create({
-                          type: "메뉴판 요청사항",
-                          room_id: room_id,
-                          requirement_article: null,
-                          response_article: null,
-                          progress: 0,
-                          process_department_id: department_id,
-                          summarized_sentence: summarized_sentence,
-                          hotel_id: hotel_id,
-                          menu: menu,
-                          price: price,
-                          num: num,
-                          user_id: null,
-                        })
-                        .then((response) => {
-                          if (response) {
-                            var worker = new Worker();
-                            worker
-                              .readManyByDepartment2(department_id)
-                              .then((workers) => {
-                                var sendTargetFCMTokens = [];
-                                for (
-                                  var i = 0;
-                                  i < workers["workers"].length;
-                                  i++
-                                ) {
-                                  if (
-                                    workers["workers"][i].dataValues[
-                                      "fcm_token"
-                                    ].length > 0
-                                  ) {
-                                    sendTargetFCMTokens =
-                                      sendTargetFCMTokens.concat(
-                                        workers["workers"][i].dataValues[
-                                          "fcm_token"
-                                        ]
-                                      );
-                                  }
-                                }
-
-                                if (sendTargetFCMTokens.length > 0) {
-                                  let _message = {
-                                    notification: {
-                                      title: "새로운 요청 도착!",
-                                      body: "빠르게 요청을 배정받아주세요!",
-                                    },
-                                    data: {
-                                      title: "새로운 요청 도착!",
-                                      body: "빠르게 요청을 배정받아주세요!",
-                                    },
-                                    tokens: sendTargetFCMTokens,
-                                  };
-                                  admin
-                                    .messaging()
-                                    .sendMulticast(_message)
-                                    .then(function (response) {
-                                      console.log(
-                                        "Successfully sent message: : ",
-                                        response
-                                      );
-                                      return resolve(message["200_SUCCESS"]);
-                                    })
-                                    .catch(function (err) {
-                                      console.log(
-                                        "Error Sending message!!! : ",
-                                        err
-                                      );
-                                      return resolve(message["200_SUCCESS"]);
-                                    });
-                                } else {
-                                  return resolve(message["200_SUCCESS"]);
-                                }
-                              })
-                              .catch((error) => {
-                                console.log(error);
-                                if (
-                                  error.status &&
-                                  error.status ==
-                                    message["404_NOT_FOUND"].status
-                                ) {
-                                  return resolve(message["200_SUCCESS"]);
-                                } else {
-                                  return reject(error);
-                                }
-                              });
-                          } else {
-                            return reject(
-                              message.issueMessage(
-                                message["500_SERVER_INTERNAL_ERROR"],
-                                "UNDEFINED_ERROR"
-                              )
+                  if (response) {
+                    var worker = new Worker();
+                    worker
+                      .readManyByDepartment2(department_id)
+                      .then((workers) => {
+                        var sendTargetFCMTokens = [];
+                        for (var i = 0; i < workers["workers"].length; i++) {
+                          if (
+                            workers["workers"][i].dataValues["fcm_token"]
+                              .length > 0
+                          ) {
+                            sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                              workers["workers"][i].dataValues["fcm_token"]
                             );
                           }
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                          return reject(
-                            message.issueMessage(
-                              message["500_SERVER_INTERNAL_ERROR"],
-                              "UNDEFINED_ERROR"
-                            )
-                          );
-                        });
-                    })
-                    .catch((error) => {
-                      console.log(error);
-                      return reject(error);
-                    });
+                        }
+
+                        if (sendTargetFCMTokens.length > 0) {
+                          let _message = {
+                            notification: {
+                              title: "새로운 요청 도착!",
+                              body: "빠르게 요청을 배정받아주세요!",
+                            },
+                            data: {
+                              title: "새로운 요청 도착!",
+                              body: "빠르게 요청을 배정받아주세요!",
+                            },
+                            tokens: sendTargetFCMTokens,
+                          };
+                          admin
+                            .messaging()
+                            .sendMulticast(_message)
+                            .then(function (response) {
+                              console.log(
+                                "Successfully sent message: : ",
+                                response
+                              );
+                              return resolve(message["200_SUCCESS"]);
+                            })
+                            .catch(function (err) {
+                              console.log("Error Sending message!!! : ", err);
+                              return resolve(message["200_SUCCESS"]);
+                            });
+                        } else {
+                          return resolve(message["200_SUCCESS"]);
+                        }
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        if (
+                          error.status &&
+                          error.status == message["404_NOT_FOUND"].status
+                        ) {
+                          return resolve(message["200_SUCCESS"]);
+                        } else {
+                          return reject(error);
+                        }
+                      });
+                  } else {
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  }
                 })
                 .catch((error) => {
                   console.log(error);
-                  return reject(error);
+                  return reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
                 });
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(error);
             });
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
         });
     });
+    //     });
+    // });
   }
 
   readMany(condition) {
@@ -2790,6 +2769,28 @@ class Requirement_Log extends Room {
         })
         .catch((error) => {
           return reject(error);
+        })
+    );
+  }
+
+  deletebyRoomID(room_id) {
+    return new Promise((resolve, reject) =>
+      models.requirement_log
+        .destroy({
+          where: {
+            room_id: room_id,
+          },
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
         })
     );
   }

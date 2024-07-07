@@ -1,11 +1,12 @@
 const jwt = require("../modules/jwt");
 const message = require("../../config/message");
-const { Room, Requirement_Log, Message } = require("../models/hotel");
+const { Room, Message } = require("../models/hotel");
 const Hotel = require("../models/hotel").Hotel;
 const Department = require("../models/hotel").Department;
 const Role = require("../models/hotel").Role;
 const Worker = require("../models/hotel").Worker;
 const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
+const Requirement_Log = require("../models/hotel").Requirement_Log;
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -603,57 +604,37 @@ function deleteRole(req, res) {
     });
 }
 
-// 배열로 입력받게끔 수정
+// 배열 -> 단일로 입력받게끔 수정
 function createWorker(req, res) {
-  const { worker_array } = req.body;
-
-  if (!Array.isArray(worker_array) || worker_array.length === 0) {
+  if (
+    req.body.name == null ||
+    req.body.user_num == null ||
+    req.body.user_id == null ||
+    req.body.user_pwd == null ||
+    req.body.phone == null ||
+    req.body.role_id == null ||
+    req.body.hotel_id == null
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
   }
 
-  const promises = worker_array.map((workers) => {
-    const { name, user_num, user_id, user_pwd, phone, role_id, hotel_id } =
-      workers;
-
-    if (
-      name == null ||
-      user_num == null ||
-      user_id == null ||
-      user_pwd == null ||
-      phone == null ||
-      role_id == null ||
-      hotel_id == null
-    ) {
-      return res
-        .status(message["400_BAD_REQUEST"].status)
-        .send(
-          message.issueMessage(
-            message["400_BAD_REQUEST"],
-            "SEND_ALL_PARAMETERS"
-          )
-        );
-    }
-
-    const worker = new Worker();
-    worker.create(name, user_num, user_id, user_pwd, phone, role_id, hotel_id);
-  });
-
-  // 모든 Promise가 처리된 후 응답
-  Promise.all(promises)
-    .then((responses) => {
-      // 모든 응답이 성공적인지 확인
-      if (responses.every((response) => response.status === 200)) {
-        return res.status(message["200_SUCCESS"].status).send(responses);
-      } else {
-        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
-        const errorResponse = responses.find(
-          (response) => response.status !== 200
-        );
-        console.log(errorResponse);
-        return res.status(errorResponse.status).send(errorResponse);
-      }
+  const worker = new Worker();
+  worker
+    .create(
+      req.body.name,
+      req.body.user_num,
+      req.body.user_id,
+      req.body.user_pwd,
+      req.body.phone,
+      req.body.role_id,
+      req.body.hotel_id
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);
@@ -1769,23 +1750,27 @@ function checkoutRoom(req, res) {
   }
 
   const room = new Room();
+  const requirement_log = new Requirement_Log();
+
   room.updatePrice(req.query.room_id, 0).then((response) => {
-    room
-      .updateAdditionalService(req.query.room_id, 0)
-      .then((response) => {
-        return res.status(response.status).send(response);
-      })
-      .catch((error) => {
-        console.error(error);
-        return res
-          .status(message["500_SERVER_INTERNAL_ERROR"].status)
-          .send(
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
-      });
+    room.updateAdditionalService(req.query.room_id, 0).then((response) => {
+      requirement_log
+        .deletebyRoomID(req.query.room_id)
+        .then((response) => {
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          console.error(error);
+          return res
+            .status(message["500_SERVER_INTERNAL_ERROR"].status)
+            .send(
+              message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+            );
+        });
+    });
   });
 }
 

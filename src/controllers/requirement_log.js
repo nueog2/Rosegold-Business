@@ -1,6 +1,7 @@
 const Requirement_Log = require("../models/hotel").Requirement_Log;
 const message = require("../../config/message");
 const { Worker } = require("../models/hotel");
+const Room = require("../models/hotel").Room;
 
 function createRequirementLog(req, res) {
   if (
@@ -121,6 +122,11 @@ function createRequirementLogbyMenu(req, res) {
       .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
+  const allprice = results.reduce((acc, requirement) => {
+    const { price, num } = requirement;
+    return acc + price * num;
+  }, 0);
+
   // results 배열의 각 항목을 순회하면서 Requirement_Log 인스턴스를 생성, 처리
   const promises = results.map((requirement) => {
     const { room_id, department_name, menu, price, num } = requirement;
@@ -137,13 +143,18 @@ function createRequirementLogbyMenu(req, res) {
     }
 
     const requirement_log = new Requirement_Log();
-    return requirement_log.createbymenu(
-      room_id,
-      department_name,
-      menu,
-      price,
-      num
-    );
+    const room = new Room();
+
+    return requirement_log
+      .createbymenu(room_id, department_name, menu, price, num)
+      .then((response) => {
+        return (
+          room
+            .addService(room_id, results.length)
+            // .then(() => room.addPrice(room_id, price))
+            .then(() => response)
+        );
+      });
   });
 
   // 모든 Promise가 처리된 후 응답
@@ -151,7 +162,10 @@ function createRequirementLogbyMenu(req, res) {
     .then((responses) => {
       // 모든 응답이 성공적인지 확인
       if (responses.every((response) => response.status === 200)) {
-        return res.status(200).send(responses);
+        const room = new Room();
+        return room
+          .addPrice(results[0].room_id, allprice)
+          .then(() => res.status(200).send(responses));
       } else {
         // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
         const errorResponse = responses.find(
