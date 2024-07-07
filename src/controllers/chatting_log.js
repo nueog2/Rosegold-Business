@@ -7,6 +7,8 @@ function createChattingLog(req, res) {
     req.body.room_id == null ||
     req.body.question == null ||
     req.body.answer == null
+    // req.body.translated_question == null ||
+    // req.body.translated_answer == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -25,6 +27,8 @@ function createChattingLog(req, res) {
       id: req.body.room_id,
     })
     .then((response) => {
+      const room_name = response.room.dataValues.name;
+      const hotel_id = response.room.dataValues.hotel_id;
       const req_log_created =
         req.body.department_name != null && req.body.summarized_sentence != null
           ? 1
@@ -32,8 +36,12 @@ function createChattingLog(req, res) {
       new ChattingLog()
         .create(
           req.body.room_id,
+          room_name,
+          hotel_id,
           req.body.question,
           req.body.answer,
+          // req.body.translated_question,
+          // req.body.translated_answer,
           req_log_created
         )
         .then((response) => {
@@ -103,7 +111,7 @@ function createChattingLog(req, res) {
 }
 
 function getChattingLog(req, res) {
-  if (req.query.room_id == null) {
+  if (req.query.room_name == null || req.query.hotel_id == null) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(
@@ -118,7 +126,7 @@ function getChattingLog(req, res) {
   const hotel = new Hotel();
 
   room
-    .readOne({ id: req.query.room_id })
+    .readOne({ name: req.query.room_name, hotel_id: req.query.hotel_id })
     .then((response) => {
       console.log(response);
       const hotel = new Hotel();
@@ -133,7 +141,10 @@ function getChattingLog(req, res) {
           if (currentDate >= checkinDate && currentDate <= checkoutDate) {
             const chatting_log = new ChattingLog();
             chatting_log
-              .readMany({ room_id: req.query.room_id })
+              .readMany({
+                room_name: req.query.room_name,
+                hotel_id: req.query.hotel_id,
+              })
               .then((response) => {
                 console.log(response);
                 return res.status(response.status).send(response);
