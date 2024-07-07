@@ -4,7 +4,16 @@ const message = require("../../config/message");
 class ChattingLog {
   constructor() {}
 
-  create(room_id, room_name, hotel_id, question, answer, req_log_created) {
+  create(
+    room_id,
+    room_name,
+    hotel_id,
+    question,
+    answer,
+    translated_question,
+    translated_answer,
+    req_log_created
+  ) {
     return new Promise((resolve, reject) => {
       models.chatting_log
         .create({
@@ -13,8 +22,8 @@ class ChattingLog {
           hotel_id: hotel_id,
           question: question,
           answer: answer,
-          // translated_question: translated_question,
-          // translated_answer: translated_answer,
+          translated_question: translated_question,
+          translated_answer: translated_answer,
           req_log_created: req_log_created,
         })
         .then((response) => {
@@ -49,9 +58,9 @@ class ChattingLog {
             "answer",
             "room_name",
             "hotel_id",
-            // "translated_question",
-            // "translated_answer",
-            // "room_id",
+            "translated_question",
+            "translated_answer",
+            "room_id",
             "createdAt",
             //"department_name",
             "req_log_created",

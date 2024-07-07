@@ -40,8 +40,8 @@ function createChattingLog(req, res) {
           hotel_id,
           req.body.question,
           req.body.answer,
-          // req.body.translated_question,
-          // req.body.translated_answer,
+          req.body.translated_question,
+          req.body.translated_answer,
           req_log_created
         )
         .then((response) => {
