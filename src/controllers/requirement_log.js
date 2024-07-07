@@ -144,6 +144,8 @@ function createRequirementLogbyMenu(req, res) {
 
     const requirement_log = new Requirement_Log();
     const room = new Room();
+    // room.readOne({ name : room_name , hotel_id : hotel_id }).then((response) => {
+    // const room_id = response.id;
 
     return requirement_log
       .createbymenu(room_id, department_name, menu, price, num)
