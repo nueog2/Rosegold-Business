@@ -1553,6 +1553,34 @@ function getRoomOne(req, res) {
     });
 }
 
+function getRoomOneByName(req, res) {
+  if (req.query.room_name == null || req.query.hotel_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readOne({ name: req.query.room_name, hotel_id: req.query.hotel_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 function updateRoom(req, res) {
   const { room_array } = req.body;
 
@@ -2097,6 +2125,7 @@ module.exports = {
   createRoom,
   getRoomMany,
   getRoomOne,
+  getRoomOneByName,
   getRoomManyByFloor,
   // 객실 층 조회 추가
   getRoomFloors,
