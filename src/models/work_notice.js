@@ -73,35 +73,35 @@ class Work_Notice extends Hotel {
     });
   }
 
-  //   delete(work_notice_id) {
-  //     return new Promise((resolve, reject) => {
-  //       models.work_notice
-  //         .destroy({
-  //           where: { id: work_notice_id },
-  //         })
-  //         .then((response) => {
-  //           if (response == 1) {
-  //             return resolve(message["200_SUCCESS"]);
-  //           } else {
-  //             return reject(
-  //               message.issueMessage(
-  //                 message["404_NOT_FOUND"],
-  //                 "WORK_NOTICE_NOT_FOUND"
-  //               )
-  //             );
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.log(error);
-  //           return reject(
-  //             message.issueMessage(
-  //               message["500_SERVER_INTERNAL_ERROR"],
-  //               "UNDEFINED_ERROR"
-  //             )
-  //           );
-  //         });
-  //     });
-  //   }
+  delete(work_notice_id) {
+    return new Promise((resolve, reject) => {
+      models.work_notice
+        .destroy({
+          where: { id: work_notice_id },
+        })
+        .then((response) => {
+          if (response == 1) {
+            return resolve(message["200_SUCCESS"]);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "WORK_NOTICE_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 }
 
 module.exports = {
