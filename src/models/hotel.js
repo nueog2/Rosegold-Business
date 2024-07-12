@@ -2331,6 +2331,39 @@ class Requirement_Log extends Room {
     // });
   }
 
+  createAdditionalService(room_id, summarized_sentence, price) {
+    return new Promise((resolve, reject) => {
+      const room = new Room();
+      room.readOne({ id: room_id }).then((response) => {
+        var hotel_id = response.room.hotel_id;
+        new Room().addService(room_id, 1).then((response) => {
+          new Room().addPrice(room_id, price).then((response) => {
+            models.requirement_log
+              .create({
+                type: "부가서비스",
+                room_id: room_id,
+                summarized_sentence: summarized_sentence,
+                price: price,
+                hotel_id: hotel_id,
+              })
+              .then((response) => {
+                return resolve(message["200_SUCCESS"]);
+              })
+              .catch((error) => {
+                console.log(error);
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              });
+          });
+        });
+      });
+    });
+  }
+
   readMany(condition) {
     return new Promise((resolve, reject) => {
       models.requirement_log

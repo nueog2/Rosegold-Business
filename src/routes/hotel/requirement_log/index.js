@@ -3,6 +3,10 @@ const requirement_logController = require("../../../controllers/requirement_log"
 
 router.post("/", requirement_logController.createRequirementLog);
 router.post("/menu", requirement_logController.createRequirementLogbyMenu);
+router.post(
+  "/service",
+  requirement_logController.createRequirementLogAdditionalService
+);
 router.get("/many", requirement_logController.getRequirementLogMany);
 router.get("/many/date", requirement_logController.getRequirementLogManyByDate);
 router.get("/many/room", requirement_logController.getRequirementLogManyByRoom);

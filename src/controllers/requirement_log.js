@@ -1,5 +1,6 @@
 const Requirement_Log = require("../models/hotel").Requirement_Log;
 const message = require("../../config/message");
+const requirement = require("../../models/schema/requirement");
 const { Worker } = require("../models/hotel");
 const Room = require("../models/hotel").Room;
 
@@ -175,6 +176,44 @@ function createRequirementLogbyMenu(req, res) {
         );
         return res.status(errorResponse.status).send(errorResponse);
       }
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
+function createRequirementLogAdditionalService(req, res) {
+  if (
+    req.body.room_id == null ||
+    req.body.summarized_sentence == null ||
+    req.body.price == null
+  ) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const requirement_log = new Requirement_Log();
+  requirement_log
+    .createAdditionalService(
+      req.body.room_id,
+      req.body.summarized_sentence,
+      req.body.price
+    )
+    .then((response) => {
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);
@@ -436,6 +475,7 @@ function deleteRequirementLog(req, res) {
 module.exports = {
   createRequirementLog,
   createRequirementLogbyMenu,
+  createRequirementLogAdditionalService,
   getRequirementLogMany,
   getRequirementLogManyByDate,
   getRequirementLogManyByRoom,

@@ -13,6 +13,7 @@ const room_gradeRouter = require("./room_grade");
 const floorRouter = require("./floor");
 const serviceRouter = require("./services");
 const service_categoryRouter = require("./service_category");
+const work_noticeRouter = require("./work_notice");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -22,6 +23,7 @@ router.use("/chatbot_docs", auth_util.verifyToken, chatbot_docsRouter);
 router.use("/chatting_log", chattingLogRouter);
 router.use("/room", roomRouter);
 router.use("/requirement_log", requirement_logRouter);
+router.use("/work_notice", work_noticeRouter);
 
 router.use("/room_grade", room_gradeRouter);
 
