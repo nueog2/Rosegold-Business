@@ -2277,6 +2277,7 @@ class Requirement_Log extends Room {
                                 "Successfully sent message: : ",
                                 response
                               );
+
                               return resolve(message["200_SUCCESS"]);
                             })
                             .catch(function (err) {

@@ -151,12 +151,12 @@ function createRequirementLogbyMenu(req, res) {
     return requirement_log
       .createbymenu(room_id, department_name, menu, price, num)
       .then((response) => {
-        return (
-          room
-            .addService(room_id, results.length)
-            // .then(() => room.addPrice(room_id, price))
-            .then(() => response)
-        );
+        return response;
+        // room
+        //   .addService(room_id, results.length)
+        //   // .addService(room_id, results.length)
+        //   // .then(() => room.addPrice(room_id, price))
+        //   .then(() => response)
       });
   });
 
@@ -168,6 +168,7 @@ function createRequirementLogbyMenu(req, res) {
         const room = new Room();
         return room
           .addPrice(results[0].room_id, allprice)
+          .then(() => room.addService(results[0].room_id, results.length))
           .then(() => res.status(200).send(responses));
       } else {
         // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
