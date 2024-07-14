@@ -1,14 +1,23 @@
 const Hotel = require("../models/hotel").Hotel;
-//아직 작성중임다...
 
-function getCurrentWeather(lat, lng) {
+//https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=HCLxkm8xc4wf4U16CiXzPEEhNvcbwUr7mkTGXm3xP0Ix1aRweSby59Aw%2FXkhu4sq2%2BM%2BJDw83edEitA3Ev8N2g%3D%3D&numOfRows=10&pageNo=1&dataType=JSON&base_date=20240714&base_time=0600&nx=55&ny=127
+
+//아직 작성중임다...
+const message = require("../../config/message");
+// const xml2js = require("xml2js");
+
+const http = require("http");
+
+function getCurrentWeather(req, res) {
+  var lat = req.query.lat;
+  var lng = req.query.lng;
+
   var rs = dfs_xy_conv("toXY", lat, lng);
   var _nx = rs.nx;
   var _ny = rs.ny;
 
   var today = new Date();
-  today.setHours(today.getHours() + 9); //UTC환경일 경우 한국시간 기준으로 변경~
-
+  today.setHours(today.getHours()); //UTC환경일 경우 한국시간 기준으로 변경~.
   var dd = today.getDate();
   var mm = today.getMonth() + 1;
   var yyyy = today.getFullYear();
@@ -41,15 +50,17 @@ function getCurrentWeather(lat, lng) {
       "HCLxkm8xc4wf4U16CiXzPEEhNvcbwUr7mkTGXm3xP0Ix1aRweSby59Aw%2FXkhu4sq2%2BM%2BJDw83edEitA3Ev8N2g%3D%3D",
     ttoday = yyyy + "" + mm + "" + dd,
     basetime = hours + "00",
-    fileName = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0";
-  fileName += "?ServiceKey=" + apikey;
+    fileName =
+      "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
+  fileName += "?serviceKey=" + apikey;
+  fileName += "&numOfRows=10&pageNo=1";
+  fileName += "&dataType=JSON";
   fileName += "&base_date=" + ttoday;
   fileName += "&base_time=" + basetime;
-  fileName += "&nx=" + _nx + "&ny=" + _ny;
-  fileName += "&pageNo=1&numOfRows=10";
-  fileName += "&dataType=JSON";
+  fileName += "&nx=" + 60 + "&ny=" + 127;
 
   var path = fileName;
+  console.log(path);
   http
     .get(path, (resp) => {
       let data = "";
@@ -61,16 +72,21 @@ function getCurrentWeather(lat, lng) {
       // The whole response has been received. Print out the result.
       resp.on("end", () => {
         var ret = JSON.parse(data);
-        makeResponse(ret, callback);
+        console.log(ret);
+        makeResponse(ret, res);
       });
+      //     var ret = JSON.parse(data);
+      //     makeResponse(ret, callback);
+      //   });
     })
     .on("error", (err) => {
       console.log("Error is : " + err.message);
     });
 }
 
-function makeResponse(ret, callback) {
+function makeResponse(ret, res) {
   var pty, reh, rn1, t1h, uuu, vec, vvv, wsd;
+  console.log(ret.reponse);
   ret.response.body.items.item.forEach(function (it) {
     if (it.category == "PTY") pty = it.obsrValue;
     else if (it.category == "REH") reh = it.obsrValue;
@@ -96,7 +112,7 @@ function makeResponse(ret, callback) {
     pty = "rain";
   }
 
-  return { temp: t1h, wind: wsd, pty: pty };
+  return res.json({ 온도: t1h, 풍속: wsd, 날씨: pty });
 }
 
 // https://gist.github.com/fronteer-kr/14d7f779d52a21ac2f16

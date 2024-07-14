@@ -14,6 +14,7 @@ const floorRouter = require("./floor");
 const serviceRouter = require("./services");
 const service_categoryRouter = require("./service_category");
 const work_noticeRouter = require("./work_notice");
+const weatherRouter = require("./weather");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -31,6 +32,8 @@ router.use("/floor", floorRouter);
 router.use("/message", messageRouter);
 router.use("/service", serviceRouter);
 router.use("/service_category", service_categoryRouter);
+
+router.use("/weather", weatherRouter);
 
 router.post("/", managementController.createHotel);
 router.get("/many", auth_util.verifyToken, managementController.getHotelMany);

@@ -232,6 +232,24 @@ function getServiceAssignLogByDepartmentID(req, res) {
     });
 }
 
+// function getServiceAssignLogByDeptNamePurpose(req, res) {
+//   if (req.query.department_id == null, req.query.purpose == null) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(message["400_BAD_REQUEST"]);
+//   }
+
+//   const serviceAssignLog = new ServiceAssignLog();
+//   serviceAssignLog
+//     .readMany({ department_id: req.query.department_id })
+//     .then((response) => {
+//       return res.status(response.status).send(response);
+//     })
+//     .catch((error) => {
+//       return res.status(error.status).send(error);
+//     });
+// }
+
 function deleteServiceAssignLog(req, res) {
   if (req.body.service_assign_log_id == null) {
     return res
