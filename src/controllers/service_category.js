@@ -6,6 +6,7 @@ const Service_Category = require("../models/service_category").Service_Category;
 function createService_Category(req, res) {
   if (
     req.body.name == null ||
+    req.body.eng_name == null ||
     req.body.hotel_id == null ||
     req.body.department_id == null
   ) {
@@ -18,7 +19,12 @@ function createService_Category(req, res) {
 
   const service_category = new Service_Category();
   service_category
-    .create(req.body.name, req.body.hotel_id, req.body.department_id)
+    .create(
+      req.body.name,
+      req.body.eng_name,
+      req.body.hotel_id,
+      req.body.department_id
+    )
     .then((response) => {
       return res.status(response.status).send(response);
     })

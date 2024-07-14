@@ -7,6 +7,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(16),
         allowNull: false,
       },
+      eng_name: {
+        type: DataTypes.CHAR(40),
+        allowNull: false,
+      },
     },
     {
       paranoid: true,

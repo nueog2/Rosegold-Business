@@ -9,7 +9,7 @@ class Service_Category extends Hotel {
     super();
   }
 
-  create(name, hotel_id, department_id) {
+  create(name, eng_name, hotel_id, department_id) {
     return new Promise((resolve, reject) => {
       super
         .readOne(hotel_id)
@@ -17,6 +17,7 @@ class Service_Category extends Hotel {
           models.service_category
             .create({
               name: name,
+              eng_name: eng_name,
               hotel_id: hotel_id,
               department_id: department_id,
             })
