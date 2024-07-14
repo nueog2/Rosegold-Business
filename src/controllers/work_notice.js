@@ -34,10 +34,10 @@ function createWorkNotice(req, res) {
     });
 }
 
-function getWorkNoticeMany(res, res) {
+function getWorkNoticeMany(req, res) {
   const work_notice = new Work_Notice();
   work_notice
-    .readMany({})
+    .readMany(req.query)
     .then((response) => {
       return res.status(response.status).send(response);
     })
