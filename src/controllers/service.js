@@ -53,6 +53,75 @@ function createService(req, res) {
     });
 }
 
+function createServicebyArray(req, res) {
+  const { results } = req.body;
+
+  if (!Array.isArray(results)) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+  }
+
+  const promises = results.map((services) => {
+    const {
+      name,
+      eng_name,
+      content,
+      purpose,
+      description,
+      service_category_id,
+    } = services;
+
+    if (!name || !purpose || !service_category_id) {
+      return new Promise.reject({
+        status: message["400_BAD_REQUEST"].status,
+        message: message.issueMessage(
+          message["400_BAD_REQUEST"],
+          "SEND_ALL_PARAMETERS"
+        ),
+      });
+    }
+
+    const service = new Service();
+    return service.create(
+      name,
+      eng_name,
+      content,
+      purpose,
+      description,
+      service_category_id
+    );
+  });
+
+  // 모든 Promise가 처리된 후 응답
+  Promise.all(promises)
+    .then((responses) => {
+      // 모든 응답이 성공적인지 확인
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getServiceMany(req, res) {
   const service = new Service();
   service
@@ -270,6 +339,7 @@ function deleteServiceAssignLog(req, res) {
 
 module.exports = {
   createService,
+  createServicebyArray,
   getServiceMany,
   getServiceOne,
   updateService,
