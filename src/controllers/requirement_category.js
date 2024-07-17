@@ -197,19 +197,18 @@ function updateRequirement_Category(req, res) {
   const promises = req_cate_array.map((req_cates) => {
     const { requirement_category_id, name } = req_cates;
 
-    if (requirement_category_id == null || name == null) {
-      return res
-        .status(message["400_BAD_REQUEST"].status)
-        .send(
-          message.issueMessage(
-            message["400_BAD_REQUEST"],
-            "SEND_ALL_PARAMETERS"
-          )
-        );
+    if (!requirement_category_id || !name) {
+      return new Promise.reject({
+        status: message["400_BAD_REQUEST"].status,
+        message: message.issueMessage(
+          message["400_BAD_REQUEST"],
+          "SEND_ALL_PARAMETERS"
+        ),
+      });
     }
 
     const requirement_category = new Requirement_Category();
-    requirement_category.update(requirement_category_id, name);
+    return requirement_category.update(requirement_category_id, name);
   });
 
   // 모든 Promise가 처리된 후 응답
