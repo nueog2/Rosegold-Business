@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const multer = require("./src/modules/multer");
 const multer2 = require("./src/modules/multer2");
 const tiktoken = require("./src/modules/tiktoken");
+const bodyParser = require("body-parser");
 
 app.use(cookieParser());
 
@@ -92,6 +93,9 @@ app.use("/req_thumb", express.static(path.join(__dirname, "req_thumb")));
 
 //라우터 설정
 app.use("/api", router);
+
+//바디파서
+app.use(bodyParser.json());
 
 app.all("*", function (req, res) {
   return res

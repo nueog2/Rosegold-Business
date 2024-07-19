@@ -38,7 +38,11 @@ class Hotel {
         })
         .then((response) => {
           if (response) {
-            return resolve(message["200_SUCCESS"]);
+            return resolve({
+              // return resolve(message["200_SUCCESS"]);
+              status: message["200_SUCCESS"].status,
+              hotel: response,
+            });
           } else {
             return reject(
               message.issueMessage(
@@ -212,7 +216,11 @@ class Department extends Hotel {
             })
             .then((response) => {
               if (response) {
-                return resolve(message["200_SUCCESS"]);
+                return resolve({
+                  // (message["200_SUCCESS"]);
+                  status: message["200_SUCCESS"].status,
+                  department: response,
+                });
               } else {
                 return reject(
                   message.issueMessage(
@@ -2827,6 +2835,35 @@ class Requirement_Log extends Room {
           );
         })
     );
+  }
+
+  deletebyHotelID(hotel_id) {
+    return new Promise((resolve, reject) => {
+      models.requirement_log
+        .destory({
+          where: {
+            hotel_id: hotel_id,
+          },
+        })
+        .then((response) => {
+          return resolve(
+            message[
+              ("200_SUCCESS",
+              "hotel_id : ",
+              hotel_id,
+              "에 해당하는 모든 요청사항 삭제 완료")
+            ]
+          );
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
   }
 }
 
