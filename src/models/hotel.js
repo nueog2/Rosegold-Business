@@ -2593,6 +2593,7 @@ class Requirement_Log extends Room {
             "price",
             "num",
             "summarized_sentence",
+            "createdAt",
           ],
           order: [["createdAt", "ASC"]],
         })
