@@ -82,6 +82,123 @@ function updateRoomGrade(req, res) {
     });
 }
 
+// function updateRoomGradebyArray(req, res) {
+//   const { grade_array } = req.body;
+
+//   if (!Array.isArray(grade_array) || grade_array.length === 0) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+//   }
+
+//   const promises = grade_array.map((grades) => {
+//     const { id, name, max_occupancy, price_multiplier } = grades;
+
+//     if (
+//       id == null ||
+//       name == null ||
+//       max_occupancy == null ||
+//       price_multiplier == null
+//     ) {
+//       return res
+//         .status(message["400_BAD_REQUEST"].status)
+//         .send(
+//           message.issueMessage(
+//             message["400_BAD_REQUEST"],
+//             "SEND_ALL_PARAMETERS"
+//           )
+//         );
+//     }
+
+//     const room_grade = new Room_Grade();
+//     room_grade.update(id, name, max_occupancy, price_multiplier);
+//   });
+
+//   Promise.all(promises)
+//     .then((responses) => {
+//       if (responses.every((response) => response.status === 200)) {
+//         return res.status(message["200_SUCCESS"].status).send(responses);
+//       } else {
+//         const errorResponse = responses.find(
+//           (response) => response.status !== 200
+//         );
+//         return res.status(errorResponse.status).send(errorResponse);
+//       }
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
+
+function updateRoomGradebyArray(req, res) {
+  const { grade_array } = req.body;
+
+  if (!Array.isArray(grade_array) || grade_array.length === 0) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+  }
+
+  const promises = grade_array.map((grades) => {
+    const { id, name, max_occupancy, price_multiplier } = grades;
+
+    if (
+      id == null ||
+      name == null ||
+      max_occupancy == null ||
+      price_multiplier == null
+    ) {
+      return Promise.reject({
+        status: message["400_BAD_REQUEST"].status,
+        ...message.issueMessage(
+          message["400_BAD_REQUEST"],
+          "SEND_ALL_PARAMETERS"
+        ),
+      });
+    }
+
+    const room_grade = new Room_Grade();
+    return room_grade.update(id, name, max_occupancy, price_multiplier);
+  });
+
+  Promise.all(promises)
+    .then((responses) => {
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status) {
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      } else {
+        return res.status(error.status).send(error);
+      }
+    });
+}
+
 function getRoomGradeMany(req, res) {
   const room_grade = new Room_Grade();
   room_grade
@@ -166,6 +283,7 @@ function deleteRoomGrade(req, res) {
 module.exports = {
   createRoomGrade,
   updateRoomGrade,
+  updateRoomGradebyArray,
   getRoomGradeMany,
   getRoomGradeOne,
   deleteRoomGrade,

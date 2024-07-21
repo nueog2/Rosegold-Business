@@ -13,6 +13,7 @@ const multer = require("./src/modules/multer");
 const multer2 = require("./src/modules/multer2");
 const tiktoken = require("./src/modules/tiktoken");
 const bodyParser = require("body-parser");
+const nodemailer = require("nodemailer");
 
 app.use(cookieParser());
 

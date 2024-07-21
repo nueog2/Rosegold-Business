@@ -5,6 +5,7 @@ router.post("/", managementController.createRoomGrade);
 router.get("/many", managementController.getRoomGradeMany);
 router.get("/one", managementController.getRoomGradeOne);
 router.put("/", managementController.updateRoomGrade);
+router.put("/array", managementController.updateRoomGradebyArray);
 router.delete("/", managementController.deleteRoomGrade);
 
 module.exports = router;

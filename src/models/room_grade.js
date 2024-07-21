@@ -134,31 +134,83 @@ class Room_Grade extends Hotel {
           { where: { id: room_grade_id } }
         )
         .then((response) => {
-          if (response == 0) {
-            return reject(
-              message.issueMessage(
+          if (response) {
+            return resolve({
+              status: message["200_SUCCESS"].status,
+              ...message["200_SUCCESS"],
+            });
+          } else {
+            return reject({
+              status: message["404_NOT_FOUND"].status,
+              ...message.issueMessage(
                 message["404_NOT_FOUND"],
                 "ROOM_GRADE_NOT_FOUND"
-              )
-            );
-          } else {
-            var obj = Object.assign({}, message["200_SUCCESS"]);
-            obj.room_grade = response;
-            return resolve(obj);
+              ),
+            });
           }
         })
         .catch((error) => {
           console.log(error);
-          return reject(
-            message.issueMessage(
+          return reject({
+            status: message["500_SERVER_INTERNAL_ERROR"].status,
+            ...message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
               "UNDEFINED_ERROR",
               error
-            )
-          );
+            ),
+          });
         });
     });
   }
+
+  // update(room_grade_id, name, max_occupancy, price_multiplier) {
+  //   return new Promise((resolve, reject) => {
+  //     models.room_grade
+  //       .update(
+  //         {
+  //           name: name,
+  //           max_occupancy: max_occupancy,
+  //           price_multiplier: price_multiplier,
+  //         },
+  //         { where: { id: room_grade_id } }
+  //       )
+  //       .then((response) => {
+  //         if (response) {
+  //           return resolve(message["200_SUCCESS"]);
+  //         } else {
+  //           return reject(
+  //             message.issueMessage(
+  //               message["404_NOT_FOUND"],
+  //               "ROOM_GRADE_NOT_FOUND"
+  //             )
+  //           );
+  //         }
+  //         // if (response == 0) {
+  //         //   return reject(
+  //         //     message.issueMessage(
+  //         //       message["404_NOT_FOUND"],
+  //         //       "ROOM_GRADE_NOT_FOUND"
+  //         //     )
+  //         //   );
+  //         // } else {
+  //         //   // var obj = Object.assign({}, message["200_SUCCESS"]);
+  //         //   // obj.room_grade = response;
+  //         //   // return resolve(obj);
+  //         //   return resolve(message["200_SUCCESS"]);
+  //         // }
+  //       })
+  //       .catch((error) => {
+  //         console.log(error);
+  //         return reject(
+  //           message.issueMessage(
+  //             message["500_SERVER_INTERNAL_ERROR"],
+  //             "UNDEFINED_ERROR",
+  //             error
+  //           )
+  //         );
+  //       });
+  //   });
+  // }
 
   delete(room_grade_id) {
     return new Promise((resolve, reject) => {

@@ -2,7 +2,8 @@ const router = require("express").Router();
 const departmentRouter = require("./department");
 const workerRouter = require("./worker");
 const managementController = require("../../controllers/management");
-const managementController2 = require("../../controllers/auto");
+
+const autoRouter = require("./auto");
 const requirement_categoryRouter = require("./requirement_category");
 const chatbot_docsRouter = require("./chatbot_docs");
 const chattingLogRouter = require("./chatting_log");
@@ -33,6 +34,7 @@ router.use("/floor", floorRouter);
 router.use("/message", messageRouter);
 router.use("/service", serviceRouter);
 router.use("/service_category", service_categoryRouter);
+router.use("/auto", autoRouter);
 
 router.use("/weather", weatherRouter);
 
@@ -41,6 +43,6 @@ router.get("/many", auth_util.verifyToken, managementController.getHotelMany);
 router.get("/one", auth_util.verifyToken, managementController.getHotelOne);
 router.put("/", managementController.updateHotel);
 router.delete("/", auth_util.verifyToken, managementController.deleteHotel);
-router.post("/auto", managementController2.createHotelAuto);
+// router.post("/auto", managementController2.createHotelAuto);
 
 module.exports = router;
