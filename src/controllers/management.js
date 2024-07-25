@@ -628,7 +628,7 @@ function createWorker(req, res) {
       role_id == null ||
       hotel_id == null
     ) {
-      return res
+      return Promise.reject
         .status(message["400_BAD_REQUEST"].status)
         .send(
           message.issueMessage(
@@ -639,38 +639,78 @@ function createWorker(req, res) {
     }
 
     const worker = new Worker();
-    worker.create(name, user_num, user_id, user_pwd, phone, role_id, hotel_id);
+    return worker.create(
+      name,
+      user_num,
+      user_id,
+      user_pwd,
+      phone,
+      role_id,
+      hotel_id
+    );
   });
 
   // 모든 Promise가 처리된 후 응답
-  Promise.all(promises)
-    .then((responses) => {
-      // 모든 응답이 성공적인지 확인
-      if (responses.every((response) => response.status === 200)) {
-        return res.status(message["200_SUCCESS"].status).send(responses);
+  Promise.allSettled(promises)
+    .then((results) => {
+      const successResponses = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      const failedResponses = results
+        .filter((result) => result.status === "rejected")
+        .map((result) => result.reason);
+
+      if (failedResponses.length > 0) {
+        console.log(failedResponses);
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(failedResponses);
       } else {
-        // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
-        const errorResponse = responses.find(
-          (response) => response.status !== 200
-        );
-        console.log(errorResponse);
-        return res.status(errorResponse.status).send(errorResponse);
+        return res.status(message["200_SUCCESS"].status).send(successResponses);
       }
     })
     .catch((error) => {
       console.log(error);
-      if (!error.status)
-        return res
-          .status(message["500_SERVER_INTERNAL_ERROR"].status)
-          .send(
-            message.issueMessage(
-              message["500_SERVER_INTERNAL_ERROR"],
-              "UNDEFINED_ERROR"
-            )
-          );
-      else return res.status(error.status).send(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
     });
 }
+
+//   // 모든 Promise가 처리된 후 응답
+//   Promise.allSettled(promises)
+//     .then((responses) => {
+//       // 모든 응답이 성공적인지 확인
+//       if (responses.every((response) => response.status === 200)) {
+//         return res.status(message["200_SUCCESS"].status).send(responses);
+//       } else {
+//         // 응답 중 하나라도 실패한 경우 첫 번째 실패 응답을 반환
+//         const errorResponse = responses.find(
+//           (response) => response.status !== 200
+//         );
+//         console.log(errorResponse);
+//         return res.status(errorResponse.status).send(errorResponse);
+//       }
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
 
 // 배열 -> 단일로 입력받게끔 수정
 // function createWorker(req, res) {

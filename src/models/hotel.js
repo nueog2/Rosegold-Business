@@ -783,61 +783,86 @@ class Worker extends Hotel {
 
   create(name, user_num, user_id, user_pwd, phone, role_id, hotel_id) {
     return new Promise((resolve, reject) => {
-      super
-        .readOne(hotel_id)
-        .then((response) => {
-          const role = new Role();
-          role
-            .readOne({ id: role_id })
-            .then((response) => {
-              models.user
-                .create({
-                  name: name,
-                  user_num: user_num,
-                  user_id: user_id,
-                  user_pwd: user_pwd,
-                  phone: phone,
-                  hotel_id: hotel_id,
-                  fcm_token: {},
-                })
-                .then((response) => {
-                  if (response) {
-                    role
-                      .createAssignLog(role_id, response.dataValues.id)
+      // 먼저 user_id 중복 확인
+      models.user
+        .findOne({ where: { user_id: user_id } })
+        .then((existingUser) => {
+          if (existingUser) {
+            // 중복된 user_id가 있는 경우
+            return reject(
+              message.issueMessage(
+                message["400_BAD_REQUEST"],
+                "USER_ID_ALREADY_EXISTS"
+              )
+            );
+          } else {
+            // 중복된 user_id가 없는 경우, 호텔 및 역할 읽기 시작
+            super
+              .readOne(hotel_id)
+              .then((response) => {
+                const role = new Role();
+                role
+                  .readOne({ id: role_id })
+                  .then((response) => {
+                    models.user
+                      .create({
+                        name: name,
+                        user_num: user_num,
+                        user_id: user_id,
+                        user_pwd: user_pwd,
+                        phone: phone,
+                        hotel_id: hotel_id,
+                        fcm_token: {},
+                      })
                       .then((response) => {
-                        return resolve(message["200_SUCCESS"]);
+                        if (response) {
+                          role
+                            .createAssignLog(role_id, response.dataValues.id)
+                            .then((response) => {
+                              return resolve(message["200_SUCCESS"]);
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                              return reject(error);
+                            });
+                        } else {
+                          return reject(
+                            message.issueMessage(
+                              message["500_SERVER_INTERNAL_ERROR"],
+                              "UNDEFINED_ERROR"
+                            )
+                          );
+                        }
                       })
                       .catch((error) => {
                         console.log(error);
-                        return reject(error);
+                        return reject(
+                          message.issueMessage(
+                            message["500_SERVER_INTERNAL_ERROR"],
+                            "UNDEFINED_ERROR"
+                          )
+                        );
                       });
-                  } else {
-                    return reject(
-                      message.issueMessage(
-                        message["500_SERVER_INTERNAL_ERROR"],
-                        "UNDEFINED_ERROR"
-                      )
-                    );
-                  }
-                })
-                .catch((error) => {
-                  console.log(error);
-                  return reject(
-                    message.issueMessage(
-                      message["500_SERVER_INTERNAL_ERROR"],
-                      "UNDEFINED_ERROR"
-                    )
-                  );
-                });
-            })
-            .catch((error) => {
-              console.log(error);
-              return reject(error);
-            });
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    return reject(error);
+                  });
+              })
+              .catch((error) => {
+                console.log(error);
+                return reject(error);
+              });
+          }
         })
         .catch((error) => {
           console.log(error);
-          return reject(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "DATABASE_ERROR"
+            )
+          );
         });
     });
   }
