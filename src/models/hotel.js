@@ -2469,6 +2469,7 @@ class Requirement_Log extends Room {
             "user_id",
             "summarized_sentence",
             "processed_info",
+            "pmsign",
           ],
           order: [["createdAt", "ASC"]],
         })
@@ -2653,6 +2654,7 @@ class Requirement_Log extends Room {
             "menu",
             "price",
             "num",
+            "pmsign",
             "summarized_sentence",
             "createdAt",
           ],
