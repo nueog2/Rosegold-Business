@@ -1923,6 +1923,38 @@ class Room extends Hotel {
     });
   }
 
+  minusPrice(room_id, additionalPrice) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: room_id })
+        .then((room) => {
+          const additionalPriceNumber = Number(additionalPrice);
+          if (isNaN(additionalPriceNumber)) {
+            return reject(new Error("Invalid additionalPrice: Not a number"));
+          }
+          const updatedPrice = room.room.price - additionalPriceNumber;
+          models.room
+            .update({ price: updatedPrice }, { where: { id: room_id } })
+            .then((response) => {
+              console.log(response);
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                console.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
+    });
+  }
+
   delete(room_id) {
     return new Promise((resolve, reject) => {
       this.readOne({
@@ -2340,38 +2372,60 @@ class Requirement_Log extends Room {
     // });
   }
 
-  createAdditionalService(room_id, summarized_sentence, price) {
+  createAdditionalService(room_id, summarized_sentence, price, pmsign) {
     return new Promise((resolve, reject) => {
       const room = new Room();
       room
         .readOne({ id: room_id })
         .then((response) => {
           var hotel_id = response.room.hotel_id;
-          return new Room().addService(room_id, 1).then(() => {
-            new Room().addPrice(room_id, price).then(() => {
-              models.requirement_log
-                .create({
-                  type: "부가서비스",
-                  room_id: room_id,
-                  summarized_sentence: summarized_sentence,
-                  price: price,
-                  num: 1,
-                  hotel_id: hotel_id,
-                })
-                .then((response) => {
-                  return resolve(message["200_SUCCESS"]);
-                })
-                .catch((error) => {
-                  console.log(error);
-                  return reject(
-                    message.issueMessage(
-                      message["500_SERVER_INTERNAL_ERROR"],
-                      "UNDEFINED_ERROR"
-                    )
-                  );
-                });
+          new Room()
+            .addService(room_id, 1)
+            .then(() => {
+              let pricePromise;
+              if (pmsign == "+") {
+                pricePromise = new Room().addPrice(room_id, price);
+              } else if (pmsign == "-") {
+                pricePromise = new Room().minusPrice(room_id, price);
+              } else {
+                return reject(
+                  message.issueMessage(
+                    message["400_BAD_REQUEST"],
+                    "INVALID pmsign: must be '+' or '-'"
+                  )
+                );
+              }
+
+              pricePromise.then(() => {
+                // new Room().addPrice(room_id, price).then(() => {
+                models.requirement_log
+                  .create({
+                    type: "부가서비스",
+                    room_id: room_id,
+                    summarized_sentence: summarized_sentence,
+                    price: price,
+                    num: 1,
+                    pmsign: pmsign,
+                    hotel_id: hotel_id,
+                  })
+                  .then((response) => {
+                    return resolve(message["200_SUCCESS"]);
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  });
+              });
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(error);
             });
-          });
         })
         .catch((error) => {
           console.log(error);

@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER(),
         allowNull: true,
       },
+      pmsign: {
+        type: DataTypes.CHAR(1),
+        allowNull: true,
+      },
     },
     {
       paranoid: true,

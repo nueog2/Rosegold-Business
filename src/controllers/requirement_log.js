@@ -197,7 +197,8 @@ function createRequirementLogAdditionalService(req, res) {
   if (
     req.body.room_id == null ||
     req.body.summarized_sentence == null ||
-    req.body.price == null
+    req.body.price == null ||
+    req.body.pmsign == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -211,7 +212,8 @@ function createRequirementLogAdditionalService(req, res) {
     .createAdditionalService(
       req.body.room_id,
       req.body.summarized_sentence,
-      req.body.price
+      req.body.price,
+      req.body.pmsign
     )
     .then((response) => {
       return res.status(response.status).send(response);
