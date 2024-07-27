@@ -1208,6 +1208,35 @@ function getWorkerManyByDepartment2(req, res) {
     });
 }
 
+function getWorkerManyByHotelAndDepartment(req, res) {
+  if (req.query.hotel_id == null || req.query.department_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+  const worker = new Worker();
+  worker
+    .readManyByHotelAndDepartment(req.query.hotel_id, req.query.department_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getWorkerOne(req, res) {
   if (req.query.worker_id == null) {
     return res
@@ -2055,7 +2084,12 @@ function deleteRoom(req, res) {
 }
 
 function getAccessTokenByAccount(req, res) {
-  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
+  if (
+    !req.query.user_id ||
+    !req.query.user_pwd ||
+    !req.query.hotel_id ||
+    !req.query.fcm_token
+  ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
       .send(message["400_BAD_REQUEST"]);
@@ -2064,13 +2098,18 @@ function getAccessTokenByAccount(req, res) {
   var worker = new Worker();
 
   worker
-    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
+    .readOne({
+      user_id: req.query.user_id,
+      user_pwd: req.query.user_pwd,
+      hotel_id: req.query.hotel_id,
+    })
     .then((workerInfoResponse) => {
       jwt
         .signAccessToken({
           id: workerInfoResponse.worker.id,
           name: workerInfoResponse.worker.name,
           user_id: workerInfoResponse.worker.user_id,
+          hotel_id: workerInfoResponse.worker.hotel_id,
         })
         .then((tokenResponse) => {
           if (
@@ -2333,6 +2372,7 @@ module.exports = {
   getWorkerMany,
   getWorkerManyByDepartment,
   getWorkerManyByDepartment2,
+  getWorkerManyByHotelAndDepartment,
   getWorkerOne,
   updateWorker,
   updateWorkerProfile,

@@ -1067,6 +1067,58 @@ class Worker extends Hotel {
     });
   }
 
+  readManyByHotelAndDepartment(hotel_id, department_id) {
+    return new Promise((resolve, reject) => {
+      models.user
+        .findAll({
+          where: {
+            hotel_id: hotel_id,
+          },
+          include: [
+            {
+              model: models.role_assign_log,
+              include: [
+                {
+                  model: models.role,
+                  include: [
+                    {
+                      model: models.department,
+                      where: { id: department_id },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              model: models.work_log,
+              limit: 1,
+              order: [["id", "DESC"]],
+            },
+          ],
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.workers = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(message["404_NOT_FOUND"], "WORKER_NOT_FOUND")
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
   readOne(condition) {
     return new Promise((resolve, reject) => {
       models.user
@@ -2043,7 +2095,7 @@ class Requirement_Log extends Room {
                     if (response) {
                       var worker = new Worker();
                       worker
-                        .readManyByDepartment2(department_id)
+                        .readManyByHotelAndDepartment(hotel_id, department_id)
                         .then((workers) => {
                           var sendTargetFCMTokens = [];
 
@@ -2308,7 +2360,7 @@ class Requirement_Log extends Room {
                   if (response) {
                     var worker = new Worker();
                     worker
-                      .readManyByDepartment2(department_id)
+                      .readManyByHotelAndDepartment(hotel_id, department_id)
                       .then((workers) => {
                         var sendTargetFCMTokens = [];
                         for (var i = 0; i < workers["workers"].length; i++) {
