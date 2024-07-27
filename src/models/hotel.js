@@ -2929,19 +2929,17 @@ class Requirement_Log extends Room {
   deletebyHotelID(hotel_id) {
     return new Promise((resolve, reject) => {
       models.requirement_log
-        .destory({
+        .destroy({
           where: {
             hotel_id: hotel_id,
           },
         })
         .then((response) => {
           return resolve(
-            message[
-              ("200_SUCCESS",
-              "hotel_id : ",
-              hotel_id,
-              "에 해당하는 모든 요청사항 삭제 완료")
-            ]
+            message["200_SUCCESS"] +
+              ", hotel_id : " +
+              hotel_id +
+              "에 해당하는 모든 요청사항 삭제 완료"
           );
         })
         .catch((error) => {
