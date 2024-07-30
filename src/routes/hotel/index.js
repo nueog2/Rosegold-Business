@@ -39,7 +39,7 @@ router.use("/auto", autoRouter);
 router.use("/weather", weatherRouter);
 
 router.post("/", managementController.createHotel);
-router.get("/many", auth_util.verifyToken, managementController.getHotelMany);
+router.get("/many", managementController.getHotelMany);
 router.get("/one", auth_util.verifyToken, managementController.getHotelOne);
 router.put("/", managementController.updateHotel);
 router.delete("/", auth_util.verifyToken, managementController.deleteHotel);
