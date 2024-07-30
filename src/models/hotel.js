@@ -1219,6 +1219,7 @@ class Worker extends Hotel {
         });
     });
   }
+
   update(user_id, name, phone, role_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: user_id })
