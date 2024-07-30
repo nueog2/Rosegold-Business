@@ -22,42 +22,42 @@ router.put("/role", managementController.updateAssignLog);
 router.get("/mobile/sign-in", managementController.getAccessTokenByAccount);
 router.post(
   "/mobile/work/status",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.updateWorkStatus
 );
 router.get(
   "/mobile/profile",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.readProfileInfo
 );
 
 router.get(
   "/mobile/work/me/ing",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.readWorkerProcessingReqLog
 );
 
 router.get(
   "/mobile/work/not-assign",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.readWorkerNotAssignReqLog
 );
 
 router.get(
   "/mobile/work/me/finished",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.readWorkerProcessedReqLog
 );
 
 router.post(
   "/mobile/work/assign",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.setAssignWorker
 );
 
 router.post(
   "/mobile/work/finish",
-  authUtil.verifyToken,
+  // authUtil.verifyToken,
   managementController.setWorkFinish
 );
 
