@@ -2083,121 +2083,14 @@ function deleteRoom(req, res) {
     });
 }
 
-function getAccessTokenByAccount(req, res) {
-  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
-    console.log("Send all parameters");
-    return res
-      .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
-  }
-
-  var worker = new Worker();
-
-  worker
-    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
-    .then((workerInfoResponse) => {
-      if (!workerInfoResponse.worker) {
-        console.log("Worker not found");
-        return res
-          .status(message["400_BAD_REQUEST"].status)
-          .send(
-            message.issueMessage(message["400_BAD_REQUEST"], "WORKER_NOT_FOUND")
-          );
-      }
-
-      var workerData = workerInfoResponse.worker.dataValues;
-
-      console.log("Worker found:", workerInfoResponse.worker);
-
-      // fcm_token 값을 배열로 초기화
-      let fcmTokenJSON;
-      try {
-        fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
-        if (!Array.isArray(fcmTokenJSON)) {
-          fcmTokenJSON = [];
-        }
-      } catch (e) {
-        fcmTokenJSON = [];
-      }
-
-      console.log("Parsed fcmTokenJSON:", fcmTokenJSON);
-
-      if (req.query.fcm_token === "{}") {
-        // Case 1: fcm_token value is '{}'
-        jwt
-          .signAccessToken({
-            id: workerInfoResponse.worker.id,
-            name: workerInfoResponse.worker.name,
-            user_id: workerInfoResponse.worker.user_id,
-          })
-          .then((tokenResponse) => {
-            if (fcmTokenJSON.length > 0) {
-              fcmTokenJSON.push(tokenResponse.access_token);
-            } else {
-              fcmTokenJSON = [tokenResponse.access_token];
-            }
-            worker
-              .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
-              .then((response) => {
-                worker
-                  .readOne({ user_id: req.query.user_id })
-                  .then((workerdatares) => {
-                    console.log("FCM token updated successfully");
-                    return res.status(tokenResponse.status).send({
-                      ...tokenResponse,
-                      message: "FCM_TOKEN_UPDATED",
-                      worker: workerdatares,
-                    });
-                  })
-                  .catch((error) => {
-                    console.log("Error updating FCM token:", error);
-                    return res.status(error.status).send(error);
-                  });
-              });
-          })
-          .catch((error) => {
-            console.log("Error generating access token:", error);
-            return res.status(error.status).send(error);
-          });
-      } else {
-        // Case 2: fcm_token value is specific token
-        var existFCMToken = fcmTokenJSON.includes(req.query.fcm_token);
-
-        if (existFCMToken) {
-          console.log(
-            "Existing FCM token found, logging in without generating new token"
-          );
-          return res.status(message["200_SUCCESS"].status).send({
-            status: message["200_SUCCESS"].status,
-            message: "EXISTING_FCM_TOKEN_FOUND, LOG_IN_SUCCESS",
-            worker: workerData,
-          });
-        } else {
-          console.log("No existing FCM token found, invalid FCM token");
-          return res
-            .status(message["400_BAD_REQUEST"].status)
-            .send(
-              message.issueMessage(
-                message["400_BAD_REQUEST"],
-                "INVALID_FCM_TOKEN"
-              )
-            );
-        }
-      }
-    })
-    .catch((error) => {
-      console.log("Error finding worker:", error);
-      return res.status(error.status).send(error);
-    });
-}
-
 // function getAccessTokenByAccount(req, res) {
 //   if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
+//     console.log("Send all parameters");
 //     return res
 //       .status(message["400_BAD_REQUEST"].status)
-//       .send(message["400_BAD_REQUEST"]);
+//       .send(
+//         message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+//       );
 //   }
 
 //   var worker = new Worker();
@@ -2205,54 +2098,157 @@ function getAccessTokenByAccount(req, res) {
 //   worker
 //     .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
 //     .then((workerInfoResponse) => {
-//       jwt
-//         .signAccessToken({
-//           id: workerInfoResponse.worker.id,
-//           name: workerInfoResponse.worker.name,
-//           user_id: workerInfoResponse.worker.user_id,
-//         })
-//         .then((tokenResponse) => {
-//           if (
-//             workerInfoResponse.worker.dataValues.fcm_token == null ||
-//             workerInfoResponse.worker.dataValues.fcm_token == undefined
-//           ) {
-//             workerInfoResponse.worker.dataValues.fcm_token = "[]";
-//           }
-//           console.log(workerInfoResponse.worker.dataValues);
-//           var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
-//           console.log("fcmTokenJSON :", fcmTokenJSON);
+//       if (!workerInfoResponse.worker) {
+//         console.log("Worker not found");
+//         return res
+//           .status(message["400_BAD_REQUEST"].status)
+//           .send(
+//             message.issueMessage(message["400_BAD_REQUEST"], "WORKER_NOT_FOUND")
+//           );
+//       }
 
-//           var existFCMToken = false;
-//           for (var i = 0; i < fcmTokenJSON.length; ++i) {
-//             if (fcmTokenJSON[i] == req.query.fcm_token) {
-//               existFCMToken = true;
-//               break;
+//       var workerData = workerInfoResponse.worker.dataValues;
+
+//       console.log("Worker found:", workerInfoResponse.worker);
+
+//       // fcm_token 값을 배열로 초기화
+//       let fcmTokenJSON;
+//       try {
+//         fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
+//         if (!Array.isArray(fcmTokenJSON)) {
+//           fcmTokenJSON = [];
+//         }
+//       } catch (e) {
+//         fcmTokenJSON = [];
+//       }
+
+//       console.log("Parsed fcmTokenJSON:", fcmTokenJSON);
+
+//       if (req.query.fcm_token === "{}") {
+//         // Case 1: fcm_token value is '{}'
+//         jwt
+//           .signAccessToken({
+//             id: workerInfoResponse.worker.id,
+//             name: workerInfoResponse.worker.name,
+//             user_id: workerInfoResponse.worker.user_id,
+//           })
+//           .then((tokenResponse) => {
+//             if (fcmTokenJSON.length > 0) {
+//               fcmTokenJSON.push(tokenResponse.access_token);
+//             } else {
+//               fcmTokenJSON = [tokenResponse.access_token];
 //             }
-//           }
-//           if (existFCMToken) {
-//             return res.status(tokenResponse.status).send(tokenResponse);
-//           } else {
-//             // fcmTokenJSON.push(req.query.fcm_token);
 //             worker
-//               .updateFCMToken(
-//                 workerInfoResponse.worker.id,
-//                 tokenResponse.access_token
-//               )
+//               .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
 //               .then((response) => {
-//                 console.log("worker fcm_token update success");
-//                 return res.status(tokenResponse.status).send(tokenResponse);
-//               })
-//               .catch((error) => {
-//                 return res.status(error.status).send(error);
+//                 worker
+//                   .readOne({ user_id: req.query.user_id })
+//                   .then((workerdatares) => {
+//                     console.log("FCM token updated successfully");
+//                     return res.status(tokenResponse.status).send({
+//                       ...tokenResponse,
+//                       message: "FCM_TOKEN_UPDATED",
+//                       worker: workerdatares,
+//                     });
+//                   })
+//                   .catch((error) => {
+//                     console.log("Error updating FCM token:", error);
+//                     return res.status(error.status).send(error);
+//                   });
 //               });
-//           }
-//         });
+//           })
+//           .catch((error) => {
+//             console.log("Error generating access token:", error);
+//             return res.status(error.status).send(error);
+//           });
+//       } else {
+//         // Case 2: fcm_token value is specific token
+//         var existFCMToken = fcmTokenJSON.includes(req.query.fcm_token);
+//         `
+// `
+//         if (existFCMToken) {
+//           console.log(
+//             "Existing FCM token found, logging in without generating new token"
+//           );
+//           return res.status(message["200_SUCCESS"].status).send({
+//             status: message["200_SUCCESS"].status,
+//             message: "EXISTING_FCM_TOKEN_FOUND, LOG_IN_SUCCESS",
+//             worker: workerData,
+//           });
+//         } else {
+//           console.log("No existing FCM token found, invalid FCM token");
+//           return res
+//             .status(message["400_BAD_REQUEST"].status)
+//             .send(
+//               message.issueMessage(
+//                 message["400_BAD_REQUEST"],
+//                 "INVALID_FCM_TOKEN"
+//               )
+//             );
+//         }
+//       }
 //     })
 //     .catch((error) => {
-//       console.log(error);
+//       console.log("Error finding worker:", error);
 //       return res.status(error.status).send(error);
 //     });
 // }
+
+function getAccessTokenByAccount(req, res) {
+  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+
+  worker
+    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
+    .then((workerInfoResponse) => {
+      jwt
+        .signAccessToken({
+          id: workerInfoResponse.worker.id,
+          name: workerInfoResponse.worker.name,
+          user_id: workerInfoResponse.worker.user_id,
+        })
+        .then((tokenResponse) => {
+          if (
+            workerInfoResponse.worker.dataValues.fcm_token == null ||
+            workerInfoResponse.worker.dataValues.fcm_token == undefined
+          ) {
+            workerInfoResponse.worker.dataValues.fcm_token = "[]";
+          }
+          console.log(workerInfoResponse.worker.dataValues);
+          var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
+
+          var existFCMToken = false;
+          for (var i = 0; i < fcmTokenJSON.length; ++i) {
+            if (fcmTokenJSON[i] == req.query.fcm_token) {
+              existFCMToken = true;
+              break;
+            }
+          }
+          if (existFCMToken) {
+            return res.status(tokenResponse.status).send(tokenResponse);
+          } else {
+            fcmTokenJSON.push(req.query.fcm_token);
+            worker
+              .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
+              .then((response) => {
+                return res.status(tokenResponse.status).send(tokenResponse);
+              })
+              .catch((error) => {
+                return res.status(error.status).send(error);
+              });
+          }
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
 
 function updateWorkStatus(req, res) {
   if (!req.user || !req.body.status) {
