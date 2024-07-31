@@ -22,7 +22,7 @@ router.put("/role", managementController.updateAssignLog);
 router.get("/mobile/sign-in", managementController.getAccessTokenByAccount);
 router.post(
   "/mobile/work/status",
-  // authUtil.verifyToken,
+  authUtil.verifyToken,
   managementController.updateWorkStatus
 );
 router.get(
