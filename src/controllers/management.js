@@ -2222,6 +2222,15 @@ function getAccessTokenByAccount(req, res) {
           console.log(workerInfoResponse.worker.dataValues);
           var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
 
+          try {
+            fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token;
+            if (!Array.isArray(fcmTokenJSON)) {
+              fcmTokenJSON = [];
+            }
+          } catch (e) {
+            fcmTokenJSON = [];
+          }
+
           var existFCMToken = false;
           for (var i = 0; i < fcmTokenJSON.length; ++i) {
             if (fcmTokenJSON[i] == req.query.fcm_token) {
