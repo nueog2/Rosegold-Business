@@ -873,13 +873,9 @@ class Worker extends Hotel {
       models.work_log
         .findAll({ where: condition, order: [["createdAt", "DESC"]] })
         .then((response) => {
-          if (response.length == 0) {
-            return reject(message["404_NOT_FOUND"]);
-          } else {
-            var obj = Object.assign({}, message["200_SUCCESS"]);
-            obj.work_logs = response;
-            return resolve(obj);
-          }
+          var obj = Object.assign({}, message["200_SUCCESS"]);
+          obj.work_logs = response;
+          return resolve(obj);
         })
         .catch((error) => {
           return reject(message["500_SERVER_INTERNAL_ERROR"]);
@@ -1189,38 +1185,59 @@ class Worker extends Hotel {
         })
         .then((profileResponse) => {
           if (profileResponse != null) {
-            this.readWorkLogMany({ user_id: user_id })
-              .then((workLogsResponse) => {
-                var requirementLog = new Requirement_Log();
-                requirementLog
-                  .readMany({
-                    user_id: user_id,
-                    progress: 2,
-                  })
-                  .then((requirementLogResponse) => {
-                    var obj = Object.assign({}, message["200_SUCCESS"]);
-                    obj.profile = profileResponse.dataValues;
-                    obj.profile.last_work_log =
-                      workLogsResponse.work_logs[0].dataValues;
-                    obj.profile.processed_count =
-                      requirementLogResponse.Total_requirement_log;
-                    return resolve(obj);
+            const role = new Role();
+            role
+              .readAssignLogOne({ user_id: profileResponse.dataValues.id })
+              .then((roleAssignResponse) => {
+                profileResponse.dataValues.role_id =
+                  roleAssignResponse.role_assign_log.role.dataValues.id.length;
+                profileResponse.dataValues.role_name =
+                  roleAssignResponse.role_assign_log.role.dataValues.name;
+                profileResponse.dataValues.department_id =
+                  roleAssignResponse.role_assign_log.role.dataValues.department.id;
+                profileResponse.dataValues.department_name =
+                  roleAssignResponse.role_assign_log.role.dataValues.department.name;
+
+                this.readWorkLogMany({ user_id: user_id })
+                  .then((workLogsResponse) => {
+                    var requirementLog = new Requirement_Log();
+                    requirementLog
+                      .readMany({
+                        user_id: user_id,
+                        progress: 2,
+                      })
+                      .then((requirementLogResponse) => {
+                        var obj = Object.assign({}, message["200_SUCCESS"]);
+                        obj.profile = profileResponse.dataValues;
+                        obj.profile.last_work_log =
+                          workLogsResponse.work_logs.length > 0
+                            ? workLogsResponse.work_logs[0].dataValues
+                            : null;
+                        obj.profile.processed_count =
+                          requirementLogResponse.Total_requirement_log;
+                        return resolve(obj);
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        if (error.status == message["404_NOT_FOUND"].status) {
+                          var obj = Object.assign({}, message["200_SUCCESS"]);
+                          obj.profile = profileResponse.dataValues;
+                          obj.profile.last_work_log =
+                            workLogsResponse.work_logs.length > 0
+                              ? workLogsResponse.work_logs[0].dataValues
+                              : null;
+                          obj.profile.processed_count = 0;
+                          return resolve(obj);
+                        } else {
+                          console.log(error);
+                          return reject(error);
+                        }
+                      });
                   })
                   .catch((error) => {
-                    if (error.status == message["404_NOT_FOUND"].status) {
-                      var obj = Object.assign({}, message["200_SUCCESS"]);
-                      obj.profile = profileResponse.dataValues;
-                      obj.profile.last_work_log =
-                        workLogsResponse.work_logs[0].dataValues;
-                      obj.profile.processed_count = 0;
-                      return resolve(obj);
-                    } else {
-                      return reject(error);
-                    }
+                    console.log(error);
+                    return reject(error);
                   });
-              })
-              .catch((error) => {
-                return reject(error);
               });
           } else {
             return reject(message["404_NOT_FOUND"]);
@@ -2401,17 +2418,24 @@ class Requirement_Log extends Room {
                   if (response) {
                     var worker = new Worker();
                     worker
+                      // .readMany({hotel_id : hotel_id})
                       .readManyByHotelAndDepartment(hotel_id, department_id)
                       .then((workers) => {
                         var sendTargetFCMTokens = [];
                         for (var i = 0; i < workers["workers"].length; i++) {
                           if (
-                            workers["workers"][i].dataValues["fcm_token"]
-                              .length > 0
+                            workers["workers"][i]["work_logs"].length > 0 &&
+                            workers["workers"][i]["work_logs"][0]["status"] ==
+                              "WORK"
                           ) {
-                            sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                            if (
                               workers["workers"][i].dataValues["fcm_token"]
-                            );
+                                .length > 0
+                            ) {
+                              sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                                workers["workers"][i].dataValues["fcm_token"]
+                              );
+                            }
                           }
                         }
 
@@ -2426,6 +2450,17 @@ class Requirement_Log extends Room {
                               body: "빠르게 요청을 배정받아주세요!",
                             },
                             tokens: sendTargetFCMTokens,
+                            //android, apns 추가
+                            // android: {
+                            //   priority: "high",
+                            // },
+                            // apns: {
+                            //   payload: {
+                            //     aps: {
+                            //       contentAvailable: true,
+                            //     },
+                            //   },
+                            // },
                           };
                           admin
                             .messaging()
@@ -3077,6 +3112,16 @@ class Message {
                     body: "알림을 확인해주세요",
                   },
                   tokens: token,
+                  // android: {
+                  //   priority: "high",
+                  // },
+                  // apns: {
+                  //   payload: {
+                  //     aps: {
+                  //       contentAvailable: true,
+                  //     },
+                  //   },
+                  // },
                 };
                 admin
                   .messaging()

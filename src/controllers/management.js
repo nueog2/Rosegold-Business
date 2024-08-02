@@ -2321,6 +2321,7 @@ function readProfileInfo(req, res) {
   worker
     .readProfileInfo(req.user.id)
     .then((profile) => {
+      console.log("profile :", profile);
       return res.status(profile.status).send(profile);
     })
     .catch((error) => {
