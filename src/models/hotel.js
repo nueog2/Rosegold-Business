@@ -2,6 +2,7 @@ const models = require("../../models");
 const message = require("../../config/message");
 const jwtModule = require("../modules/jwt");
 const { updateRole } = require("../controllers/management");
+const { Work_Log } = require("./work_log");
 const { response } = require("express");
 
 const admin = require("firebase-admin");
@@ -901,12 +902,21 @@ class Worker extends Hotel {
         });
     });
   }
+
   readMany(condition, order) {
     return new Promise((resolve, reject) => {
       models.user
         .findAll({
           where: condition,
           order: order,
+          include: [
+            {
+              model: models.work_log,
+              limit: 1,
+              attributes: ["status"],
+              order: [["id", "DESC"]],
+            },
+          ],
         })
         .then((response) => {
           if (response.length > 0) {
@@ -989,6 +999,7 @@ class Worker extends Hotel {
                 worker = worker.dataValues;
                 if (worker.department_id == department_id) {
                   workersList.push(worker);
+                  // console.log("worker found :", worker);
                 }
 
                 processedCount++;
@@ -1013,6 +1024,7 @@ class Worker extends Hotel {
             });
         })
         .catch((error) => {
+          console.log(error);
           return reject(error);
         });
     });
@@ -1040,6 +1052,7 @@ class Worker extends Hotel {
             {
               model: models.work_log,
               limit: 1,
+              attributes: ["status"],
               order: [["id", "DESC"]],
             },
           ],
@@ -1636,13 +1649,40 @@ class Room extends Hotel {
               message.issueMessage(message["404_NOT_FOUND"], "ROOMS_NOT_FOUND")
             );
           } else {
-            var obj = Object.assign({}, message["200_SUCCESS"]);
-            obj.rooms = response;
+            // room_grade 정보 추가
+            let roomPromises = response.map((room) => {
+              return models.room_grade
+                .findOne({
+                  where: { id: room.room_grade_id },
+                  attributes: ["name"],
+                })
+                .then((roomGrade) => {
+                  room.dataValues.room_grade_name = roomGrade
+                    ? roomGrade.name
+                    : null;
+                  return room;
+                });
+            });
 
-            return resolve(obj);
+            Promise.all(roomPromises)
+              .then((roomsWithGrades) => {
+                var obj = Object.assign({}, message["200_SUCCESS"]);
+                obj.rooms = roomsWithGrades;
+                return resolve(obj);
+              })
+              .catch((error) => {
+                console.log(error);
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              });
           }
         })
         .catch((error) => {
+          console.log(error);
           return reject(
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
