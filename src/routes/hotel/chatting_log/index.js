@@ -1,7 +1,7 @@
-const chattingLogController = require("../../../controllers/chatting_log")
-const router = require("express").Router()
+const chattingLogController = require("../../../controllers/chatting_log");
+const router = require("express").Router();
 
-router.post("/", chattingLogController.createChattingLog)
-router.get("/many", chattingLogController.getChattingLog)
+router.post("/", chattingLogController.createChattingLog);
+router.get("/many", chattingLogController.getChattingLog);
 
-module.exports = router
+module.exports = router;

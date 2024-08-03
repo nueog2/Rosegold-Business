@@ -13,5 +13,6 @@ router.put("/price", managementController.updateRoomPrice);
 router.put("/price/add", managementController.updateRoomPriceAdd);
 router.post("/checkout", managementController.checkoutRoom);
 router.delete("/", managementController.deleteRoom);
+router.delete("/hotel", managementController.deleteRoombyHotel);
 
 module.exports = router;

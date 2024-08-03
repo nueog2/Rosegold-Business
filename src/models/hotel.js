@@ -1101,6 +1101,7 @@ class Worker extends Hotel {
             {
               model: models.work_log,
               limit: 1,
+              attributes: ["status"],
               order: [["id", "DESC"]],
             },
           ],
@@ -2119,6 +2120,32 @@ class Room extends Hotel {
         });
     });
   }
+
+  deletebyHotelID(hotel_id) {
+    return new Promise((resolve, reject) => {
+      models.room
+        .destroy({
+          where: {
+            hotel_id: hotel_id,
+          },
+        })
+        .then((response) => {
+          return resolve(
+            message["200_SUCCESS"],
+            "hotel_id: " + hotel_id + " - ROOM DELETE SUCCESS"
+          );
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 }
 
 class Requirement_Log extends Room {
@@ -2136,6 +2163,7 @@ class Requirement_Log extends Room {
             new Department()
               .readOne({ token_name: department_name, hotel_id: hotel_id })
               .then((response) => {
+                // console.log("readOne Department response : ", response);
                 var department_id = response.department.id;
                 models.requirement_log
                   .create({
@@ -2153,31 +2181,33 @@ class Requirement_Log extends Room {
                     if (response) {
                       var worker = new Worker();
                       worker
-                        .readManyByHotelAndDepartment(hotel_id, department_id)
+                        // .readManyByDepartment2(department_id)
+                        .readManyByDepartment(department_id)
                         .then((workers) => {
+                          console.log("\n\n\nreadManybyDep : ", workers);
                           var sendTargetFCMTokens = [];
 
                           for (var i = 0; i < workers["workers"].length; i++) {
                             if (
-                              workers["workers"][i]["work_logs"].length > 0 &&
-                              workers["workers"][i]["work_logs"][0]["status"] ==
+                              // console.log("check1 : ", workers["workers"][i]),
+                              workers["workers"][i].work_logs.length > 0 &&
+                              workers["workers"][i].work_logs[0]["status"] ==
                                 "WORK"
                             ) {
-                              if (
-                                workers["workers"][i].dataValues["fcm_token"]
-                                  .length > 0
-                              ) {
+                              if (workers["workers"][i].fcm_token.length > 0) {
                                 sendTargetFCMTokens =
                                   sendTargetFCMTokens.concat(
-                                    workers["workers"][i].dataValues[
-                                      "fcm_token"
-                                    ]
+                                    workers["workers"][i].fcm_token
                                   );
                               }
                             }
                           }
 
                           if (sendTargetFCMTokens.length > 0) {
+                            console.log(
+                              "FCMTOKENS!!!! : ",
+                              sendTargetFCMTokens
+                            );
                             let _message = {
                               notification: {
                                 title: "새로운 요청 도착!",
@@ -2188,10 +2218,23 @@ class Requirement_Log extends Room {
                                 body: "빠르게 요청을 배정받아주세요!",
                               },
                               tokens: sendTargetFCMTokens,
+                              //android, apns 추가
+                              android: {
+                                priority: "high",
+                              },
+                              apns: {
+                                payload: {
+                                  aps: {
+                                    contentAvailable: true,
+                                  },
+                                },
+                              },
                             };
+
                             admin
                               .messaging()
-                              .sendMulticast(_message)
+                              // getMessaging()
+                              .sendEachForMulticast(_message)
                               .then(function (response) {
                                 console.log(
                                   "Successfully sent message: : ",
@@ -2418,28 +2461,29 @@ class Requirement_Log extends Room {
                   if (response) {
                     var worker = new Worker();
                     worker
-                      // .readMany({hotel_id : hotel_id})
-                      .readManyByHotelAndDepartment(hotel_id, department_id)
+                      // .readManyByDepartment2(department_id)
+                      .readManyByDeparment(department_id)
                       .then((workers) => {
+                        console.log("\n\n\nreadManybyDepworkers2 : ", workers);
                         var sendTargetFCMTokens = [];
+
                         for (var i = 0; i < workers["workers"].length; i++) {
                           if (
-                            workers["workers"][i]["work_logs"].length > 0 &&
-                            workers["workers"][i]["work_logs"][0]["status"] ==
+                            // console.log("check1 : ", workers["workers"][i]),
+                            workers["workers"][i].work_logs.length > 0 &&
+                            workers["workers"][i].work_logs[0]["status"] ==
                               "WORK"
                           ) {
-                            if (
-                              workers["workers"][i].dataValues["fcm_token"]
-                                .length > 0
-                            ) {
+                            if (workers["workers"][i].fcm_token.length > 0) {
                               sendTargetFCMTokens = sendTargetFCMTokens.concat(
-                                workers["workers"][i].dataValues["fcm_token"]
+                                workers["workers"][i].fcm_token
                               );
                             }
                           }
                         }
 
                         if (sendTargetFCMTokens.length > 0) {
+                          console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
                           let _message = {
                             notification: {
                               title: "새로운 요청 도착!",
@@ -2450,21 +2494,23 @@ class Requirement_Log extends Room {
                               body: "빠르게 요청을 배정받아주세요!",
                             },
                             tokens: sendTargetFCMTokens,
+                            //
                             //android, apns 추가
-                            // android: {
-                            //   priority: "high",
-                            // },
-                            // apns: {
-                            //   payload: {
-                            //     aps: {
-                            //       contentAvailable: true,
-                            //     },
-                            //   },
-                            // },
+                            android: {
+                              priority: "high",
+                            },
+                            apns: {
+                              payload: {
+                                aps: {
+                                  contentAvailable: true,
+                                },
+                              },
+                            },
                           };
                           admin
                             .messaging()
-                            .sendMulticast(_message)
+                            // getMessaging()
+                            .sendEachForMulticast(_message)
                             .then(function (response) {
                               console.log(
                                 "Successfully sent message: : ",
@@ -3112,16 +3158,16 @@ class Message {
                     body: "알림을 확인해주세요",
                   },
                   tokens: token,
-                  // android: {
-                  //   priority: "high",
-                  // },
-                  // apns: {
-                  //   payload: {
-                  //     aps: {
-                  //       contentAvailable: true,
-                  //     },
-                  //   },
-                  // },
+                  android: {
+                    priority: "high",
+                  },
+                  apns: {
+                    payload: {
+                      aps: {
+                        contentAvailable: true,
+                      },
+                    },
+                  },
                 };
                 admin
                   .messaging()
@@ -3209,3 +3255,68 @@ module.exports = {
   Requirement_Log,
   Message,
 };
+
+// readManyByDepartment2 response - worker
+// workers: [
+//   user {
+//     dataValues: [Object],
+//     _previousDataValues: [Object],
+//     uniqno: 1,
+//     _changed: Set(0) {},
+//     _options: [Object],
+//     isNewRecord: false,
+//     role_assign_log: null,
+//     work_logs: []
+//   },
+//   user {
+//     dataValues: [Object],
+//     _previousDataValues: [Object],
+//     uniqno: 1,
+//     _changed: Set(0) {},
+//     _options: [Object],
+//     isNewRecord: false,
+//     role_assign_log: [role_assign_log],
+//     work_logs: []
+//   },
+
+// readManyByDeparment response - worker
+
+// workers: [
+//   {
+//     id: 30,
+//     name: '김휘성',
+//     user_num: '004',
+//     user_id: '12345',
+//     user_pwd: '1123',
+//     phone: '010-5050-5050',
+//     hotel_admin_user: true,
+//     fcm_token: {},
+//     createdAt: 2024-06-30T10:01:22.000Z,
+//     updatedAt: 2024-07-28T16:22:48.000Z,
+//     deletedAt: null,
+//     hotel_id: 1,
+//     work_logs: [],
+//     role_id: 73,
+//     role_name: '사원',
+//     department_id: 2,
+//     department_name: 'F&B팀'
+//   },
+//   {
+//     id: 35,
+//     name: '서민정',
+//     user_num: '011',
+//     user_id: '1231',
+//     user_pwd: '1231',
+//     phone: '010-2020-3030',
+//     hotel_admin_user: false,
+//     fcm_token: {},
+//     createdAt: 2024-07-02T11:32:26.000Z,
+//     updatedAt: 2024-07-28T08:34:46.000Z,
+//     deletedAt: null,
+//     hotel_id: 1,
+//     work_logs: [],
+//     role_id: 72,
+//     role_name: '팀장',
+//     department_id: 2,
+//     department_name: 'F&B팀'
+//   }

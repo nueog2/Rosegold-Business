@@ -2083,6 +2083,34 @@ function deleteRoom(req, res) {
     });
 }
 
+function deleteRoombyHotel(req, res) {
+  if (req.body.hotel_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .deletebyHotelID(req.body.hotel_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 // function getAccessTokenByAccount(req, res) {
 //   if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token) {
 //     console.log("Send all parameters");
@@ -2514,6 +2542,7 @@ module.exports = {
   //객실 가격 추가
   updateRoomPriceAdd,
   deleteRoom,
+  deleteRoombyHotel,
   //객실 체크아웃
   checkoutRoom,
   getAccessTokenByAccount,
