@@ -3,5 +3,6 @@ const router = require("express").Router();
 
 router.post("/", chattingLogController.createChattingLog);
 router.get("/many", chattingLogController.getChattingLog);
+router.get("/one", chattingLogController.getChattingLogbyidentifier);
 
 module.exports = router;

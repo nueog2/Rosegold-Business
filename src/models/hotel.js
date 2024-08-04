@@ -2175,7 +2175,14 @@ class Requirement_Log extends Room {
     super();
   }
 
-  create(room_id, question, answer, department_name, summarized_sentence) {
+  create(
+    room_id,
+    question,
+    answer,
+    department_name,
+    summarized_sentence,
+    identifier
+  ) {
     return new Promise((resolve, reject) => {
       new Room().addService(room_id, 1).then((response) => {
         new Room()
@@ -2200,6 +2207,7 @@ class Requirement_Log extends Room {
                     summarized_sentence: summarized_sentence,
                     hotel_id: hotel_id,
                     user_id: null,
+                    identifier: identifier,
                   })
                   .then((response) => {
                     if (response) {
@@ -2826,6 +2834,7 @@ class Requirement_Log extends Room {
             "summarized_sentence",
             "processed_info",
             "pmsign",
+            "identifier",
           ],
           order: [["createdAt", "ASC"]],
         })
@@ -2901,6 +2910,7 @@ class Requirement_Log extends Room {
             "createdAt",
             "user_id",
             "summarized_sentence",
+            "identifier",
           ],
         })
         .then((response) => {
@@ -2960,6 +2970,7 @@ class Requirement_Log extends Room {
             "createdAt",
             "user_id",
             "summarized_sentence",
+            "identifier",
           ],
         })
         .then((response) => {
@@ -3013,6 +3024,7 @@ class Requirement_Log extends Room {
             "pmsign",
             "summarized_sentence",
             "createdAt",
+            "identifier",
           ],
           order: [["createdAt", "ASC"]],
         })

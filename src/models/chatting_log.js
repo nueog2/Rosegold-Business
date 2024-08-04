@@ -13,6 +13,7 @@ class ChattingLog {
     translated_question,
     translated_answer,
     req_log_created
+    // identifier
   ) {
     return new Promise((resolve, reject) => {
       models.chatting_log
@@ -25,16 +26,23 @@ class ChattingLog {
           translated_question: translated_question,
           translated_answer: translated_answer,
           req_log_created: req_log_created,
+          // identifier: identifier,
         })
         .then((response) => {
-          if (response) return resolve(message["200_SUCCESS"]);
-          else
+          if (response) {
+            return resolve({
+              // return resolve(message["200_SUCCESS"]);
+              status: message["200_SUCCESS"].status,
+              chatting_log: response,
+            });
+          } else {
             return reject(
               message.issueMessage(
                 message["500_SERVER_INTERNAL_ERROR"],
                 "UNDEFINED_ERROR"
               )
             );
+          }
         })
         .catch((error) => {
           return reject(
@@ -64,6 +72,7 @@ class ChattingLog {
             "createdAt",
             //"department_name",
             "req_log_created",
+            "identifier",
           ],
         })
         .then((response) => {
@@ -82,6 +91,42 @@ class ChattingLog {
         })
         .catch((error) => {
           console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  updateidentifier(identifier, chatting_log_id) {
+    return new Promise((resolve, reject) => {
+      models.chatting_log
+        .update(
+          {
+            identifier: identifier,
+          },
+          {
+            where: {
+              id: chatting_log_id,
+            },
+          }
+        )
+        .then((response) => {
+          if (response[0] > 0) {
+            return resolve(message["200_SUCCESS"]);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "CHATTING_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
           return reject(
             message.issueMessage(
               message["500_SERVER_INTERNAL_ERROR"],
