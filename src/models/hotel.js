@@ -2300,15 +2300,31 @@ class Requirement_Log extends Room {
                                     }
 
                                     if (sendTargetFCMTokensWeb.length > 0) {
+                                      console.log(
+                                        "\n\n\nsendTargetFCMTokensWeb : ",
+                                        sendTargetFCMTokensWeb
+                                      );
                                       let _webMessage = {
                                         notification: {
                                           title: "로즈골드",
-                                          body: "[${department_name}] ${room_name}호에서 요청이 들어왔습니다: ${summarized_sentence}",
+                                          body:
+                                            "[" +
+                                            department_name +
+                                            "] " +
+                                            room_name +
+                                            "호에서 요청이 들어왔습니다: " +
+                                            summarized_sentence,
                                         },
-                                        data: {
-                                          title: "로즈골드",
-                                          body: "[${department_name}] ${room_name}호에서 요청이 들어왔습니다: ${summarized_sentence}",
-                                        },
+                                        // data: {
+                                        //   title: "로즈골드",
+                                        //   body:
+                                        //     "[" +
+                                        //     department_name +
+                                        //     "] " +
+                                        //     room_name +
+                                        //     "호에서 요청이 들어왔습니다: " +
+                                        //     summarized_sentence,
+                                        // },
                                         tokens: sendTargetFCMTokensWeb,
                                       };
 
@@ -2647,12 +2663,24 @@ class Requirement_Log extends Room {
                                     let _webMessage = {
                                       notification: {
                                         title: "로즈골드",
-                                        body: "[${department_name}] ${room_name}호에서 요청이 들어왔습니다: ${summarized_sentence}",
+                                        body:
+                                          "[" +
+                                          department_name +
+                                          "] " +
+                                          room_name +
+                                          "호에서 요청이 들어왔습니다: " +
+                                          summarized_sentence,
                                       },
-                                      data: {
-                                        title: "로즈골드",
-                                        body: "[${department_name}] ${room_name}호에서 요청이 들어왔습니다: ${summarized_sentence}",
-                                      },
+                                      // data: {
+                                      //   title: "로즈골드",
+                                      //   body:
+                                      //     "[" +
+                                      //     department_name +
+                                      //     "] " +
+                                      //     room_name +
+                                      //     "호에서 요청이 들어왔습니다: " +
+                                      //     summarized_sentence,
+                                      // },
                                       tokens: sendTargetFCMTokensWeb,
                                     };
 
