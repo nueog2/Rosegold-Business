@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: [],
       },
+      fcm_token_web: {
+        type: DataTypes.JSON(),
+
+        allowNull: false,
+        defaultValue: [],
+      },
     },
     {
       paranoid: true,

@@ -976,6 +976,76 @@ function getProfileByToken(req, res) {
     });
 }
 
+function updateFCMTokenforWebByAccount(req, res) {
+  if (!req.query.user_id || !req.query.user_pwd || !req.query.fcm_token_web) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message["400_BAD_REQUEST"]);
+  }
+
+  var worker = new Worker();
+
+  worker
+    .readOne({ user_id: req.query.user_id, user_pwd: req.query.user_pwd })
+    .then((workerInfoResponse) => {
+      if (
+        workerInfoResponse.worker.dataValues.fcm_token_web == null ||
+        workerInfoResponse.worker.dataValues.fcm_token_web == undefined
+      ) {
+        workerInfoResponse.worker.dataValues.fcm_token_web = "[]";
+      }
+      console.log(workerInfoResponse.worker.dataValues);
+      var fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token_web;
+
+      try {
+        fcmTokenJSON = workerInfoResponse.worker.dataValues.fcm_token_web;
+        if (!Array.isArray(fcmTokenJSON)) {
+          fcmTokenJSON = [];
+        }
+      } catch (e) {
+        fcmTokenJSON = [];
+      }
+
+      var existFCMToken = false;
+      for (var i = 0; i < fcmTokenJSON.length; ++i) {
+        if (fcmTokenJSON[i] == req.query.fcm_token_web) {
+          existFCMToken = true;
+          break;
+        }
+      }
+      if (existFCMToken) {
+        return res.status(message["200_SUCCESS"].status).send({
+          status: true,
+          message:
+            "FCMTOKEN FOR WEB ALREADY EXIST, NOT UPDATING FCM TOKEN , LOGIN_SUCCESS",
+          data: workerInfoResponse.worker.dataValues,
+        });
+      } else {
+        fcmTokenJSON.push(req.query.fcm_token_web);
+        worker
+          .updateFCMTokenforWeb(workerInfoResponse.worker.id, fcmTokenJSON)
+          .then((response) => {
+            return res.status(message["200_SUCCESS"].status).send({
+              status: true,
+              message: "FCM TOKEN FOR WEB UPDATED, LOGIN_SUCCESS",
+              data: workerInfoResponse.worker.dataValues,
+            });
+          })
+          .catch((error) => {
+            return res.status(error.status).send(error);
+          });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      return res
+        .status(message["404_NOT_FOUND"].status)
+        .send(
+          message.issueMessage(message["400_NOT_FOUND"], "WORKER_NOT_FOUND")
+        );
+    });
+}
+
 //   const worker = new Worker();
 //   worker
 //     .readOne({
@@ -2525,6 +2595,8 @@ module.exports = {
   refreshToken,
   getProfileByToken,
   logoutWorker,
+  //웹 firebase token 추가 API
+  updateFCMTokenforWebByAccount,
   //직원-부서 할당 추가
   updateAssignLog,
   createRoom,

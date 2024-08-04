@@ -3,6 +3,7 @@ const managementController = require("../../../controllers/management");
 const authUtil = require("../../../middlewares/auth_util");
 
 router.post("/", managementController.createWorker);
+router.post("/fcmtoken", managementController.updateFCMTokenforWebByAccount); // 웹용 FCM Token 업데이트 router 추가
 router.get("/many", managementController.getWorkerMany);
 router.get("/many/department", managementController.getWorkerManyByDepartment);
 router.get("/department", managementController.getWorkerManyByDepartment2); // 호텔 부서별 직원 조회 router 추가
