@@ -24,4 +24,9 @@ router.put("/worker", requirement_logController.updateRequirementLogWorker);
 router.delete("/", requirement_logController.deleteRequirementLog);
 router.delete("/hotel", requirement_logController.deleteRequirementLogByHotel);
 
+router.get(
+  "/statistics",
+  requirement_logController.getRequirementLogStatisticsHandler
+);
+
 module.exports = router;

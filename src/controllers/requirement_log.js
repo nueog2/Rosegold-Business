@@ -3,6 +3,8 @@ const message = require("../../config/message");
 const requirement = require("../../models/schema/requirement");
 const { Worker } = require("../models/hotel");
 const Room = require("../models/hotel").Room;
+const Sequelize = require("sequelize");
+// import { Sequelize } from "sequelize";
 
 function createRequirementLog(req, res) {
   if (
@@ -504,6 +506,66 @@ function deleteRequirementLogByHotel(req, res) {
     });
 }
 
+const models = require("../../models");
+
+// 통계 계산 함수
+async function getRequirementLogStatistics(hotelId) {
+  try {
+    const whereClause = hotelId ? { hotel_id: hotelId } : {};
+    const { Sequelize } = require("../../models/index.js");
+    const result = await models.requirement_log.findAll({
+      attributes: [
+        "type",
+        "hotel_id",
+        [Sequelize.fn("COUNT", Sequelize.col("type")), "count"],
+      ],
+      where: whereClause,
+      group: ["hotel_id", "type"],
+    });
+
+    // 호텔별로 총 갯수를 계산
+    const totalCountByHotel = result.reduce((acc, log) => {
+      const hotelId = log.dataValues.hotel_id;
+      const count = parseInt(log.dataValues.count, 10);
+      if (!acc[hotelId]) acc[hotelId] = 0;
+      acc[hotelId] += count;
+      return acc;
+    }, {});
+
+    // 각 호텔 및 type별 갯수와 퍼센트를 계산
+    const statistics = result.map((log) => {
+      const hotelId = log.dataValues.hotel_id;
+      const count = log.dataValues.count;
+      const totalCount = totalCountByHotel[hotelId];
+      return {
+        hotel_id: hotelId,
+        type: log.dataValues.type,
+        count: count,
+        percentage: ((count / totalCount) * 100).toFixed(2) + "%",
+      };
+    });
+
+    return statistics;
+  } catch (error) {
+    console.error("Error fetching requirement log statistics:", error);
+    throw error;
+  }
+}
+
+// GET 요청 핸들러
+function getRequirementLogStatisticsHandler(req, res) {
+  const hotelId = req.query.hotel_id;
+
+  getRequirementLogStatistics(hotelId)
+    .then((statistics) => {
+      res.status(200).json(statistics);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+}
+
 module.exports = {
   createRequirementLog,
   createRequirementLogbyMenu,
@@ -518,4 +580,5 @@ module.exports = {
   updateRequirementLogWorker,
   deleteRequirementLog,
   deleteRequirementLogByHotel,
+  getRequirementLogStatisticsHandler,
 };
