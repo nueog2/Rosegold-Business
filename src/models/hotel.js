@@ -2184,234 +2184,142 @@ class Requirement_Log extends Room {
     identifier
   ) {
     return new Promise((resolve, reject) => {
-      new Room().addService(room_id, 1).then((response) => {
-        new Room()
-          .readOne({ id: room_id })
-          .then((response) => {
-            var room_name = response.room.name;
-            var hotel_id = response.room.hotel_id;
-            new Department()
-              .readOne({ token_name: department_name, hotel_id: hotel_id })
-              .then((response) => {
-                // console.log("readOne Department response : ", response);
-                var department_name = response.department.name;
-                var department_id = response.department.id;
-                models.requirement_log
-                  .create({
-                    type: "챗봇 요청사항",
-                    room_id: room_id,
-                    requirement_article: question,
-                    response_article: answer,
-                    progress: 0,
-                    process_department_id: department_id,
-                    summarized_sentence: summarized_sentence,
-                    hotel_id: hotel_id,
-                    user_id: null,
-                    identifier: identifier,
-                  })
-                  .then((response) => {
-                    if (response) {
-                      var worker = new Worker();
-                      worker
-                        // .readManyByDepartment2(department_id)
-                        .readManyByDepartment(department_id)
-                        .then((workers) => {
-                          console.log("\n\n\nreadManybyDep : ", workers);
-                          var sendTargetFCMTokens = [];
+      let room_name, hotel_id, department_id;
 
-                          for (var i = 0; i < workers["workers"].length; i++) {
-                            if (
-                              // console.log("check1 : ", workers["workers"][i]),
-                              workers["workers"][i].work_logs.length > 0 &&
-                              workers["workers"][i].work_logs[0]["status"] ==
-                                "WORK"
-                            ) {
-                              if (workers["workers"][i].fcm_token.length > 0) {
-                                sendTargetFCMTokens =
-                                  sendTargetFCMTokens.concat(
-                                    workers["workers"][i].fcm_token
-                                  );
-                              }
-                            }
-                          }
-
-                          if (sendTargetFCMTokens.length > 0) {
-                            console.log(
-                              "FCMTOKENS!!!! : ",
-                              sendTargetFCMTokens
-                            );
-                            let _message = {
-                              notification: {
-                                title: "새로운 요청 도착!",
-                                body: "빠르게 요청을 배정받아주세요!",
-                              },
-                              data: {
-                                title: "새로운 요청 도착!",
-                                body: "빠르게 요청을 배정받아주세요!",
-                              },
-                              tokens: sendTargetFCMTokens,
-                              //android, apns 추가
-                              android: {
-                                priority: "high",
-                              },
-                              apns: {
-                                payload: {
-                                  aps: {
-                                    contentAvailable: true,
-                                  },
-                                },
-                              },
-                            };
-
-                            admin
-                              .messaging()
-                              // getMessaging()
-                              .sendEachForMulticast(_message)
-                              .then(function (response) {
-                                console.log(
-                                  "Successfully sent message: : ",
-                                  response
-                                );
-
-                                // 두 번째 알림을 위해 웹용 fcm_token을 가진 직원들을 조회
-
-                                worker
-                                  .readMany(hotel_id)
-                                  .then((allWorkers) => {
-                                    var sendTargetFCMTokensWeb = [];
-
-                                    for (
-                                      var j = 0;
-                                      j < allWorkers["workers"].length;
-                                      j++
-                                    ) {
-                                      if (
-                                        allWorkers["workers"][j]
-                                          .fcm_token_web &&
-                                        allWorkers["workers"][j].fcm_token_web
-                                          .length > 0
-                                      ) {
-                                        sendTargetFCMTokensWeb =
-                                          sendTargetFCMTokensWeb.concat(
-                                            allWorkers["workers"][j]
-                                              .fcm_token_web
-                                          );
-                                      }
-                                    }
-
-                                    if (sendTargetFCMTokensWeb.length > 0) {
-                                      console.log(
-                                        "\n\n\nsendTargetFCMTokensWeb : ",
-                                        sendTargetFCMTokensWeb
-                                      );
-                                      let _webMessage = {
-                                        notification: {
-                                          title: "로즈골드",
-                                          body:
-                                            "[" +
-                                            department_name +
-                                            "] " +
-                                            room_name +
-                                            "호에서 요청이 들어왔습니다: " +
-                                            summarized_sentence,
-                                        },
-                                        // data: {
-                                        //   title: "로즈골드",
-                                        //   body:
-                                        //     "[" +
-                                        //     department_name +
-                                        //     "] " +
-                                        //     room_name +
-                                        //     "호에서 요청이 들어왔습니다: " +
-                                        //     summarized_sentence,
-                                        // },
-                                        tokens: sendTargetFCMTokensWeb,
-                                      };
-
-                                      admin
-                                        .messaging()
-                                        .sendEachForMulticast(_webMessage)
-                                        .then(function (response) {
-                                          console.log(
-                                            "\n\nWEB MESSAGE SEND SUCCESS :",
-                                            response
-                                          );
-                                          return resolve(
-                                            message["200_SUCCESS"]
-                                          );
-                                        })
-                                        .catch(function (err) {
-                                          console.log(
-                                            "\n\nERROR SENDING WEB MESSAGE!!! : ",
-                                            err
-                                          );
-                                          return resolve(
-                                            message["200_SUCCESS"]
-                                          );
-                                        });
-                                    } else {
-                                      console.log(
-                                        "\n\n\nNO WEB TOKENS, NOT SENDING WEB MESSAGE"
-                                      );
-                                      return resolve(message["200_SUCCESS"]);
-                                    }
-                                  })
-                                  .catch((error) => {
-                                    console.log(error);
-                                    return resolve(message["200_SUCCESS"]);
-                                  });
-                              })
-                              .catch(function (err) {
-                                console.log(
-                                  "\n\nERROR SENDING MESSAGE!!! : ",
-                                  err
-                                );
-                                return resolve(message["200_SUCCESS"]);
-                              });
-                          } else {
-                            return resolve(message["200_SUCCESS"]);
-                          }
-                        })
-                        .catch((error) => {
-                          console.log(error);
-                          if (
-                            error.status &&
-                            error.status == message["404_NOT_FOUND"].status
-                          ) {
-                            return resolve(message["200_SUCCESS"]);
-                          } else {
-                            return reject(error);
-                          }
-                        });
-                    } else {
-                      return reject(
-                        message.issueMessage(
-                          message["500_SERVER_INTERNAL_ERROR"],
-                          "UNDEFINED_ERROR"
-                        )
-                      );
-                    }
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                    return reject(
-                      message.issueMessage(
-                        message["500_SERVER_INTERNAL_ERROR"],
-                        "UNDEFINED_ERROR"
-                      )
-                    );
-                  });
-              })
-              .catch((error) => {
-                console.log(error);
-                return reject(error);
-              });
-          })
-          .catch((error) => {
-            console.log(error);
-            return reject(error);
+      new Room()
+        .addService(room_id, 1)
+        .then((response) => {
+          return new Room().readOne({ id: room_id });
+        })
+        .then((response) => {
+          room_name = response.room.name;
+          hotel_id = response.room.hotel_id;
+          return new Department().readOne({
+            token_name: department_name,
+            hotel_id: hotel_id,
           });
-      });
+        })
+        .then((response) => {
+          department_name = response.department.name;
+          department_id = response.department.id;
+          return models.requirement_log.create({
+            type: "챗봇 요청사항",
+            room_id: room_id,
+            requirement_article: question,
+            response_article: answer,
+            progress: 0,
+            process_department_id: department_id,
+            summarized_sentence: summarized_sentence,
+            hotel_id: hotel_id,
+            user_id: null,
+            identifier: identifier,
+          });
+        })
+        .then((response) => {
+          if (response) {
+            var worker = new Worker();
+            return worker.readManyByDepartment(department_id);
+          } else {
+            throw message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            );
+          }
+        })
+        .then((workers) => {
+          console.log("\n\n\nWORKERS : ", workers);
+          var sendTargetFCMTokens = [];
+
+          for (var i = 0; i < workers["workers"].length; i++) {
+            if (
+              workers["workers"][i].work_logs.length > 0 &&
+              workers["workers"][i].work_logs[0]["status"] == "WORK"
+            ) {
+              if (workers["workers"][i].fcm_token.length > 0) {
+                sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                  workers["workers"][i].fcm_token
+                );
+              }
+            }
+          }
+
+          if (sendTargetFCMTokens.length > 0) {
+            console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
+            let _message = {
+              notification: {
+                title: "새로운 요청 도착!",
+                body: "빠르게 요청을 배정받아주세요!",
+              },
+              data: {
+                title: "새로운 요청 도착!",
+                body: "빠르게 요청을 배정받아주세요!",
+              },
+              tokens: sendTargetFCMTokens,
+              android: {
+                priority: "high",
+              },
+              apns: {
+                payload: {
+                  aps: {
+                    contentAvailable: true,
+                  },
+                },
+              },
+            };
+
+            return admin.messaging().sendEachForMulticast(_message);
+          } else {
+            return Promise.resolve();
+          }
+        })
+        .then((response) => {
+          console.log("Successfully sent message: : ", response);
+
+          var worker = new Worker();
+          return worker.readMany(hotel_id);
+        })
+        .then((allWorkers) => {
+          var sendTargetFCMTokensWeb = [];
+
+          for (var j = 0; j < allWorkers["workers"].length; j++) {
+            if (
+              allWorkers["workers"][j].fcm_token_web &&
+              allWorkers["workers"][j].fcm_token_web.length > 0
+            ) {
+              sendTargetFCMTokensWeb = sendTargetFCMTokensWeb.concat(
+                allWorkers["workers"][j].fcm_token_web
+              );
+            }
+          }
+
+          if (sendTargetFCMTokensWeb.length > 0) {
+            let _webMessage = {
+              notification: {
+                title: "로즈골드",
+                body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
+              },
+              tokens: sendTargetFCMTokensWeb,
+            };
+
+            return admin.messaging().sendEachForMulticast(_webMessage);
+          } else {
+            return Promise.resolve();
+          }
+        })
+        .then((response) => {
+          console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
+          return resolve(message["200_SUCCESS"]);
+        });
     });
   }
 
@@ -2580,7 +2488,7 @@ class Requirement_Log extends Room {
                     var worker = new Worker();
                     worker
                       // .readManyByDepartment2(department_id)
-                      .readManyByDeparment(department_id)
+                      .readManyByDepartment(department_id)
                       .then((workers) => {
                         console.log("\n\n\nreadManybyDepworkers2 : ", workers);
                         var sendTargetFCMTokens = [];

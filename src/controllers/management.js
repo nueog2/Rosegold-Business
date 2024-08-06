@@ -2337,13 +2337,22 @@ function getAccessTokenByAccount(req, res) {
             }
           }
           if (existFCMToken) {
-            return res.status(tokenResponse.status).send(tokenResponse);
+            return res.status(message["200_SUCCESS"].status).send({
+              status: true,
+              message:
+                "FCMTOKEN ALREADY EXIST, NOT UPDATING FCM TOKEN , LOGIN_SUCCESS",
+              data: workerInfoResponse.worker.dataValues,
+            });
           } else {
             fcmTokenJSON.push(req.query.fcm_token);
             worker
               .updateFCMToken(workerInfoResponse.worker.id, fcmTokenJSON)
               .then((response) => {
-                return res.status(tokenResponse.status).send(tokenResponse);
+                return res.status(message["200_SUCCESS"].status).send({
+                  status: true,
+                  message: "FCM TOKEN UPDATED, LOGIN_SUCCESS",
+                  data: workerInfoResponse.worker.dataValues,
+                });
               })
               .catch((error) => {
                 return res.status(error.status).send(error);
@@ -2353,7 +2362,11 @@ function getAccessTokenByAccount(req, res) {
     })
     .catch((error) => {
       console.log(error);
-      return res.status(error.status).send(error);
+      return res
+        .status(message["404_NOT_FOUND"].status)
+        .send(
+          message.issueMessage(message["400_NOT_FOUND"], "WORKER_NOT_FOUND")
+        );
     });
 }
 
