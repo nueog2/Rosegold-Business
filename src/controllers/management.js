@@ -2342,6 +2342,7 @@ function getAccessTokenByAccount(req, res) {
               message:
                 "FCMTOKEN ALREADY EXIST, NOT UPDATING FCM TOKEN , LOGIN_SUCCESS",
               data: workerInfoResponse.worker.dataValues,
+              tokenResponse,
             });
           } else {
             fcmTokenJSON.push(req.query.fcm_token);
@@ -2352,6 +2353,7 @@ function getAccessTokenByAccount(req, res) {
                   status: true,
                   message: "FCM TOKEN UPDATED, LOGIN_SUCCESS",
                   data: workerInfoResponse.worker.dataValues,
+                  tokenResponse,
                 });
               })
               .catch((error) => {
