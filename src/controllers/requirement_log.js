@@ -153,6 +153,10 @@ function createRequirementLogbyMenu(req, res) {
     return requirement_log
       .createbymenu(room_id, department_name, menu, price, num)
       .then((response) => {
+        const identifier = response.requirement_log.id;
+        new Requirement_Log()
+          .updateidentifier(identifier, response.requirement_log.id)
+          .then(() => response);
         return response;
         // room
         //   .addService(room_id, results.length)

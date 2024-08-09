@@ -52,58 +52,72 @@ function createChattingLog(req, res) {
         )
         .then((response) => {
           console.log("\n\n\n", response, "\n\n\n");
-          console.log(
-            "\n\n\n chatting_log_id :",
-            response.chatting_log.id,
-            "\n\n\n"
-          );
-          const identifier = response.chatting_log.id;
+          const chatting_log_id = response.chatting_log.id;
+          // console.log(
+          //   "\n\n\n chatting_log_id :",
+          //   response.chatting_log.id,
+          //   "\n\n\n"
+          // );
+          // const identifier = response.chatting_log.id;
 
-          return new ChattingLog()
-            .updateidentifier(identifier, response.chatting_log.id)
-            .then(() => {
-              if (
-                req.body.department_name != null &&
-                req.body.summarized_sentence != null
-              ) {
+          // return (
+          //   new ChattingLog()
+          //     // .updateidentifier(identifier, response.chatting_log.id)
+          //     .then(() => {
+          if (
+            req.body.department_name != null &&
+            req.body.summarized_sentence != null
+          ) {
+            new Requirement_Log()
+              .create(
+                req.body.room_id,
+                req.body.question,
+                req.body.answer,
+                req.body.department_name,
+                req.body.summarized_sentence
+                // identifier
+              )
+              .then((response) => {
+                const identifier = response.requirement_log.id;
                 new Requirement_Log()
-                  .create(
-                    req.body.room_id,
-                    req.body.question,
-                    req.body.answer,
-                    req.body.department_name,
-                    req.body.summarized_sentence,
-                    identifier
-                  )
-                  .then((response) => {
-                    return res.status(response.status).send({
-                      status: "Success",
-                      message: "REQUIREMENT_LOG_CREATED",
-                      data: response,
-                    });
+                  .updateidentifier(identifier, response.requirement_log.id)
+                  .then(() => {
+                    new ChattingLog().updateidentifier(
+                      identifier,
+                      chatting_log_id
+                    );
+                    console.log("IDENTIFIER UPDATED");
+                    return res.status(response.status).send(response);
                   });
-              } else {
-                return res.status(response.status).send(response);
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-              return res.status(error.status).send(error);
-            });
+                // return res.status(response.status).send(response);
+                // .send({
+                //   status: "Success",
+                //   message: "REQUIREMENT_LOG_CREATED",
+                //   data: response,
+                // });
+              });
+          } else {
+            return res.status(response.status).send(response);
+          }
         })
         .catch((error) => {
           console.log(error);
-          if (error.status) return res.status(error.status).send(error);
-          else
-            return res
-              .status(message["500_SERVER_INTERNAL_ERROR"].status)
-              .send(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
+          return res.status(error.status).send(error);
         });
+    })
+
+    .catch((error) => {
+      console.log(error);
+      if (error.status) return res.status(error.status).send(error);
+      else
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
     });
 }
 

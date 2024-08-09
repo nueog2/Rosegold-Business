@@ -2184,6 +2184,7 @@ class Requirement_Log extends Room {
     identifier
   ) {
     return new Promise((resolve, reject) => {
+      let reqresponse;
       let room_name, hotel_id, department_id;
 
       new Room()
@@ -2216,7 +2217,9 @@ class Requirement_Log extends Room {
           });
         })
         .then((response) => {
-          if (response) {
+          reqresponse = response;
+          if (reqresponse) {
+            // const requirementLogId = reqresponse.id;
             var worker = new Worker();
             return worker.readManyByDepartment(department_id);
           } else {
@@ -2314,11 +2317,21 @@ class Requirement_Log extends Room {
         })
         .then((response) => {
           console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
-          return resolve(message["200_SUCCESS"]);
+          return resolve({
+            // return resolve(message["200_SUCCESS"]);
+            status: message["200_SUCCESS"].status,
+            requirement_log: reqresponse,
+            result: response,
+          });
         })
         .catch((error) => {
           console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
-          return resolve(message["200_SUCCESS"]);
+          return resolve({
+            // return resolve(message["200_SUCCESS"]);
+            status: message["200_SUCCESS"].status,
+            requirement_log: reqresponse,
+            result: error,
+          });
         });
     });
   }
@@ -2449,6 +2462,7 @@ class Requirement_Log extends Room {
 
   createbymenu(room_id, department_name, menu, price, num) {
     return new Promise((resolve, reject) => {
+      let reqresponse;
       const room = new Room();
       const department = new Department();
       room
@@ -2484,7 +2498,8 @@ class Requirement_Log extends Room {
                   user_id: null,
                 })
                 .then((response) => {
-                  if (response) {
+                  reqresponse = response;
+                  if (reqresponse) {
                     var worker = new Worker();
                     worker
                       // .readManyByDepartment2(department_id)
@@ -2600,23 +2615,43 @@ class Requirement_Log extends Room {
                                           "\n\nWEB MESSAGE SEND SUCCESS :",
                                           response
                                         );
-                                        return resolve(message["200_SUCCESS"]);
+                                        return resolve({
+                                          // return resolve(message["200_SUCCESS"]);
+                                          status: message["200_SUCCESS"].status,
+                                          requirement_log: reqresponse,
+                                          result: response,
+                                        });
                                       })
                                       .catch(function (err) {
                                         console.log(
                                           "\n\nERROR SENDING WEB MESSAGE!!! : ",
                                           err
                                         );
-                                        return resolve(message["200_SUCCESS"]);
+                                        return resolve({
+                                          // return resolve(message["200_SUCCESS"]);
+                                          status: message["200_SUCCESS"].status,
+                                          requirement_log: reqresponse,
+                                          result: response,
+                                        });
                                       });
                                   } else {
                                     console.log("NO WEB TOKENS");
-                                    return resolve(message["200_SUCCESS"]);
+                                    return resolve({
+                                      // return resolve(message["200_SUCCESS"]);
+                                      status: message["200_SUCCESS"].status,
+                                      requirement_log: reqresponse,
+                                      result: response,
+                                    });
                                   }
                                 })
                                 .catch((error) => {
                                   console.log(error);
-                                  return resolve(message["200_SUCCESS"]);
+                                  return resolve({
+                                    // return resolve(message["200_SUCCESS"]);
+                                    status: message["200_SUCCESS"].status,
+                                    requirement_log: reqresponse,
+                                    result: error,
+                                  });
                                 });
                             })
                             .catch(function (err) {
@@ -2624,10 +2659,20 @@ class Requirement_Log extends Room {
                                 "\n\nERROR SENDING MESSAGE!!! : ",
                                 err
                               );
-                              return resolve(message["200_SUCCESS"]);
+                              return resolve({
+                                // return resolve(message["200_SUCCESS"]);
+                                status: message["200_SUCCESS"].status,
+                                requirement_log: reqresponse,
+                                result: err,
+                              });
                             });
                         } else {
-                          return resolve(message["200_SUCCESS"]);
+                          return resolve({
+                            // return resolve(message["200_SUCCESS"]);
+                            status: message["200_SUCCESS"].status,
+                            requirement_log: reqresponse,
+                            result: response,
+                          });
                         }
                       })
                       .catch((error) => {
@@ -2636,7 +2681,12 @@ class Requirement_Log extends Room {
                           error.status &&
                           error.status == message["404_NOT_FOUND"].status
                         ) {
-                          return resolve(message["200_SUCCESS"]);
+                          return resolve({
+                            // return resolve(message["200_SUCCESS"]);
+                            status: message["200_SUCCESS"].status,
+                            requirement_log: reqresponse,
+                            result: error,
+                          });
                         } else {
                           return reject(error);
                         }
@@ -3185,6 +3235,42 @@ class Requirement_Log extends Room {
         })
         .catch((error) => {
           return reject(error);
+        });
+    });
+  }
+
+  updateidentifier(identifier, requirement_log_id) {
+    return new Promise((resolve, reject) => {
+      models.requirement_log
+        .update(
+          {
+            identifier: identifier,
+          },
+          {
+            where: {
+              id: requirement_log_id,
+            },
+          }
+        )
+        .then((response) => {
+          if (response[0] > 0) {
+            return resolve(message["200_SUCCESS"]);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "REQUIREMENT_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
         });
     });
   }
