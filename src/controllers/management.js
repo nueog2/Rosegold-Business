@@ -1087,11 +1087,24 @@ function updateFCMTokenforWebByAccount(req, res) {
 function logoutWorker(req, res) {
   res.clearCookie("access_token");
 
-  console.log("200_SUCCESS");
-  res.send({
-    status: true,
-    message: "LOGOUT_SUCCESS",
+  if (!req.query.worker_id) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_WORKER_ID"));
+  }
+
+  const worker = new Worker();
+  worker.updateFCMTokenforWeb(req.query.worker_id, []).then((response) => {
+    return res.status(response.status).send({
+      response: response,
+      message: "LOGOUT_SUCCESS, COOKIE DELETE & WEB_TOKEN_DELETED",
+    });
   });
+  // console.log("200_SUCCESS");
+  // res.send({
+  //   status: true,
+  //   message: "LOGOUT_SUCCESS",
+  // });
 }
 
 function getWorkerMany(req, res) {
