@@ -7,9 +7,9 @@ function createChattingLog(req, res) {
   if (
     req.body.room_id == null ||
     req.body.question == null ||
-    req.body.answer == null
-    // req.body.translated_question == null ||
-    // req.body.translated_answer == null
+    req.body.answer == null ||
+    req.body.translated_question == null ||
+    req.body.translated_answer == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -17,11 +17,6 @@ function createChattingLog(req, res) {
         message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
       );
   }
-
-  // const reqLogCreated =
-  //   req.body.department_name != null && req.body.summarized_sentence != null
-  //     ? 1
-  //     : 0;
 
   new Room()
     .readOne({
@@ -60,14 +55,22 @@ function createChattingLog(req, res) {
           // );
           // const identifier = response.chatting_log.id;
 
-          // return (
-          //   new ChattingLog()
-          //     // .updateidentifier(identifier, response.chatting_log.id)
-          //     .then(() => {
           if (
             req.body.department_name != null &&
             req.body.summarized_sentence != null
           ) {
+            if (
+              req.body.requirement_id != null &&
+              req.body.requirement_menu_created == 1
+            ) {
+              new ChattingLog().updateidentifier(
+                req.body.requirement_id,
+                chatting_log_id
+              );
+              console.log("IDENTIFIER UPDATED - AFTER MENU REQ CREATED");
+              return res.status(response.status).send(response);
+            }
+
             new Requirement_Log()
               .create(
                 req.body.room_id,
