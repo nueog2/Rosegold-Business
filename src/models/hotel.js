@@ -2771,6 +2771,7 @@ class Requirement_Log extends Room {
             "processed_info",
             "pmsign",
             "identifier",
+            "readcount",
           ],
           order: [["createdAt", "ASC"]],
         })
@@ -3151,6 +3152,39 @@ class Requirement_Log extends Room {
         })
         .catch((error) => {
           return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
+  updateReadCount(requirement_log_id) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: requirement_log_id })
+        .then((response) => {
+          models.requirement_log
+            .update(
+              {
+                readcount: 1,
+              },
+              {
+                where: {
+                  id: requirement_log_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
         });
     });
   }
