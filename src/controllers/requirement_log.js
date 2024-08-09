@@ -135,7 +135,7 @@ function createRequirementLogbyMenu(req, res) {
     const { room_id, department_name, menu, price, num } = requirement;
 
     // 각 항목의 필수 값 존재 여부 확인
-    if (!room_id || !department_name || !menu || !price || !num) {
+    if (!room_id || !department_name || !menu || price === null || !num) {
       return Promise.reject({
         status: message["400_BAD_REQUEST"].status,
         message: message.issueMessage(
