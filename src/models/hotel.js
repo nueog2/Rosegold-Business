@@ -2219,7 +2219,6 @@ class Requirement_Log extends Room {
         .then((response) => {
           reqresponse = response;
           if (reqresponse) {
-            // const requirementLogId = reqresponse.id;
             var worker = new Worker();
             return worker.readManyByDepartment(department_id);
           } else {
@@ -2246,6 +2245,8 @@ class Requirement_Log extends Room {
             }
           }
 
+          let notificationPromises = [];
+
           if (sendTargetFCMTokens.length > 0) {
             console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
             let _message = {
@@ -2270,18 +2271,21 @@ class Requirement_Log extends Room {
               },
             };
 
-            return admin.messaging().sendEachForMulticast(_message);
-          } else {
-            return Promise.resolve();
+            notificationPromises.push(
+              admin.messaging().sendEachForMulticast(_message)
+            );
           }
+
+          return Promise.all(notificationPromises);
         })
         .then((response) => {
           console.log("Successfully sent message: : ", response);
 
           var worker = new Worker();
-          return worker.readMany(hotel_id);
+          return worker.readMany({ hotel_id: hotel_id });
         })
         .then((allWorkers) => {
+          console.log("\n\n\nALL WORKERS READ BY HOTEL_ID  : ", allWorkers);
           var sendTargetFCMTokensWeb = [];
 
           for (var j = 0; j < allWorkers["workers"].length; j++) {
@@ -2318,7 +2322,6 @@ class Requirement_Log extends Room {
         .then((response) => {
           console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
           return resolve({
-            // return resolve(message["200_SUCCESS"]);
             status: message["200_SUCCESS"].status,
             requirement_log: reqresponse,
             result: response,
@@ -2327,7 +2330,6 @@ class Requirement_Log extends Room {
         .catch((error) => {
           console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
           return resolve({
-            // return resolve(message["200_SUCCESS"]);
             status: message["200_SUCCESS"].status,
             requirement_log: reqresponse,
             result: error,
@@ -2335,130 +2337,6 @@ class Requirement_Log extends Room {
         });
     });
   }
-
-  // create(room_id, question, answer, department_name, summarized_sentence) {
-  //   return new Promise((resolve, reject) => {
-  //     new Room().addService(room_id, 1).then((response) => {
-  //       new Room()
-  //         .readOne({
-  //           id: room_id,
-  //         })
-  //         .then((response) => {
-  //           var hotel_id = response.room.hotel_id;
-  //           new Department()
-  //             .readOne({
-  //               token_name: department_name,
-  //               hotel_id: hotel_id,
-  //             })
-  //             .then((response) => {
-  //               var department_id = response.department.id;
-  //               models.requirement_log
-  //                 .create({
-  //                   type: "챗봇 요청사항",
-  //                   room_id: room_id,
-  //                   requirement_article: question,
-  //                   response_article: answer,
-  //                   progress: 0,
-  //                   process_department_id: department_id,
-  //                   summarized_sentence: summarized_sentence,
-  //                   hotel_id: hotel_id,
-  //                   user_id: null,
-  //                 })
-  //                 .then((response) => {
-  //                   if (response) {
-  //                     var worker = new Worker();
-  //                     worker
-  //                       .readManyByDepartment2(department_id)
-  //                       .then((workers) => {
-  //                         var sendTargetFCMTokens = [];
-
-  //                         for (var i = 0; i < workers["workers"].length; i++) {
-  //                         if (
-  //                           workers["workers"][i]["work_logs"].length > 0 &&
-  //                           workers["workers"][i]["work_logs"][0]["status"] ==
-  //                             "WORK"
-  //                         ) {
-  //                           if (
-  //                             workers["workers"][i].dataValues["fcm_token"]
-  //                               .length > 0
-  //                           ) {
-  //                             sendTargetFCMTokens = sendTargetFCMTokens.concat(
-  //                               workers["workers"][i].dataValues["fcm_token"]
-  //                             );
-  //                           }
-  //                         }
-
-  //                         if (sendTargetFCMTokens.length > 0) {
-  //                           let _message = {
-  //                             notification: {
-  //                               title: "새로운 요청 도착!",
-  //                               body: "빠르게 요청을 배정받아주세요!",
-  //                             },
-  //                             data: {
-  //                               title: "새로운 요청 도착!",
-  //                               body: "빠르게 요청을 배정받아주세요!",
-  //                             },
-  //                             tokens: sendTargetFCMTokens,
-  //                           };
-  //                           admin
-  //                             .messaging()
-  //                             .sendMulticast(_message)
-  //                             .then(function (response) {
-  //                               console.log(
-  //                                 "Successfully sent message: : ",
-  //                                 response
-  //                               );
-  //                               return resolve(message["200_SUCCESS"]);
-  //                             })
-  //                             .catch(function (err) {
-  //                               console.log("Error Sending message!!! : ", err);
-  //                               return resolve(message["200_SUCCESS"]);
-  //                             });
-  //                         } else {
-  //                           return resolve(message["200_SUCCESS"]);
-  //                         }
-  //                         .catch((error) => {
-  //                         console.log(error);
-  //                         if (
-  //                           error.status &&
-  //                           error.status == message["404_NOT_FOUND"].status
-  //                         ) {
-  //                           return resolve(message["200_SUCCESS"]);
-  //                         } else {
-  //                           return reject(error);
-  //                         }
-  //                       });
-  //                   } else {
-  //                     return reject(
-  //                       message.issueMessage(
-  //                         message["500_SERVER_INTERNAL_ERROR"],
-  //                         "UNDEFINED_ERROR"
-  //                       )
-  //                     );
-  //                   }
-  //                 })})
-  //                 .catch((error) => {
-  //                   console.log(error);
-  //                   return reject(
-  //                     message.issueMessage(
-  //                       message["500_SERVER_INTERNAL_ERROR"],
-  //                       "UNDEFINED_ERROR"
-  //                     )
-  //                   );
-  //                 });
-  //             })
-  //             .catch((error) => {
-  //               console.log(error);
-  //               return reject(error);
-  //             });
-  //         })
-  //         .catch((error) => {
-  //           console.log(error);
-  //           return reject(error);
-  //         });
-  //     });
-  //   });
-  // }
 
   createbymenu(room_id, department_name, menu, price, num) {
     return new Promise((resolve, reject) => {
@@ -2502,7 +2380,6 @@ class Requirement_Log extends Room {
                   if (reqresponse) {
                     var worker = new Worker();
                     worker
-                      // .readManyByDepartment2(department_id)
                       .readManyByDepartment(department_id)
                       .then((workers) => {
                         console.log("\n\n\nreadManybyDepworkers2 : ", workers);
@@ -2510,7 +2387,6 @@ class Requirement_Log extends Room {
 
                         for (var i = 0; i < workers["workers"].length; i++) {
                           if (
-                            // console.log("check1 : ", workers["workers"][i]),
                             workers["workers"][i].work_logs.length > 0 &&
                             workers["workers"][i].work_logs[0]["status"] ==
                               "WORK"
@@ -2522,6 +2398,9 @@ class Requirement_Log extends Room {
                             }
                           }
                         }
+
+                        // 이제 sendTargetFCMTokens 길이와 상관없이 실행합니다.
+                        let notificationPromises = [];
 
                         if (sendTargetFCMTokens.length > 0) {
                           console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
@@ -2535,8 +2414,6 @@ class Requirement_Log extends Room {
                               body: "빠르게 요청을 배정받아주세요!",
                             },
                             tokens: sendTargetFCMTokens,
-                            //
-                            //android, apns 추가
                             android: {
                               priority: "high",
                             },
@@ -2548,132 +2425,94 @@ class Requirement_Log extends Room {
                               },
                             },
                           };
-                          admin
-                            .messaging()
-                            // getMessaging()
-                            .sendEachForMulticast(_message)
-                            .then(function (response) {
-                              console.log(
-                                "Successfully sent message: : ",
-                                response
-                              );
-
-                              // 두 번째 알림을 위해 웹용 fcm_token을 가진 직원들을 조회
-
-                              worker
-                                .readMany(hotel_id)
-                                .then((allWorkers) => {
-                                  var sendTargetFCMTokensWeb = [];
-
-                                  for (
-                                    var j = 0;
-                                    j < allWorkers["workers"].length;
-                                    j++
-                                  ) {
-                                    if (
-                                      allWorkers["workers"][j].fcm_token_web &&
-                                      allWorkers["workers"][j].fcm_token_web
-                                        .length > 0
-                                    ) {
-                                      sendTargetFCMTokensWeb =
-                                        sendTargetFCMTokensWeb.concat(
-                                          allWorkers["workers"][j].fcm_token_web
-                                        );
-                                    }
-                                  }
-
-                                  if (sendTargetFCMTokensWeb.length > 0) {
-                                    let _webMessage = {
-                                      notification: {
-                                        title: "로즈골드",
-                                        body:
-                                          "[" +
-                                          department_name +
-                                          "] " +
-                                          room_name +
-                                          "호에서 요청이 들어왔습니다: " +
-                                          summarized_sentence,
-                                      },
-                                      // data: {
-                                      //   title: "로즈골드",
-                                      //   body:
-                                      //     "[" +
-                                      //     department_name +
-                                      //     "] " +
-                                      //     room_name +
-                                      //     "호에서 요청이 들어왔습니다: " +
-                                      //     summarized_sentence,
-                                      // },
-                                      tokens: sendTargetFCMTokensWeb,
-                                    };
-
-                                    admin
-                                      .messaging()
-                                      .sendEachForMulticast(_webMessage)
-                                      .then(function (response) {
-                                        console.log(
-                                          "\n\nWEB MESSAGE SEND SUCCESS :",
-                                          response
-                                        );
-                                        return resolve({
-                                          // return resolve(message["200_SUCCESS"]);
-                                          status: message["200_SUCCESS"].status,
-                                          requirement_log: reqresponse,
-                                          result: response,
-                                        });
-                                      })
-                                      .catch(function (err) {
-                                        console.log(
-                                          "\n\nERROR SENDING WEB MESSAGE!!! : ",
-                                          err
-                                        );
-                                        return resolve({
-                                          // return resolve(message["200_SUCCESS"]);
-                                          status: message["200_SUCCESS"].status,
-                                          requirement_log: reqresponse,
-                                          result: response,
-                                        });
-                                      });
-                                  } else {
-                                    console.log("NO WEB TOKENS");
-                                    return resolve({
-                                      // return resolve(message["200_SUCCESS"]);
-                                      status: message["200_SUCCESS"].status,
-                                      requirement_log: reqresponse,
-                                      result: response,
-                                    });
-                                  }
-                                })
-                                .catch((error) => {
-                                  console.log(error);
-                                  return resolve({
-                                    // return resolve(message["200_SUCCESS"]);
-                                    status: message["200_SUCCESS"].status,
-                                    requirement_log: reqresponse,
-                                    result: error,
-                                  });
-                                });
-                            })
-                            .catch(function (err) {
-                              console.log(
-                                "\n\nERROR SENDING MESSAGE!!! : ",
-                                err
-                              );
-                              return resolve({
-                                // return resolve(message["200_SUCCESS"]);
-                                status: message["200_SUCCESS"].status,
-                                requirement_log: reqresponse,
-                                result: err,
-                              });
-                            });
-                        } else {
-                          return resolve({
-                            // return resolve(message["200_SUCCESS"]);
-                            status: message["200_SUCCESS"].status,
-                            requirement_log: reqresponse,
-                            result: response,
-                          });
+                          notificationPromises.push(
+                            admin.messaging().sendEachForMulticast(_message)
+                          );
                         }
+
+                        // 두 번째 알림을 위해 웹용 fcm_token을 가진 직원들을 조회
+                        worker
+                          .readMany({ hotel_id: hotel_id })
+                          .then((allWorkers) => {
+                            console.log(
+                              "\n\n\nALL WORKERS READ BY HOTEL_ID  : ",
+                              allWorkers["workers"]
+                            );
+                            var sendTargetFCMTokensWeb = [];
+
+                            for (
+                              var j = 0;
+                              j < allWorkers["workers"].length;
+                              j++
+                            ) {
+                              if (
+                                allWorkers["workers"][j].fcm_token_web &&
+                                allWorkers["workers"][j].fcm_token_web.length >
+                                  0
+                              ) {
+                                sendTargetFCMTokensWeb =
+                                  sendTargetFCMTokensWeb.concat(
+                                    allWorkers["workers"][j].fcm_token_web
+                                  );
+                              }
+                            }
+
+                            if (sendTargetFCMTokensWeb.length > 0) {
+                              let _webMessage = {
+                                notification: {
+                                  title: "로즈골드",
+                                  body:
+                                    "[" +
+                                    department_name +
+                                    "] " +
+                                    room_name +
+                                    "호에서 요청이 들어왔습니다: " +
+                                    summarized_sentence,
+                                },
+                                tokens: sendTargetFCMTokensWeb,
+                              };
+
+                              notificationPromises.push(
+                                admin
+                                  .messaging()
+                                  .sendEachForMulticast(_webMessage)
+                              );
+                            } else {
+                              console.log("NO WEB TOKENS");
+                            }
+
+                            Promise.all(notificationPromises)
+                              .then((responses) => {
+                                console.log(
+                                  "\n\nWEB MESSAGE SEND SUCCESS :",
+                                  responses
+                                );
+                                return resolve({
+                                  status: message["200_SUCCESS"].status,
+                                  requirement_log: reqresponse,
+                                  result: responses,
+                                });
+                              })
+                              .catch((err) => {
+                                console.log(
+                                  "\n\nERROR SENDING MESSAGE!!! : ",
+                                  err
+                                );
+                                return resolve({
+                                  status: message["200_SUCCESS"].status,
+                                  requirement_log: reqresponse,
+                                  result: err,
+                                });
+                              });
+                          })
+                          .catch((error) => {
+                            console.log(error);
+                            return resolve({
+                              status: message["200_SUCCESS"].status,
+                              requirement_log: reqresponse,
+                              result: error,
+                            });
+                          });
                       })
                       .catch((error) => {
                         console.log(error);
@@ -2682,7 +2521,6 @@ class Requirement_Log extends Room {
                           error.status == message["404_NOT_FOUND"].status
                         ) {
                           return resolve({
-                            // return resolve(message["200_SUCCESS"]);
                             status: message["200_SUCCESS"].status,
                             requirement_log: reqresponse,
                             result: error,
