@@ -7,6 +7,7 @@ const Role = require("../models/hotel").Role;
 const Worker = require("../models/hotel").Worker;
 const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 const Requirement_Log = require("../models/hotel").Requirement_Log;
+const Chatting_Log = require("../models/chatting_log").ChattingLog;
 
 const nodemailer = require("nodemailer");
 
@@ -2115,27 +2116,26 @@ function checkoutRoom(req, res) {
 
   const room = new Room();
   const requirement_log = new Requirement_Log();
+  const chatting_log = new Chatting_Log();
 
-  room.updatePrice(req.query.room_id, 0).then((response) => {
-    room.updateAdditionalService(req.query.room_id, 0).then((response) => {
-      requirement_log
-        .deletebyRoomID(req.query.room_id)
-        .then((response) => {
-          return res.status(response.status).send(response);
-        })
-        .catch((error) => {
-          console.error(error);
-          return res
-            .status(message["500_SERVER_INTERNAL_ERROR"].status)
-            .send(
-              message.issueMessage(
-                message["500_SERVER_INTERNAL_ERROR"],
-                "UNDEFINED_ERROR"
-              )
-            );
-        });
+  room
+    .updatePrice(req.query.room_id, 0)
+    .then((response) => {
+      return room.updateAdditionalService(req.query.room_id, 0);
+    })
+    .then((response) => {
+      return requirement_log.deletebyRoomID(req.query.room_id);
+    })
+    .then((response) => {
+      return chatting_log.deletebyRoomID(req.query.room_id);
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(error.status).send(error);
     });
-  });
 }
 
 function deleteRoom(req, res) {

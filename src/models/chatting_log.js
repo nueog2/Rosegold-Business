@@ -136,6 +136,41 @@ class ChattingLog {
         });
     });
   }
+
+  deletebyRoomID(room_id) {
+    return new Promise((resolve, reject) => {
+      models.chatting_log
+        .destroy({
+          where: {
+            room_id: room_id,
+          },
+        })
+        .then((response) => {
+          if (response > 0) {
+            return resolve({
+              // return resolve(message["200_SUCCESS"]);
+              status: message["200_SUCCESS"].status,
+              message: "CHAT_LOG_DELETED , CHECKOUT SUCCESS",
+              chatting_log: response,
+            });
+          } else {
+            return resolve({
+              status: message["404_NOT_FOUND"].status,
+              message: "CHATTING_LOG_NOT_FOUND",
+              chatting_log: response,
+            });
+          }
+        })
+        .catch((error) => {
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
 }
 
 module.exports = {
