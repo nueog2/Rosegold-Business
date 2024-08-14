@@ -2398,6 +2398,15 @@ function updateWorkStatus(req, res) {
       user_id: req.user.id,
     })
     .then((workLogResponse) => {
+      console.log("\n\nworkLogResponse :", workLogResponse);
+      console.log(
+        "\n\nworkLogResponse.work_logs[0]:",
+        workLogResponse.work_logs[0]
+      );
+      // console.log(
+      //   "\n\nworkLogResponse.work_logs[0].dataValues.status :",
+      //   workLogResponse.work_logs[0].dataValues.status
+      // );
       if (
         workLogResponse.work_logs.length == 0 ||
         workLogResponse.work_logs[0].dataValues.status != req.body.status
@@ -2415,9 +2424,11 @@ function updateWorkStatus(req, res) {
         worker
           .createWorkLog(req.user.id, req.body.status)
           .then((response) => {
+            console.log(response);
             return res.status(response.status).send(response);
           })
           .catch((error) => {
+            console.log(error);
             return res.status(error.status).send(error);
           });
       } else {
@@ -2427,18 +2438,17 @@ function updateWorkStatus(req, res) {
       }
     })
     .catch((error) => {
-      if (error.status == message["404_NOT_FOUND"].status) {
-        worker
-          .createWorkLog(req.user.id, req.body.status)
-          .then((response) => {
-            return res.status(response.status).send(response);
-          })
-          .catch((error) => {
-            return res.status(error.status).send(error);
-          });
-      } else {
-        return res.status(error.status).send(error);
-      }
+      console.log(error);
+      console.log("error status : ", error.status);
+      worker
+        .createWorkLog(req.user.id, req.body.status)
+        .then((response) => {
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          console.log(error);
+          return res.status(error.status).send(error);
+        });
     });
 }
 

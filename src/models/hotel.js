@@ -2285,7 +2285,10 @@ class Requirement_Log extends Room {
           return worker.readMany({ hotel_id: hotel_id });
         })
         .then((allWorkers) => {
-          console.log("\n\n\nALL WORKERS READ BY HOTEL_ID  : ", allWorkers);
+          console.log(
+            "\n\n\nALL WORKERS READ BY HOTEL_ID  : ",
+            allWorkers["workers"]
+          );
           var sendTargetFCMTokensWeb = [];
 
           for (var j = 0; j < allWorkers["workers"].length; j++) {
