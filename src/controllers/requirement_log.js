@@ -599,6 +599,53 @@ function getRequirementLogStatisticsHandler(req, res) {
     });
 }
 
+// 통계 계산 함수
+async function getRequirementLogByReadCount(process_department_id) {
+  try {
+    const whereClause = {
+      process_department_id: process_department_id,
+      readcount: 0, // 안읽은 것만 조회
+    };
+
+    const { Sequelize } = require("../../models/index.js");
+    const result = await models.requirement_log.findAll({
+      attributes: [
+        "process_department_id",
+        [Sequelize.fn("COUNT", Sequelize.col("readcount")), "count"],
+      ],
+      where: whereClause,
+      group: ["process_department_id"],
+    });
+
+    // 결과를 반환
+    const statistics = result.map((log) => {
+      return {
+        process_department_id: log.dataValues.process_department_id,
+        count: log.dataValues.count,
+      };
+    });
+
+    return statistics;
+  } catch (error) {
+    console.error("Error fetching requirement log statistics:", error);
+    throw error;
+  }
+}
+
+// GET 요청 핸들러
+function getRequirementLogStatisticsforReadCount(req, res) {
+  const department_id = req.query.department_id;
+
+  getRequirementLogByReadCount(department_id)
+    .then((statistics) => {
+      res.status(200).json(statistics);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+}
+
 module.exports = {
   createRequirementLog,
   createRequirementLogbyMenu,
@@ -615,4 +662,5 @@ module.exports = {
   deleteRequirementLog,
   deleteRequirementLogByHotel,
   getRequirementLogStatisticsHandler,
+  getRequirementLogStatisticsforReadCount,
 };

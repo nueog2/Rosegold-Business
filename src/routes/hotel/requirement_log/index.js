@@ -29,5 +29,9 @@ router.get(
   "/statistics",
   requirement_logController.getRequirementLogStatisticsHandler
 );
+router.get(
+  "/readcount",
+  requirement_logController.getRequirementLogStatisticsforReadCount
+);
 
 module.exports = router;
