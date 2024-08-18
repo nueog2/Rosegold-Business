@@ -2893,6 +2893,21 @@ class Requirement_Log extends Room {
       models.requirement_log
         .findOne({
           where: condition,
+          include: [
+            {
+              model: models.room,
+              attributes: ["name"],
+              // as: "room",
+            },
+            {
+              model: models.department,
+              attributes: ["name"],
+            },
+            // {
+            //   model: models.user,
+            //   attributes: ["name"],
+            // },
+          ],
         })
         .then((response) => {
           if (response) {

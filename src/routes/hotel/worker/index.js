@@ -44,6 +44,12 @@ router.get(
   managementController.readWorkerNotAssignReqLog
 );
 
+router.post(
+  "/mobile/work/cancel",
+  authUtil.verifyToken,
+  managementController.setReqLogNotAssign
+);
+
 router.get(
   "/mobile/work/me/finished",
   authUtil.verifyToken,
