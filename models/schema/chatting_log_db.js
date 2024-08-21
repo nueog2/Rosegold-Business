@@ -1,7 +1,7 @@
 "use strict";
 module.exports = (sequelize, DataTypes) => {
-  const chatting_log = sequelize.define(
-    "chatting_log",
+  const chatting_log_db = sequelize.define(
+    "chatting_log_db",
     {
       room_name: {
         type: DataTypes.TEXT,
@@ -32,12 +32,28 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+      relavance: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      purpose: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      needAdditionalInformation: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      on_off: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       paranoid: true,
     }
   );
-  chatting_log.associate = function (models) {
+  chatting_log_db.associate = function (models) {
     this.belongsTo(models.room, {
       foreignKey: "room_id",
       sourceKey: "id",
@@ -49,5 +65,5 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: "CASCADE",
     });
   };
-  return chatting_log;
+  return chatting_log_db;
 };

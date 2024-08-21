@@ -1,6 +1,7 @@
 const message = require("../../config/message");
 const models = require("../../models");
 const { ChattingLog } = require("../models/chatting_log");
+const { ChattingLogDB } = require("../models/chatting_log_db");
 const { Room, Requirement_Log, Hotel } = require("../models/hotel");
 
 function createChattingLog(req, res) {
@@ -28,6 +29,7 @@ function createChattingLog(req, res) {
 
       // identifier 생성
       // const identifier = Date.now();
+      //new ChattingLogDB()
 
       const req_log_created =
         req.body.department_name != null && req.body.summarized_sentence != null
@@ -54,6 +56,27 @@ function createChattingLog(req, res) {
           //   "\n\n\n"
           // );
           // const identifier = response.chatting_log.id;
+
+          //'relevance', 'purpose', 'needAdditionalInformation', 'on_off'
+
+          new ChattingLogDB()
+            .create(
+              req.body.room_id,
+              room_name,
+              hotel_id,
+              req.body.question,
+              req.body.answer,
+              req.body.translated_question,
+              req.body.translated_answer,
+              req_log_created,
+              req.body.relavance,
+              req.body.purpose,
+              req.body.needAdditionalInformation,
+              req.body.on_off
+            )
+            .then((response) => {
+              console.log("ChattingLogDB CREATED");
+            });
 
           if (
             req.body.department_name != null &&
