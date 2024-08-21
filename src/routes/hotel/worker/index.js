@@ -20,6 +20,8 @@ router.delete("/", managementController.deleteWorker);
 
 router.put("/role", managementController.updateAssignLog);
 
+router.post("/assign", managementController.setAssignWorkerinWeb);
+
 router.get("/mobile/sign-in", managementController.getAccessTokenByAccount);
 router.post(
   "/mobile/work/status",

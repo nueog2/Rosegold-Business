@@ -40,7 +40,8 @@ function createHotel(req, res) {
     req.body.address_sigungu == null ||
     req.body.address_other == null ||
     req.body.checkin_date == null ||
-    req.body.checkout_date == null
+    req.body.checkout_date == null ||
+    req.body.roomservice == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -58,7 +59,8 @@ function createHotel(req, res) {
       req.body.address_sigungu,
       req.body.address_other,
       req.body.checkin_date,
-      req.body.checkout_date
+      req.body.checkout_date,
+      req.body.roomservice
     )
     .then((response) => {
       return res.status(response.status).send(response);
@@ -2433,8 +2435,11 @@ function updateWorkStatus(req, res) {
               message.issueMessage(message["400_BAD_REQUEST"], "UNVALID_STATUS")
             );
         }
+        const reason = req.body.reason || null;
+
+        // REST 상태 - 배정 불가 사유 추가
         worker
-          .createWorkLog(req.user.id, req.body.status)
+          .createWorkLog(req.user.id, req.body.status, reason)
           .then((response) => {
             console.log(response);
             return res.status(response.status).send(response);
@@ -2452,8 +2457,9 @@ function updateWorkStatus(req, res) {
     .catch((error) => {
       console.log(error);
       console.log("error status : ", error.status);
+      const reason = req.body.reason || null;
       worker
-        .createWorkLog(req.user.id, req.body.status)
+        .createWorkLog(req.user.id, req.body.status, reason)
         .then((response) => {
           return res.status(response.status).send(response);
         })
@@ -2533,6 +2539,26 @@ function setAssignWorker(req, res) {
     .then((response) => {
       requireLog
         .updateWorker(req.body.requirement_log_id, req.user.id)
+        .then((response) => {
+          return res.status(response.status).send(response);
+        })
+        .catch((error) => {
+          return res.status(error.status).send(error);
+        });
+    })
+    .catch((error) => {
+      return res.status(error.status).send(error);
+    });
+}
+
+function setAssignWorkerinWeb(req, res) {
+  var requireLog = new Requirement_Log();
+
+  requireLog
+    .update(req.body.requirement_log_id, req.body.progress)
+    .then((response) => {
+      requireLog
+        .updateWorker(req.body.requirement_log_id, req.body.user_id)
         .then((response) => {
           return res.status(response.status).send(response);
         })
@@ -2752,4 +2778,6 @@ module.exports = {
   okMessage,
   setWorkFinish,
   setReqLogNotAssign,
+  //웹 내 업무 배정
+  setAssignWorkerinWeb,
 };

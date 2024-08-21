@@ -24,7 +24,8 @@ class Hotel {
     address_sigungu,
     address_other,
     checkin_date,
-    checkout_date
+    checkout_date,
+    roomservice
   ) {
     return new Promise((resolve, reject) => {
       models.hotel
@@ -36,6 +37,7 @@ class Hotel {
           address_other: address_other,
           checkin_date: checkin_date,
           checkout_date: checkout_date,
+          roomservice: roomservice,
         })
         .then((response) => {
           if (response) {
@@ -883,12 +885,13 @@ class Worker extends Hotel {
     });
   }
 
-  createWorkLog(user_id, status) {
+  createWorkLog(user_id, status, reason = null) {
     return new Promise((resolve, reject) => {
       models.work_log
         .create({
           user_id: user_id,
           status: status,
+          reason: reason,
         })
         .then((response) => {
           return resolve(message["200_SUCCESS"]);
@@ -1134,6 +1137,14 @@ class Worker extends Hotel {
       models.user
         .findOne({
           where: condition,
+          include: [
+            {
+              model: models.work_log,
+              limit: 1,
+              attributes: ["status"],
+              order: [["id", "DESC"]],
+            },
+          ],
         })
         .then((response) => {
           if (response) {
@@ -3010,7 +3021,29 @@ class Requirement_Log extends Room {
         id: requirement_log_id,
       })
         .then((response) => {
-          models.requirement_log
+          var worker = new Worker();
+          return worker.readOne({ id: user_id });
+        })
+        .then((workerinfo) => {
+          console.log("\n\n\nreadOnebyUserID : ", workerinfo);
+
+          // REST 상태일 때 작업 거부 및 reason 포함하여 메시지 반환
+          if (
+            workerinfo.worker.dataValues.work_logs.length > 0 &&
+            workerinfo.worker.dataValues.work_logs[0]["status"] == "REST"
+          ) {
+            const reason =
+              workerinfo.worker.dataValues.reason || "배정 불가 사유 없음";
+            return reject(
+              res.status(message["400_BAD_REQUEST"].status).json({
+                status: message["400_BAD_REQUEST"].status,
+                message: "REST 상태일 때는 작업을 할당할 수 없습니다.",
+                reason: reason,
+              })
+            );
+          }
+
+          return models.requirement_log
             .update(
               {
                 user_id: user_id,
@@ -3022,19 +3055,86 @@ class Requirement_Log extends Room {
               }
             )
             .then((response) => {
-              return resolve(message["200_SUCCESS"]);
+              var worker = new Worker();
+              worker
+                .readOne({ id: user_id })
+                .then((workerinfo) => {
+                  console.log("\n\n\nreadOnebyUserID : ", workerinfo);
+                  var sendTargetFCMTokens = [];
+
+                  if (
+                    workerinfo.worker.dataValues.work_logs.length > 0 &&
+                    workerinfo.worker.dataValues.work_logs[0]["status"] ==
+                      "WORK"
+                  ) {
+                    if (workerinfo.worker.dataValues.fcm_token.length > 0) {
+                      sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                        workerinfo.worker.dataValues.fcm_token
+                      );
+                    }
+                  }
+
+                  // sendTargetFCMTokens 길이와 상관없이 실행
+                  let notificationPromises = [];
+
+                  if (sendTargetFCMTokens.length > 0) {
+                    console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
+                    let _message = {
+                      notification: {
+                        title: "새로운 요청 배정!",
+                        body: "요청이 배정되었습니다 !",
+                      },
+                      data: {
+                        title: "새로운 요청 배정!",
+                        body: "요청이 배정되었습니다 !",
+                      },
+                      tokens: sendTargetFCMTokens,
+                      android: {
+                        priority: "high",
+                      },
+                      apns: {
+                        payload: {
+                          aps: {
+                            contentAvailable: true,
+                            sound: "default",
+                          },
+                        },
+                      },
+                    };
+                    notificationPromises.push(
+                      admin.messaging().sendEachForMulticast(_message)
+                    );
+                  }
+
+                  Promise.all(notificationPromises)
+                    .then((responses) => {
+                      console.log("\n\nAPP MESSAGE SEND SUCCESS :", responses);
+                      return resolve({
+                        status: message["200_SUCCESS"].status,
+                        result: responses,
+                      });
+                    })
+                    .catch((err) => {
+                      console.log("\n\nERROR SENDING MESSAGE!!! : ", err);
+                      return resolve({
+                        status: message["200_SUCCESS"].status,
+                        result: err,
+                      });
+                    });
+                  return resolve(message["200_SUCCESS"]);
+                })
+                .catch((error) => {
+                  return reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
+                });
             })
             .catch((error) => {
-              return reject(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
+              return reject(error);
             });
-        })
-        .catch((error) => {
-          return reject(error);
         });
     });
   }
