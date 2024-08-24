@@ -6,6 +6,7 @@ router.post("/", chattingLogController.createChattingLog);
 router.get("/many", chattingLogController.getChattingLog);
 router.get("/one", chattingLogController.getChattingLogbyidentifier);
 router.get("/db", chattingLogDBController.getChattingLogfromDB);
+router.get("/db/hotel", chattingLogDBController.getChattingLogfromDBbyHotel);
 router.get("/many/all", chattingLogController.getChattingLogAll);
 router.get("/count", chattingLogController.getChattingLogDoubleCountHandler);
 
