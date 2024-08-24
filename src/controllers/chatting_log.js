@@ -330,8 +330,75 @@ function getChattingLogbyidentifier(req, res) {
     });
 }
 
+function getChattingLogAll(req, res) {
+  const chatting_log = new ChattingLog();
+
+  // const chatting_log = new ChattingLog();
+  chatting_log
+    .readMany({})
+    .then((response) => {
+      console.log(response);
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      if (!error.status)
+        return res
+          .status(message["400_BAD_REQUEST"].status)
+          .send(
+            message.issueMessage(
+              message["400_BAD_REQUEST"],
+              "CHATTING_LOG_NOT_FOUND"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
+// const models = require("../../models");
+
+// 채팅 로그의 최신 id를 가져와서 2배수 계산
+async function getChattingLogDoubleCount() {
+  try {
+    const chatting_log = new ChattingLog();
+
+    const latestChatLog = await chatting_log.readRecentOne({
+      // order: [["id", "DESC"]], // 최신 id 순으로 정렬
+    });
+
+    if (!latestChatLog || !latestChatLog.chatting_logs.length) {
+      throw new Error("No chatting logs found");
+    }
+
+    // 최신 id의 2배수 계산
+    const latestId = latestChatLog.chatting_logs[0].id;
+    const doubleCount = latestId * 2;
+
+    // 결과 반환
+    return {
+      chat_log_count: doubleCount,
+    };
+  } catch (error) {
+    console.error("Error fetching chatting log double count:", error);
+    throw error;
+  }
+}
+
+// GET 요청 핸들러
+function getChattingLogDoubleCountHandler(req, res) {
+  getChattingLogDoubleCount()
+    .then((result) => {
+      return res.status(200).json(result);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    });
+}
+
 module.exports = {
   createChattingLog,
   getChattingLog,
   getChattingLogbyidentifier,
+  getChattingLogAll,
+  getChattingLogDoubleCountHandler,
 };

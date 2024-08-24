@@ -556,6 +556,20 @@ async function getRequirementLogStatistics(hotelId) {
       group: ["hotel_id", "type"],
     });
 
+    // 모든 호텔의 type별 총 갯수 계산
+    const totalResult = await models.requirement_log.findAll({
+      attributes: [
+        "type",
+        [Sequelize.fn("COUNT", Sequelize.col("type")), "count"],
+      ],
+      group: ["type"],
+    });
+
+    // 모든 호텔의 총 요청 수 계산
+    const totalRequestCount = totalResult.reduce((acc, log) => {
+      return acc + parseInt(log.dataValues.count, 10);
+    }, 0);
+
     // 호텔별로 총 갯수를 계산
     const totalCountByHotel = result.reduce((acc, log) => {
       const hotelId = log.dataValues.hotel_id;
@@ -564,6 +578,19 @@ async function getRequirementLogStatistics(hotelId) {
       acc[hotelId] += count;
       return acc;
     }, {});
+
+    // 모든 호텔의 type별 총 갯수와 비율 계산
+    const totalTypeCount = totalResult.map((log) => {
+      const type = log.dataValues.type;
+      const count = log.dataValues.count;
+      const percentage = ((count / totalRequestCount) * 100).toFixed(2) + "%";
+
+      return {
+        type: type,
+        total_count: count,
+        percentage: percentage, // 전체 요청 중 비율
+      };
+    });
 
     // 각 호텔 및 type별 갯수와 퍼센트를 계산
     const statistics = result.map((log) => {
@@ -578,11 +605,70 @@ async function getRequirementLogStatistics(hotelId) {
       };
     });
 
-    return statistics;
+    return {
+      statistics,
+      totalTypeCount, // 모든 호텔의 type별 총 갯수 추가
+    };
   } catch (error) {
-    console.error("Error fetching requirement log statistics:", error);
+    console.error(
+      "Error fetching requirement log totaltypecount, statistics:",
+      error
+    );
     throw error;
   }
+}
+
+async function getRequirementLogStatisticsTotal() {
+  try {
+    const { Sequelize } = require("../../models/index.js");
+
+    // 모든 호텔의 type별 총 갯수 계산
+    const totalResult = await models.requirement_log.findAll({
+      attributes: [
+        "type",
+        [Sequelize.fn("COUNT", Sequelize.col("type")), "count"],
+      ],
+      group: ["type"],
+    });
+
+    // 모든 호텔의 총 요청 수 계산
+    const totalRequestCount = totalResult.reduce((acc, log) => {
+      return acc + parseInt(log.dataValues.count, 10);
+    }, 0);
+
+    // 모든 호텔의 type별 총 갯수와 비율 계산
+    const totalTypeCount = totalResult.map((log) => {
+      const type = log.dataValues.type;
+      const count = log.dataValues.count;
+      const percentage = ((count / totalRequestCount) * 100).toFixed(2) + "%";
+
+      return {
+        type: type,
+        total_count: count,
+        percentage: percentage,
+      };
+    });
+
+    return {
+      totalTypeCount,
+    };
+  } catch (error) {
+    console.error("Error fetching requirement log total type count:", error);
+    throw error;
+  }
+}
+
+function getRequirementLogStatisticsTotalHandler(req, res) {
+  // const hotelId = req.query.hotel_id;
+
+  getRequirementLogStatisticsTotal()
+    .then((statistics) => {
+      res.status(200).json(statistics);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
 }
 
 // GET 요청 핸들러
@@ -662,5 +748,6 @@ module.exports = {
   deleteRequirementLog,
   deleteRequirementLogByHotel,
   getRequirementLogStatisticsHandler,
+  getRequirementLogStatisticsTotalHandler,
   getRequirementLogStatisticsforReadCount,
 };

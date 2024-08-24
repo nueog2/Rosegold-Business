@@ -29,6 +29,12 @@ router.get(
   "/statistics",
   requirement_logController.getRequirementLogStatisticsHandler
 );
+
+router.get(
+  "/statistics/total",
+  requirement_logController.getRequirementLogStatisticsTotalHandler
+);
+
 router.get(
   "/readcount",
   requirement_logController.getRequirementLogStatisticsforReadCount
