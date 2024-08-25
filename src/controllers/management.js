@@ -2119,36 +2119,77 @@ function updateRoomPriceAdd(req, res) {
     });
 }
 
+// 배열로 입력받게끔 변경
+
+// function checkoutRoom(req, res) {
+//   if (req.query.room_id == null) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(
+//         message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+//       );
+//   }
+
+//   const room = new Room();
+//   const requirement_log = new Requirement_Log();
+//   const chatting_log = new Chatting_Log();
+
+//   room
+//     .updatePrice(req.query.room_id, 0)
+//     .then((response) => {
+//       return room.updateAdditionalService(req.query.room_id, 0);
+//     })
+//     .then((response) => {
+//       return requirement_log.deletebyRoomID(req.query.room_id);
+//     })
+//     .then((response) => {
+//       return chatting_log.deletebyRoomID(req.query.room_id);
+//     })
+//     .then((response) => {
+//       return res.status(response.status).send(response);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//       return res.status(error.status).send(error);
+//     });
+// }
+
 function checkoutRoom(req, res) {
-  if (req.query.room_id == null) {
+  const { results } = req.body;
+
+  if (!Array.isArray(results)) {
     return res
       .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
-      );
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
   }
 
   const room = new Room();
   const requirement_log = new Requirement_Log();
   const chatting_log = new Chatting_Log();
 
-  room
-    .updatePrice(req.query.room_id, 0)
-    .then((response) => {
-      return room.updateAdditionalService(req.query.room_id, 0);
-    })
-    .then((response) => {
-      return requirement_log.deletebyRoomID(req.query.room_id);
-    })
-    .then((response) => {
-      return chatting_log.deletebyRoomID(req.query.room_id);
-    })
-    .then((response) => {
-      return res.status(response.status).send(response);
+  const roomCheckoutPromises = results.map(({ room_id }) => {
+    return room
+      .updatePrice(room_id, 0)
+      .then(() => room.updateAdditionalService(room_id, 0))
+      .then(() => requirement_log.deletebyRoomID(room_id))
+      .then(() => chatting_log.deletebyRoomID(room_id));
+  });
+
+  Promise.all(roomCheckoutPromises)
+    .then((responses) => {
+      return res.status(200).send({
+        status: "success",
+        message: "ALL_ROOMS_CHECKOUT_SUCCESS",
+        responses,
+      });
     })
     .catch((error) => {
       console.error(error);
-      return res.status(error.status).send(error);
+      return res.status(error.status).send({
+        status: "error",
+        message: "ERROR DURING CHECKOUT",
+        error,
+      });
     });
 }
 
