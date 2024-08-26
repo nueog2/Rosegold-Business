@@ -87,8 +87,9 @@ class Ai_Request extends Hotel {
 
           console.log("additionalCount: ", additionalCount);
 
-          return models.ai_request
-            .findOne({
+          // 지정된 기간 동안 chatting_log 갯수 계산
+          return models.chatting_log
+            .findAll({
               where: {
                 hotel_id: hotel_id,
                 createdAt: {
@@ -96,9 +97,16 @@ class Ai_Request extends Hotel {
                   [Op.lt]: new Date(year, month, 1),
                 },
               },
-              attributes: ["id", "hotel_id", "count"],
+              attributes: [
+                [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
+              ],
             })
-            .then((response) => {
+            .then((chatLogs) => {
+              const chatCount =
+                chatLogs.length > 0
+                  ? parseInt(chatLogs[0].dataValues.count, 10)
+                  : 0;
+
               return models.ai_request
                 .findOne({
                   where: {
@@ -111,34 +119,48 @@ class Ai_Request extends Hotel {
                   attributes: ["id", "hotel_id", "count"],
                 })
                 .then((response) => {
-                  const count = response
-                    ? parseInt(response.dataValues.count, 10)
-                    : 0;
-                  const total_count = count + additionalCount; // count와 additionalCount의 합계 계산
+                  return models.ai_request
+                    .findOne({
+                      where: {
+                        hotel_id: hotel_id,
+                        createdAt: {
+                          [Op.gte]: new Date(year, month - 1, 1),
+                          [Op.lt]: new Date(year, month, 1),
+                        },
+                      },
+                      attributes: ["id", "hotel_id", "count"],
+                    })
+                    .then((response) => {
+                      const count = response
+                        ? parseInt(response.dataValues.count, 10)
+                        : 0;
+                      const total_count = count + additionalCount; // count와 additionalCount의 합계 계산
 
-                  const percentage =
-                    total_count > 0
-                      ? ((count / total_count) * 100).toFixed(2) + "%"
-                      : "0%"; // 비율 계산
+                      const percentage =
+                        total_count > 0
+                          ? ((count / total_count) * 100).toFixed(2) + "%"
+                          : "0%"; // 비율 계산
 
-                  var obj = Object.assign({}, message["200_SUCCESS"]);
-                  obj.ai_request = {
-                    hotel_id: hotel_id,
-                    count: count,
-                    total_count: total_count, // 총 갯수
-                    percentage: percentage, // 비율
-                  };
-                  return resolve(obj);
+                      var obj = Object.assign({}, message["200_SUCCESS"]);
+                      obj.ai_request = {
+                        hotel_id: hotel_id,
+                        count: count,
+                        total_count: total_count, // 총 갯수
+                        percentage: percentage, // 비율
+                        chat_count: chatCount, // 채팅 로그 갯수
+                      };
+                      return resolve(obj);
+                    });
+                })
+                .catch((error) => {
+                  console.log(error);
+                  reject(
+                    message.issueMessage(
+                      message["500_SERVER_INTERNAL_ERROR"],
+                      "UNDEFINED_ERROR"
+                    )
+                  );
                 });
-            })
-            .catch((error) => {
-              console.log(error);
-              reject(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
             });
         });
     });
