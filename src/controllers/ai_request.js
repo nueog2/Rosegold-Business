@@ -49,6 +49,7 @@ function getAiRequestAutoCountHandler(req, res) {
   ai_request
     .getcount(hotelId, year, month)
     .then((response) => {
+      console.log(response);
       return res.status(200).send(response);
     })
     .catch((error) => {
