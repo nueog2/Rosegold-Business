@@ -2612,77 +2612,165 @@ function setAssignWorkerinWeb(req, res) {
     });
 }
 
+// function setReqLogNotAssign(req, res) {
+//   var requireLog = new Requirement_Log();
+//   var cancelMessage = req.body.message;
+
+//   requireLog
+//     .update(req.body.requirement_log_id, 0)
+//     .then(() => {
+//       return requireLog.updateWorkerNull(req.body.requirement_log_id);
+//     })
+//     .catch((error) => {
+//       return res.status(error.status).send(error);
+//     })
+//     .then(() => {
+//       return requireLog.readOne({ id: req.body.requirement_log_id });
+//     })
+//     .catch((error) => {
+//       return res.status(error.status).send(error);
+//     })
+//     .then((response) => {
+//       var department_name = response.requirement_log.department.name;
+//       var room_name = response.requirement_log.room.name;
+//       var hotel_id = response.requirement_log.hotel_id;
+
+//       var worker = new Worker();
+//       return worker.readMany({ hotel_id: hotel_id });
+//     })
+//     .catch((error) => {
+//       return res.status(error.status).send(error);
+//     })
+//     .then((allWorkers) => {
+//       console.log(
+//         "\n\n\nALL WORKERS READ BY HOTEL_ID SUCCESS :"
+//         // allWorkers["workers"]
+//       );
+
+//       var sendTargetFCMTokensWeb = [];
+//       for (var j = 0; j < allWorkers["workers"].length; j++) {
+//         if (
+//           allWorkers["workers"][j].fcm_token_web &&
+//           allWorkers["workers"][j].fcm_token_web.length > 0
+//         ) {
+//           sendTargetFCMTokensWeb = sendTargetFCMTokensWeb.concat(
+//             allWorkers["workers"][j].fcm_token_web
+//           );
+//         }
+//       }
+
+//       if (sendTargetFCMTokensWeb.length > 0) {
+//         let _webMessage = {
+//           notification: {
+//             title: "로즈골드",
+//             body:
+//               "[" +
+//               department_name +
+//               "] " +
+//               room_name +
+//               "호 배정 업무 취소 : " +
+//               cancelMessage,
+//           },
+//           tokens: sendTargetFCMTokensWeb,
+//         };
+
+//         return admin.messaging().sendEachForMulticast(_webMessage);
+//       } else {
+//         return Promise.resolve();
+//       }
+//     })
+//     .catch((error) => {
+//       return res.status(error.status).send(error);
+//     })
+//     .then((response) => {
+//       console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
+//       return res
+//         .status(message["200_SUCCESS"].status)
+//         .send(message["200_SUCCESS"]);
+//     })
+//     .catch((error) => {
+//       console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
+//       return res
+//         .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//         .send(error);
+//     });
+// }
+
 function setReqLogNotAssign(req, res) {
   var requireLog = new Requirement_Log();
   var cancelMessage = req.body.message;
-  //requirement_log_id, message
 
-  requireLog.update(req.body.requirement_log_id, 0).then((response) => {
-    requireLog
-      .updateWorker(req.body.requirement_log_id, null)
-      .then((response) => {
-        requireLog
-          .readOne({ id: req.body.requirement_log_id })
-          .then((response) => {
-            department_name = response.requirement_log.department.name;
-            room_name = response.requirement_log.room.name;
-            var hotel_id = response.requirement_log.hotel_id;
-            var worker = new Worker();
-            return worker.readMany({ hotel_id: hotel_id });
-          })
-          .then((allWorkers) => {
-            console.log(
-              "\n\n\nALL WORKERS READ BY HOTEL_ID  : ",
-              allWorkers["workers"]
-            );
-            var sendTargetFCMTokensWeb = [];
+  requireLog
+    .update(req.body.requirement_log_id, 0)
+    .then(() => {
+      return requireLog.updateWorkerNull(req.body.requirement_log_id);
+    })
+    .then(() => {
+      return requireLog.readOne({ id: req.body.requirement_log_id });
+    })
+    .then((response) => {
+      console.log(response.requirement_log);
+      console.log(response.requirement_log.department.name);
 
-            for (var j = 0; j < allWorkers["workers"].length; j++) {
-              if (
-                allWorkers["workers"][j].fcm_token_web &&
-                allWorkers["workers"][j].fcm_token_web.length > 0
-              ) {
-                sendTargetFCMTokensWeb = sendTargetFCMTokensWeb.concat(
-                  allWorkers["workers"][j].fcm_token_web
-                );
-              }
-            }
+      department_name = response.requirement_log.department.name;
+      room_name = response.requirement_log.room.name;
+      var hotel_id = response.requirement_log.hotel_id;
 
-            if (sendTargetFCMTokensWeb.length > 0) {
-              let _webMessage = {
-                notification: {
-                  title: "로즈골드",
-                  body:
-                    "[" +
-                    department_name +
-                    "] " +
-                    room_name +
-                    "호 배정 업무 취소 : " +
-                    cancelMessage,
-                },
-                tokens: sendTargetFCMTokensWeb,
-              };
+      let worker = new Worker();
+      return worker.readMany({ hotel_id: hotel_id });
+    })
+    .then((allWorkers) => {
+      console.log(
+        "\n\n\nALL WORKERS READ BY HOTEL_ID SUCCESS"
+        // allWorkers["workers"]
+      );
 
-              return admin.messaging().sendEachForMulticast(_webMessage);
-            } else {
-              return Promise.resolve();
-            }
-          })
-          .then((response) => {
-            console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
-            return res
-              .status(message["200_SUCCESS"].status)
-              .send(message["200_SUCCESS"]);
-          })
-          .catch((error) => {
-            console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
-            return res.status(error.status).send(error);
-          });
-      })
-      .catch((error) => {
-        return res.status(error.status).send(error);
-      });
-  });
+      var sendTargetFCMTokensWeb = [];
+      for (var j = 0; j < allWorkers["workers"].length; j++) {
+        if (
+          allWorkers["workers"][j].fcm_token_web &&
+          allWorkers["workers"][j].fcm_token_web.length > 0
+        ) {
+          sendTargetFCMTokensWeb = sendTargetFCMTokensWeb.concat(
+            allWorkers["workers"][j].fcm_token_web
+          );
+        }
+      }
+
+      if (sendTargetFCMTokensWeb.length > 0) {
+        let _webMessage = {
+          notification: {
+            title: "로즈골드",
+            body:
+              "[" +
+              department_name +
+              "] " +
+              room_name +
+              "호 배정 업무 취소 : " +
+              cancelMessage,
+          },
+          tokens: sendTargetFCMTokensWeb,
+        };
+
+        return admin.messaging().sendEachForMulticast(_webMessage);
+      } else {
+        return Promise.resolve();
+      }
+    })
+    .then((response) => {
+      console.log("\n\nWEB MESSAGE SEND SUCCESS :", response);
+      return res
+        .status(message["200_SUCCESS"].status)
+        .send(message["200_SUCCESS"]);
+    })
+    .catch((error) => {
+      console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
+      const statusCode = error.status || 500; // 기본값을 500으로 설정
+      const errorMessage = error.message || "Internal Server Error";
+      return res
+        .status(statusCode)
+        .send({ status: statusCode, message: errorMessage });
+    });
 }
 
 function setWorkFinish(req, res) {
