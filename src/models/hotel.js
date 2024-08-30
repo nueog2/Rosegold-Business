@@ -8,7 +8,7 @@ const { response } = require("express");
 const admin = require("firebase-admin");
 
 let serAccount = require("../../config/firebase-key.json");
-const { orderBy } = require("lodash");
+const { orderBy, result } = require("lodash");
 
 admin.initializeApp({
   credential: admin.credential.cert(serAccount),
@@ -3019,34 +3019,95 @@ class Requirement_Log extends Room {
     return new Promise((resolve, reject) => {
       this.readOne({
         id: requirement_log_id,
-      })
-        .then((response) => {
-          models.requirement_log
-            .update(
-              {
-                process_department_id: process_department_id,
+      }).then((response) => {
+        models.requirement_log
+          .update(
+            {
+              process_department_id: process_department_id,
+            },
+            {
+              where: {
+                id: requirement_log_id,
               },
-              {
-                where: {
-                  id: requirement_log_id,
-                },
-              }
-            )
-            .then((response) => {
-              return resolve(message["200_SUCCESS"]);
-            })
-            .catch((error) => {
-              return reject(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
-            });
-        })
-        .catch((error) => {
-          return reject(error);
-        });
+            }
+          )
+          .then((response) => {
+            var worker = new Worker();
+            worker
+              .readManyByDepartment(process_department_id)
+              .then((workers) => {
+                console.log("\n\n\nreadManybyDepworkers : ", workers);
+                var sendTargetFCMTokens = [];
+
+                for (var i = 0; i < workers["workers"].length; i++) {
+                  if (
+                    workers["workers"][i].work_logs.length > 0 &&
+                    workers["workers"][i].work_logs[0]["status"] == "WORK"
+                  ) {
+                    if (workers["workers"][i].fcm_token.length > 0) {
+                      sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                        workers["workers"][i].fcm_token
+                      );
+                    }
+                  }
+                }
+
+                let notificationPromises = [];
+
+                if (sendTargetFCMTokens.length > 0) {
+                  console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
+                  let _message = {
+                    notification: {
+                      title: "새로운 요청 도착!",
+                      body: "빠르게 요청을 배정받아주세요! ",
+                    },
+                    data: {
+                      title: "새로운 요청 도착!",
+                      body: "빠르게 요청을 배정받아주세요!",
+                    },
+                    tokens: sendTargetFCMTokens,
+                    android: {
+                      priority: "high",
+                    },
+                    apns: {
+                      payload: {
+                        aps: {
+                          contentAvailable: true,
+                          sound: "default",
+                        },
+                      },
+                    },
+                  };
+
+                  notificationPromises.push(
+                    admin.messaging().sendEachForMulticast(_message)
+                  );
+                } else {
+                  return Promise.resolve();
+                }
+              })
+              .then((response) => {
+                console.log("Successfully sent message: : ", response);
+                return resolve({
+                  status: message["200_SUCCESS"].status,
+                  result: response,
+                  message:
+                    "Successfully sent dep_update alarm, update department success",
+                });
+              })
+              .catch((error) => {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              });
+          })
+          .catch((error) => {
+            console.log("ERROR SENDING MESSAGE.....", error);
+          });
+      });
     });
   }
 
