@@ -8,6 +8,7 @@ router.use("/role", roleRouter);
 router.post("/", managementController.createDepartment);
 router.get("/many", managementController.getDepartmentMany);
 router.get("/one", managementController.getDepartmentOne);
+router.get("/bh", managementController.getDepartmentBusinessHour);
 router.put("/", managementController.updateDepartment);
 router.delete("/", managementController.deleteDepartment);
 

@@ -206,7 +206,7 @@ class Department extends Hotel {
     super();
   }
 
-  create(name, token_name, hotel_id) {
+  create(name, token_name, hotel_id, business_hour = null) {
     return new Promise((resolve, reject) => {
       super
         .readOne(hotel_id)
@@ -216,6 +216,7 @@ class Department extends Hotel {
               name: name,
               token_name: token_name,
               hotel_id: hotel_id,
+              business_hour: business_hour,
             })
             .then((response) => {
               if (response) {
@@ -253,6 +254,39 @@ class Department extends Hotel {
     return new Promise((resolve, reject) => {
       models.department
         .findAll({
+          where: condition,
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.departments = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "DEPARTMENT_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+        });
+    });
+  }
+
+  readBusinessHourMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.department
+        .findAll({
+          attributes: ["name", "business_hour"],
           where: condition,
         })
         .then((response) => {
@@ -1692,6 +1726,7 @@ class Room extends Hotel {
             "price",
             "room_grade_id",
             "additional_service",
+            "business_hour",
           ],
         })
         .then((response) => {

@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.CHAR(32),
         allowNull: false,
       },
+      business_hour: {
+        type: DataTypes.CHAR(),
+        allowNull: true,
+      },
     },
     {
       paranoid: true,

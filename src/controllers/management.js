@@ -219,7 +219,7 @@ function createDepartment(req, res) {
   }
 
   const promises = dep_array.map((deps) => {
-    const { name, token_name, hotel_id } = deps;
+    const { name, token_name, hotel_id, business_hour } = deps;
 
     if (name == null || token_name == null || hotel_id == null) {
       return res
@@ -233,7 +233,7 @@ function createDepartment(req, res) {
     }
 
     const department = new Department();
-    department.create(name, token_name, hotel_id);
+    department.create(name, token_name, hotel_id, business_hour);
   });
 
   // 모든 Promise가 처리된 후 응답
@@ -325,6 +325,28 @@ function getDepartmentOne(req, res) {
   const department = new Department();
   department
     .readOne({ id: req.query.department_id })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
+function getDepartmentBusinessHour(req, res) {
+  const department = new Department();
+  department
+    .readBusinessHourMany({ hotel_id: req.query.hotel_id })
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -2847,6 +2869,7 @@ module.exports = {
   createDepartment,
   getDepartmentMany,
   getDepartmentOne,
+  getDepartmentBusinessHour,
   updateDepartment,
   deleteDepartment,
   createRole,
