@@ -1144,6 +1144,28 @@ function logoutWorker(req, res) {
   // });
 }
 
+function updateWorkerWebAppTokenasNull(req, res) {
+  const worker = new Worker();
+  worker
+    .updateFCMTokenAppWebasNULL()
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function getWorkerMany(req, res) {
   if (req.query.hotel_id == null) {
     return res
@@ -2898,6 +2920,7 @@ module.exports = {
   logoutWorker,
   //웹 firebase token 추가 API
   updateFCMTokenforWebByAccount,
+  updateWorkerWebAppTokenasNull,
   //직원-부서 할당 추가
   updateAssignLog,
   createRoom,

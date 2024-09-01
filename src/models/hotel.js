@@ -221,7 +221,6 @@ class Department extends Hotel {
             .then((response) => {
               if (response) {
                 return resolve({
-                  // (message["200_SUCCESS"]);
                   status: message["200_SUCCESS"].status,
                   department: response,
                 });
@@ -1520,6 +1519,29 @@ class Worker extends Hotel {
                 )
               );
             });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  updateFCMTokenAppWebasNULL() {
+    return new Promise((resolve, reject) => {
+      models.user
+        .update(
+          {
+            fcm_token_web: [],
+            fcm_token: [],
+          }
+          // {
+          //   where: {
+          //     id: user_id,
+          //   },
+          // }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
         })
         .catch((error) => {
           return reject(error);
