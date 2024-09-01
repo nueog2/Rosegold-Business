@@ -1748,7 +1748,6 @@ class Room extends Hotel {
             "price",
             "room_grade_id",
             "additional_service",
-            "business_hour",
           ],
         })
         .then((response) => {
