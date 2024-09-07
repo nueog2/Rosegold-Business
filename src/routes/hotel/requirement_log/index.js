@@ -14,6 +14,12 @@ router.get(
   "/many/detail",
   requirement_logController.getRequirementLogManyDetail
 );
+
+router.get(
+  "/many/summary",
+  requirement_logController.getSummarizedSentencesForHotel
+);
+
 router.get("/one", requirement_logController.getRequirementLogOne);
 router.put("/", requirement_logController.updateRequirementLog);
 router.put(

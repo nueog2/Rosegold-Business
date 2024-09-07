@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+      summarized_sentence: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       paranoid: true,

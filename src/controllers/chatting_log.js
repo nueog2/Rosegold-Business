@@ -32,7 +32,9 @@ function createChattingLog(req, res) {
       //new ChattingLogDB()
 
       const req_log_created =
-        req.body.department_name != null && req.body.summarized_sentence != null
+        req.body.department_name != null &&
+        req.body.summarized_sentence != null &&
+        req.body.req_need == 1
           ? 1
           : 0;
       new ChattingLog()
@@ -44,7 +46,8 @@ function createChattingLog(req, res) {
           req.body.answer,
           req.body.translated_question,
           req.body.translated_answer,
-          req_log_created
+          req_log_created,
+          req.body.summarized_sentence
           // identifier
         )
         .then((response) => {
@@ -80,7 +83,8 @@ function createChattingLog(req, res) {
 
           if (
             req.body.department_name != null &&
-            req.body.summarized_sentence != null
+            req.body.summarized_sentence != null &&
+            req.body.req_need == 1
           ) {
             if (
               req.body.requirement_id != null &&

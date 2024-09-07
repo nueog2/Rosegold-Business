@@ -12,7 +12,8 @@ class ChattingLog {
     answer,
     translated_question,
     translated_answer,
-    req_log_created
+    req_log_created,
+    summarized_sentence
     // identifier
   ) {
     return new Promise((resolve, reject) => {
@@ -26,6 +27,7 @@ class ChattingLog {
           translated_question: translated_question,
           translated_answer: translated_answer,
           req_log_created: req_log_created,
+          summarized_sentence: summarized_sentence,
           // identifier: identifier,
         })
         .then((response) => {
@@ -73,6 +75,7 @@ class ChattingLog {
             //"department_name",
             "req_log_created",
             "identifier",
+            "summarized_sentence",
           ],
         })
         .then((response) => {
@@ -119,6 +122,7 @@ class ChattingLog {
             "createdAt",
             "req_log_created",
             "identifier",
+            "summarized_sentence",
           ],
           order: [["id", "DESC"]], // 최신 id 순으로 정렬
           limit: 1, // 최신 하나만 가져오기

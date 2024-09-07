@@ -3,6 +3,7 @@ const message = require("../../config/message");
 const requirement = require("../../models/schema/requirement");
 const { Worker } = require("../models/hotel");
 const Room = require("../models/hotel").Room;
+const ChattingLog = require("../models/chatting_log").ChattingLog;
 const Sequelize = require("sequelize");
 // import { Sequelize } from "sequelize";
 
@@ -732,6 +733,162 @@ function getRequirementLogStatisticsforReadCount(req, res) {
     });
 }
 
+//active-standby , tomcat
+
+// 새로운 고객 요청사항 페이지용 api
+// 남은 해야 할 것 -> pagination 처리!!
+
+function getSummarizedSentencesForHotel(req, res) {
+  // 호텔 내 모든 호실(room_id) 가져오기
+  // const room = new Room();
+  const { Sequelize } = require("../../models/index.js");
+
+  const page = parseInt(req.query.page, 10) || 1; // 기본값은 1페이지
+  const limit = parseInt(req.query.limit, 10) || 10; // 요소 갯수 및 기본값은 10으로 설정
+  const offset = (page - 1) * limit; // 페이지에 따른 데이터 시작점 계산
+
+  return (
+    models.room
+      .findAll({
+        where: {
+          hotel_id: req.query.hotel_id,
+        },
+        attributes: ["id", "name"],
+        limit: limit,
+        offset: offset,
+      })
+      .then((rooms) => {
+        const roomSummariesPromises = rooms.map((room) =>
+          getSummarizedSentenceForRoom(room.id).then((result) => ({
+            room_id: room.id,
+            room_name: room.name,
+            requirement_log_id: result.requirement_log_id,
+            summarized_sentence: result.summarized_sentence,
+            createdAt: result.createdAt,
+            process_department_id: result.process_department_id,
+            user_id: result.user_id,
+            progress: result.progress,
+          }))
+        );
+
+        return Promise.all(roomSummariesPromises);
+      })
+      .then((summaries) => {
+        // 총 방 개수를 가져와서 페이지네이션 정보를 추가해 응답
+        return models.room
+          .count({
+            where: {
+              hotel_id: req.query.hotel_id,
+            },
+          })
+          .then((totalRooms) => {
+            const totalPages = Math.ceil(totalRooms / limit); // 전체 페이지 수 계산
+            res.status(200).send({
+              total_Items: totalRooms, // 전체 방 개수
+              total_Pages: totalPages, // 전체 페이지 수
+              current_Page: page, // 현재 페이지
+              summaries: summaries, // 각 호실의 요약 데이터
+            });
+          });
+      })
+
+      //   // console.log("Summaries:", summaries);
+      //   res.status(200).send(summaries);
+      // })
+      .catch((error) => {
+        console.log(error);
+        if (!error.status)
+          return res
+            .status(message["500_SERVER_INTERNAL_ERROR"].status)
+            .send(
+              message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+            );
+        else return res.status(error.status).send(error);
+      })
+  );
+}
+
+function getSummarizedSentenceForRoom(roomId) {
+  const requirement_log = new Requirement_Log();
+  const chatting_log = new ChattingLog();
+  const { Sequelize } = require("../../models/index.js");
+
+  return models.requirement_log
+    .findOne({
+      where: {
+        room_id: roomId,
+        progress: [0, 1], // progress가 0 또는 1
+      },
+      order: [["createdAt", "DESC"]],
+      attributes: [
+        "id",
+        "summarized_sentence",
+        "createdAt",
+        "process_department_id",
+        "user_id",
+        "progress",
+      ],
+    })
+    .then((latestRequirement) => {
+      if (latestRequirement) {
+        return {
+          requirement_log_id: latestRequirement.id,
+          summarized_sentence: latestRequirement.summarized_sentence,
+          createdAt: latestRequirement.createdAt,
+          process_department_id:
+            latestRequirement.process_department_id || null,
+          user_id: latestRequirement.user_id || null,
+          progress: latestRequirement.progress,
+        };
+      } else {
+        return models.chatting_log
+          .findOne({
+            where: {
+              room_id: roomId,
+              summarized_sentence: { [Sequelize.Op.ne]: null },
+            },
+            order: [["createdAt", "DESC"]],
+            attributes: ["summarized_sentence", "createdAt"],
+          })
+          .then((latestChat) => {
+            if (latestChat) {
+              return {
+                requirement_log_id: null,
+                summarized_sentence: latestChat.summarized_sentence,
+                createdAt: latestChat.createdAt,
+                process_department_id: null,
+                user_id: null,
+                progress: null,
+              };
+            } else {
+              return {
+                requirement_log_id: null,
+                summarized_sentence: null,
+                createdAt: null,
+                process_department_id: null,
+                user_id: null,
+                progress: null,
+              };
+            }
+          });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      return {
+        requirement_log_id: null,
+        summarized_sentence: null,
+        createdAt: null,
+        process_department_id: null,
+        user_id: null,
+        progress: null,
+      };
+    });
+}
+
 module.exports = {
   createRequirementLog,
   createRequirementLogbyMenu,
@@ -750,4 +907,5 @@ module.exports = {
   getRequirementLogStatisticsHandler,
   getRequirementLogStatisticsTotalHandler,
   getRequirementLogStatisticsforReadCount,
+  getSummarizedSentencesForHotel,
 };
