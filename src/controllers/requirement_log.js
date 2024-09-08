@@ -892,6 +892,42 @@ function getSummarizedSentencesForHotel(req, res) {
         // 배열을 평탄화하여 모든 항목을 하나의 배열로 병합
         const flattenedSummaries = summariesArray.flat();
 
+        // 정렬 로직 추가
+        flattenedSummaries.sort((a, b) => {
+          // 1. progress가 0 또는 1인 것 우선
+          if (
+            (a.progress === 0 || a.progress === 1) &&
+            b.progress !== 0 &&
+            b.progress !== 1
+          ) {
+            return -1;
+          } else if (
+            (b.progress === 0 || b.progress === 1) &&
+            a.progress !== 0 &&
+            a.progress !== 1
+          ) {
+            return 1;
+          }
+
+          // 2. summarized_sentence와 createdAt이 null이 아닌 것 우선
+          if (
+            a.summarized_sentence &&
+            a.createdAt &&
+            (!b.summarized_sentence || !b.createdAt)
+          ) {
+            return -1;
+          } else if (
+            b.summarized_sentence &&
+            b.createdAt &&
+            (!a.summarized_sentence || !a.createdAt)
+          ) {
+            return 1;
+          }
+
+          // 3. 나머지는 createdAt을 기준으로 내림차순 정렬 (최신순)
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
         // 페이지네이션을 위해 요소 갯수 계산
         const totalItems = flattenedSummaries.length;
         const totalPages = Math.ceil(totalItems / limit);
