@@ -995,6 +995,7 @@ function getSummarizedSentenceForRoom(roomId) {
           where: {
             room_id: roomId,
             summarized_sentence: { [Sequelize.Op.ne]: null }, // 요약 문장이 있는 것만
+            req_log_created: 0,
           },
           order: [["createdAt", "DESC"]],
           attributes: ["summarized_sentence", "createdAt"],
