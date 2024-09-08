@@ -37,6 +37,15 @@ function createChattingLog(req, res) {
         req.body.req_need == 1
           ? 1
           : 0;
+
+      if (
+        req.body.requirement_id != null &&
+        req.body.summarized_sentence != null &&
+        req.body.requirement_menu_created == 1
+      ) {
+        req.body.summarized_sentence = null;
+      }
+
       new ChattingLog()
         .create(
           req.body.room_id,
