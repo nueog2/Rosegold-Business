@@ -894,21 +894,19 @@ function getSummarizedSentencesForHotel(req, res) {
 
         // 정렬 로직 추가
         flattenedSummaries.sort((a, b) => {
-          // 1. progress가 0 또는 1인 것 우선
-          if (
-            (a.progress === 0 || a.progress === 1) &&
-            b.progress !== 0 &&
-            b.progress !== 1
-          ) {
+          // 1. progress가 0인 것 우선 ( 미진행 )
+          if (a.progress === 0 && b.progress !== 0) {
             return -1;
-          } else if (
-            (b.progress === 0 || b.progress === 1) &&
-            a.progress !== 0 &&
-            a.progress !== 1
-          ) {
+          } else if (b.progress === 0 && a.progress !== 0) {
             return 1;
           }
 
+          // 1-2. progress가 1인 것 우선 ( 진행중 )
+          if (a.progress === 1 && b.progress !== 1) {
+            return -1;
+          } else if (b.progress === 1 && a.progress !== 1) {
+            return 1;
+          }
           // 2. summarized_sentence와 createdAt이 null이 아닌 것 우선
           if (
             a.summarized_sentence &&
