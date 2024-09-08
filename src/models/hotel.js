@@ -566,8 +566,15 @@ class Role extends Department {
       models.role
         .findOne({
           where: condition,
+          include: [
+            {
+              model: models.department,
+              attributes: ["name"],
+            },
+          ],
         })
         .then((response) => {
+          // console.log(response);
           if (response) {
             var obj = Object.assign({}, message["200_SUCCESS"]);
             obj.role = response.dataValues;
