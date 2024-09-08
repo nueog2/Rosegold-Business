@@ -92,7 +92,7 @@ function createChattingLog(req, res) {
 
           if (
             req.body.department_name != null &&
-            req.body.summarized_sentence != null &&
+            // req.body.summarized_sentence != null &&
             req.body.req_need == 1
           ) {
             if (
