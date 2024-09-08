@@ -738,89 +738,203 @@ function getRequirementLogStatisticsforReadCount(req, res) {
 // 새로운 고객 요청사항 페이지용 api
 // 남은 해야 할 것 -> pagination 처리!!
 
+// 배열 ver
+// function getSummarizedSentencesForHotel(req, res) {
+//   const { Sequelize } = require("../../models/index.js");
+
+//   const page = parseInt(req.query.page, 10) || 1;
+//   const limit = parseInt(req.query.limit, 10) || 10;
+//   const offset = (page - 1) * limit;
+
+//   return models.room
+//     .findAll({
+//       where: {
+//         hotel_id: req.query.hotel_id,
+//       },
+//       attributes: ["id", "name"],
+//       limit: limit,
+//       offset: offset,
+//     })
+//     .then((rooms) => {
+//       const roomSummariesPromises = rooms.map((room) =>
+//         getSummarizedSentenceForRoom(room.id).then((result) => ({
+//           room_id: room.id,
+//           room_name: room.name,
+//           summarizedRequirements: result.summarizedRequirements, // 여러 요청사항 반환
+//           latestChat: result.latestChat, // 채팅 로그
+//         }))
+//       );
+
+//       return Promise.all(roomSummariesPromises);
+//     })
+//     .then((summaries) => {
+//       return models.room
+//         .count({
+//           where: {
+//             hotel_id: req.query.hotel_id,
+//           },
+//         })
+//         .then((totalRooms) => {
+//           const totalPages = Math.ceil(totalRooms / limit);
+//           res.status(200).send({
+//             total_Items: totalRooms,
+//             total_Pages: totalPages,
+//             current_Page: page,
+//             summaries: summaries,
+//           });
+//         });
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
+
+// 단일 ver
+
+// function getSummarizedSentencesForHotel(req, res) {
+//   const { Sequelize } = require("../../models/index.js");
+
+//   const page = parseInt(req.query.page, 10) || 1;
+//   const limit = parseInt(req.query.limit, 10) || 10;
+//   const offset = (page - 1) * limit;
+
+//   return models.room
+//     .findAll({
+//       where: {
+//         hotel_id: req.query.hotel_id,
+//       },
+//       attributes: ["id", "name"],
+//       limit: limit,
+//       offset: offset,
+//     })
+//     .then((rooms) => {
+//       const roomSummariesPromises = rooms.map((room) =>
+//         getSummarizedSentenceForRoom(room.id).then((results) =>
+//           results.map((result) => ({
+//             ...result,
+//             room_name: room.name, // 방 이름을 추가
+//           }))
+//         )
+//       );
+
+//       return Promise.all(roomSummariesPromises).then((summariesArray) => {
+//         // 배열을 평탄화하여 모든 항목을 하나의 배열로 병합
+//         const flattenedSummaries = summariesArray.flat();
+
+//         // 페이지네이션을 위해 요소 갯수 계산
+//         const totalItems = flattenedSummaries.length;
+//         const totalPages = Math.ceil(totalItems / limit);
+
+//         // 페이지네이션 처리
+//         const paginatedSummaries = flattenedSummaries.slice(
+//           offset,
+//           offset + limit
+//         );
+
+//         res.status(200).send({
+//           total_Items: totalItems,
+//           total_Pages: totalPages,
+//           current_Page: page,
+//           summaries: paginatedSummaries,
+//         });
+//       });
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
+
 function getSummarizedSentencesForHotel(req, res) {
-  // 호텔 내 모든 호실(room_id) 가져오기
-  // const room = new Room();
   const { Sequelize } = require("../../models/index.js");
 
-  const page = parseInt(req.query.page, 10) || 1; // 기본값은 1페이지
-  const limit = parseInt(req.query.limit, 10) || 10; // 요소 갯수 및 기본값은 10으로 설정
-  const offset = (page - 1) * limit; // 페이지에 따른 데이터 시작점 계산
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const offset = (page - 1) * limit;
 
-  return (
-    models.room
-      .findAll({
-        where: {
-          hotel_id: req.query.hotel_id,
-        },
-        attributes: ["id", "name"],
-        limit: limit,
-        offset: offset,
-      })
-      .then((rooms) => {
-        const roomSummariesPromises = rooms.map((room) =>
-          getSummarizedSentenceForRoom(room.id).then((result) => ({
-            room_id: room.id,
-            room_name: room.name,
-            requirement_log_id: result.requirement_log_id,
-            summarized_sentence: result.summarized_sentence,
-            createdAt: result.createdAt,
-            process_department_id: result.process_department_id,
-            user_id: result.user_id,
-            progress: result.progress,
+  return models.room
+    .findAll({
+      where: {
+        hotel_id: req.query.hotel_id,
+      },
+      attributes: ["id", "name"],
+    })
+    .then((rooms) => {
+      const roomSummariesPromises = rooms.map((room) =>
+        getSummarizedSentenceForRoom(room.id).then((results) =>
+          results.map((result) => ({
+            ...result,
+            room_name: room.name, // 방 이름을 추가
           }))
+        )
+      );
+
+      return Promise.all(roomSummariesPromises).then((summariesArray) => {
+        // 배열을 평탄화하여 모든 항목을 하나의 배열로 병합
+        const flattenedSummaries = summariesArray.flat();
+
+        // 페이지네이션을 위해 요소 갯수 계산
+        const totalItems = flattenedSummaries.length;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        // 페이지네이션 처리
+        const paginatedSummaries = flattenedSummaries.slice(
+          offset,
+          offset + limit
         );
 
-        return Promise.all(roomSummariesPromises);
-      })
-      .then((summaries) => {
-        // 총 방 개수를 가져와서 페이지네이션 정보를 추가해 응답
-        return models.room
-          .count({
-            where: {
-              hotel_id: req.query.hotel_id,
-            },
-          })
-          .then((totalRooms) => {
-            const totalPages = Math.ceil(totalRooms / limit); // 전체 페이지 수 계산
-            res.status(200).send({
-              total_Items: totalRooms, // 전체 방 개수
-              total_Pages: totalPages, // 전체 페이지 수
-              current_Page: page, // 현재 페이지
-              summaries: summaries, // 각 호실의 요약 데이터
-            });
-          });
-      })
-
-      //   // console.log("Summaries:", summaries);
-      //   res.status(200).send(summaries);
-      // })
-      .catch((error) => {
-        console.log(error);
-        if (!error.status)
-          return res
-            .status(message["500_SERVER_INTERNAL_ERROR"].status)
-            .send(
-              message.issueMessage(
-                message["500_SERVER_INTERNAL_ERROR"],
-                "UNDEFINED_ERROR"
-              )
-            );
-        else return res.status(error.status).send(error);
-      })
-  );
+        res.status(200).send({
+          total_Items: totalItems,
+          total_Pages: totalPages,
+          current_Page: page,
+          summaries: paginatedSummaries,
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
 }
 
+//단일 ver
 function getSummarizedSentenceForRoom(roomId) {
-  const requirement_log = new Requirement_Log();
-  const chatting_log = new ChattingLog();
   const { Sequelize } = require("../../models/index.js");
 
+  // 요청사항을 가져오는 부분
   return models.requirement_log
-    .findOne({
+    .findAll({
       where: {
         room_id: roomId,
-        progress: [0, 1], // progress가 0 또는 1
+        progress: [0, 1], // progress가 0 또는 1인 요청사항
       },
       order: [["createdAt", "DESC"]],
       attributes: [
@@ -831,63 +945,146 @@ function getSummarizedSentenceForRoom(roomId) {
         "user_id",
         "progress",
       ],
+      include: [
+        {
+          model: models.department,
+          // where: { id: process_department_id },
+          attributes: ["name"],
+          required: false,
+        },
+      ],
     })
-    .then((latestRequirement) => {
-      if (latestRequirement) {
-        return {
-          requirement_log_id: latestRequirement.id,
-          summarized_sentence: latestRequirement.summarized_sentence,
-          createdAt: latestRequirement.createdAt,
-          process_department_id:
-            latestRequirement.process_department_id || null,
-          user_id: latestRequirement.user_id || null,
-          progress: latestRequirement.progress,
-        };
-      } else {
-        return models.chatting_log
-          .findOne({
-            where: {
+    .then((latestRequirements) => {
+      // 채팅 로그를 가져오는 부분
+      return models.chatting_log
+        .findOne({
+          where: {
+            room_id: roomId,
+            summarized_sentence: { [Sequelize.Op.ne]: null }, // 요약 문장이 있는 것만
+          },
+          order: [["createdAt", "DESC"]],
+          attributes: ["summarized_sentence", "createdAt"],
+        })
+        .then((latestChat) => {
+          // 고객 요청사항을 개별 항목으로 배열로 변환
+          const requirementResults = latestRequirements.map((requirement) => ({
+            room_id: roomId,
+            room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+            requirement_log_id: requirement.id,
+            summarized_sentence: requirement.summarized_sentence,
+            createdAt: requirement.createdAt,
+            process_department_id: requirement.process_department_id || null,
+            department_name: requirement.department
+              ? requirement.department.name
+              : null,
+            user_id: requirement.user_id || null,
+            progress: requirement.progress,
+          }));
+
+          // 채팅 로그가 있으면 추가
+          if (latestChat) {
+            requirementResults.push({
               room_id: roomId,
-              summarized_sentence: { [Sequelize.Op.ne]: null },
-            },
-            order: [["createdAt", "DESC"]],
-            attributes: ["summarized_sentence", "createdAt"],
-          })
-          .then((latestChat) => {
-            if (latestChat) {
-              return {
-                requirement_log_id: null,
-                summarized_sentence: latestChat.summarized_sentence,
-                createdAt: latestChat.createdAt,
-                process_department_id: null,
-                user_id: null,
-                progress: null,
-              };
-            } else {
-              return {
-                requirement_log_id: null,
-                summarized_sentence: null,
-                createdAt: null,
-                process_department_id: null,
-                user_id: null,
-                progress: null,
-              };
-            }
-          });
-      }
+              room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+              requirement_log_id: null,
+              summarized_sentence: latestChat.summarized_sentence,
+              createdAt: latestChat.createdAt,
+              process_department_id: null,
+              department_name: null,
+              user_id: null,
+              progress: null,
+            });
+          } else {
+            // 채팅 로그가 없으면 빈 배열을 추가
+            requirementResults.push({
+              room_id: roomId,
+              room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+              requirement_log_id: null,
+              summarized_sentence: null,
+              createdAt: null,
+              process_department_id: null,
+              department_name: null,
+              user_id: null,
+              progress: null,
+            });
+          }
+
+          return Promise.resolve(requirementResults);
+        });
     })
     .catch((error) => {
       console.log(error);
-      return {
-        requirement_log_id: null,
-        summarized_sentence: null,
-        createdAt: null,
-        process_department_id: null,
-        user_id: null,
-        progress: null,
-      };
+      return Promise.resolve([]);
     });
 }
+
+//배열 ver
+
+// function getSummarizedSentenceForRoom(roomId) {
+//   const { Sequelize } = require("../../models/index.js");
+
+//   return models.requirement_log
+//     .findAll({
+//       where: {
+//         room_id: roomId,
+//         progress: [0, 1], // progress가 0 또는 1인 요청사항
+//       },
+//       order: [["createdAt", "DESC"]],
+//       attributes: [
+//         "id",
+//         "summarized_sentence",
+//         "createdAt",
+//         "process_department_id",
+//         "user_id",
+//         "progress",
+//       ],
+//     })
+//     .then((latestRequirements) => {
+//       // 요청사항을 모두 배열로 저장 (없으면 빈 배열)
+//       const summarizedRequirements = latestRequirements.map((requirement) => ({
+//         requirement_log_id: requirement.id,
+//         summarized_sentence: requirement.summarized_sentence,
+//         createdAt: requirement.createdAt,
+//         process_department_id: requirement.process_department_id || null,
+//         user_id: requirement.user_id || null,
+//         progress: requirement.progress,
+//       }));
+
+//       // 채팅 로그를 가져오기
+//       return models.chatting_log
+//         .findOne({
+//           where: {
+//             room_id: roomId,
+//             summarized_sentence: { [Sequelize.Op.ne]: null }, // 요약 문장이 있는 것만
+//           },
+//           order: [["createdAt", "DESC"]],
+//           attributes: ["summarized_sentence", "createdAt"],
+//         })
+//         .then((latestChat) => {
+//           // 채팅 로그가 없으면 null로 설정
+//           const chatLog = latestChat
+//             ? {
+//                 summarized_sentence: latestChat.summarized_sentence,
+//                 createdAt: latestChat.createdAt,
+//               }
+//             : null;
+
+//           // summarizedRequirements와 채팅 로그를 함께 반환
+//           return Promise.resolve({
+//             summarizedRequirements: summarizedRequirements,
+//             latestChat: chatLog, // 채팅 로그가 있으면 반환, 없으면 null
+//           });
+//         });
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       // 에러 발생 시 빈 배열과 null을 반환
+//       return Promise.resolve({
+//         summarizedRequirements: [],
+//         latestChat: null,
+//       });
+//     });
+// }
 
 module.exports = {
   createRequirementLog,

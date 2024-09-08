@@ -3,11 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const chatting_log_guest = sequelize.define(
     "chatting_log_guest",
     {
-      nickname: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      email: {
+      user_id: {
         type: DataTypes.TEXT,
         allowNull: false,
       },
@@ -21,11 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       translated_question: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       translated_answer: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       // req_log_created: {
       //   type: DataTypes.INTEGER,
