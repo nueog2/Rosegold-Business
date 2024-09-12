@@ -870,6 +870,10 @@ function getSummarizedSentencesForHotel(req, res) {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
+  const time = req.query.time || "desc";
+  const processValues = req.query.process
+    ? req.query.process.split(",").map(Number)
+    : null;
 
   return models.room
     .findAll({
@@ -883,16 +887,14 @@ function getSummarizedSentencesForHotel(req, res) {
         getSummarizedSentenceForRoom(room.id).then((results) =>
           results.map((result) => ({
             ...result,
-            room_name: room.name, // 방 이름을 추가
+            room_name: room.name,
           }))
         )
       );
 
       return Promise.all(roomSummariesPromises).then((summariesArray) => {
-        // 배열을 평탄화하여 모든 항목을 하나의 배열로 병합
-        const flattenedSummaries = summariesArray.flat();
+        let flattenedSummaries = summariesArray.flat();
 
-        // 정렬 로직 추가
         flattenedSummaries.sort((a, b) => {
           // 1. progress가 0인 것 우선 ( 미진행 )
           if (a.progress === 0 && b.progress !== 0) {
@@ -907,7 +909,15 @@ function getSummarizedSentencesForHotel(req, res) {
           } else if (b.progress === 1 && a.progress !== 1) {
             return 1;
           }
-          // 2. summarized_sentence와 createdAt이 null이 아닌 것 우선
+
+          // 1-3. progress가 2인 것 우선 ( 완료 )
+          if (a.progress === 2 && b.progress !== 2) {
+            return -1;
+          } else if (b.progress === 2 && a.progress !== 2) {
+            return 1;
+          }
+
+          // 2. summarized_sentence와 createdAt이 null이 아닌 것 우선 ( AI 처리 )
           if (
             a.summarized_sentence &&
             a.createdAt &&
@@ -922,15 +932,25 @@ function getSummarizedSentencesForHotel(req, res) {
             return 1;
           }
 
-          // 3. 나머지는 createdAt을 기준으로 내림차순 정렬 (최신순)
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          // 3. createdAt 기준 정렬 (time 파라미터에 따라 asc/desc)
+          if (time === "desc") {
+            return new Date(b.createdAt) - new Date(a.createdAt); // 내림차순(최신순)
+          } else {
+            return new Date(a.createdAt) - new Date(b.createdAt); // 오름차순
+          }
         });
 
-        // 페이지네이션을 위해 요소 갯수 계산
+        // 4. process 필터링 (processValues가 null이면 모든 progress 허용)
+        if (processValues !== null) {
+          flattenedSummaries = flattenedSummaries.filter((item) => {
+            const currentProgress = item.progress === null ? 3 : item.progress;
+            return processValues.includes(currentProgress);
+          });
+        }
+
         const totalItems = flattenedSummaries.length;
         const totalPages = Math.ceil(totalItems / limit);
 
-        // 페이지네이션 처리
         const paginatedSummaries = flattenedSummaries.slice(
           offset,
           offset + limit
@@ -959,16 +979,14 @@ function getSummarizedSentencesForHotel(req, res) {
     });
 }
 
-//단일 ver
 function getSummarizedSentenceForRoom(roomId) {
   const { Sequelize } = require("../../models/index.js");
 
-  // 요청사항을 가져오는 부분
   return models.requirement_log
     .findAll({
       where: {
         room_id: roomId,
-        progress: [0, 1], // progress가 0 또는 1인 요청사항
+        progress: [0, 1, 2],
       },
       order: [["createdAt", "DESC"]],
       attributes: [
@@ -982,29 +1000,26 @@ function getSummarizedSentenceForRoom(roomId) {
       include: [
         {
           model: models.department,
-          // where: { id: process_department_id },
           attributes: ["name"],
           required: false,
         },
       ],
     })
     .then((latestRequirements) => {
-      // 채팅 로그를 가져오는 부분
       return models.chatting_log
         .findOne({
           where: {
             room_id: roomId,
-            summarized_sentence: { [Sequelize.Op.ne]: null }, // 요약 문장이 있는 것만
+            summarized_sentence: { [Sequelize.Op.ne]: null },
             req_log_created: 0,
           },
           order: [["createdAt", "DESC"]],
           attributes: ["summarized_sentence", "createdAt"],
         })
         .then((latestChat) => {
-          // 고객 요청사항을 개별 항목으로 배열로 변환
           const requirementResults = latestRequirements.map((requirement) => ({
             room_id: roomId,
-            room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+            room_name: null,
             requirement_log_id: requirement.id,
             summarized_sentence: requirement.summarized_sentence,
             createdAt: requirement.createdAt,
@@ -1016,11 +1031,10 @@ function getSummarizedSentenceForRoom(roomId) {
             progress: requirement.progress,
           }));
 
-          // 채팅 로그가 있으면 추가
           if (latestChat) {
             requirementResults.push({
               room_id: roomId,
-              room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+              room_name: null,
               requirement_log_id: null,
               summarized_sentence: latestChat.summarized_sentence,
               createdAt: latestChat.createdAt,
@@ -1030,7 +1044,6 @@ function getSummarizedSentenceForRoom(roomId) {
               progress: null,
             });
           } else {
-            // 채팅 로그가 없으면 빈 배열을 추가
             requirementResults.push({
               room_id: roomId,
               room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
