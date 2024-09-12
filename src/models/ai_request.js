@@ -64,6 +64,7 @@ class Ai_Request extends Hotel {
 
       models.requirement_log
         .findAll({
+          paranoid: false,
           where: {
             hotel_id: hotel_id,
             createdAt: {
@@ -88,7 +89,7 @@ class Ai_Request extends Hotel {
           console.log("additionalCount: ", additionalCount);
 
           // 지정된 기간 동안 chatting_log 갯수 계산
-          return models.chatting_log
+          return models.chatting_log_db
             .findAll({
               where: {
                 hotel_id: hotel_id,
