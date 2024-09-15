@@ -2844,6 +2844,7 @@ function sendMessage(req, res) {
       return res.status(response.status).send(response);
     })
     .catch((error) => {
+      console.log(error);
       return res.status(error.status).send(error);
     });
 }

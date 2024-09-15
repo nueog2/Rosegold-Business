@@ -3480,20 +3480,26 @@ class Message {
   sendMessage(to_user_id, message_article, user_id) {
     return new Promise((resolve, reject) => {
       var worker = new Worker();
+      let sendTargetFCMTokens = [];
 
       worker
         .readOne({
           id: to_user_id,
         })
         .then((workerInfoResponse) => {
+          console.log("workerInfoResponse : ", workerInfoResponse);
+          var sendTargetFCMTokens = workerInfoResponse.worker.fcm_token;
+
           models.message
             .create({
               to_user_id: to_user_id,
               message_article: message_article,
               user_id: user_id,
             })
-            .then((response) => {
-              var token = workerInfoResponse.dataValues["fcm_token"];
+            .then(() => {
+              // var token = workerInfoResponse.dataValues["fcm_token"];
+              console.log("/n/n/nFCMTOKEN", sendTargetFCMTokens);
+              // var token = sendTargetFCMTokens;
 
               if (sendTargetFCMTokens.length > 0) {
                 let _message = {
@@ -3505,7 +3511,7 @@ class Message {
                     title: "새로운 알림 도착!",
                     body: "알림을 확인해주세요",
                   },
-                  tokens: token,
+                  tokens: sendTargetFCMTokens,
                   android: {
                     priority: "high",
                   },
@@ -3517,9 +3523,11 @@ class Message {
                     },
                   },
                 };
+                // admin.messaging().sendMulticast(_message);
+
                 admin
                   .messaging()
-                  .sendMulticast(_message)
+                  .sendEachForMulticast(_message)
                   .then(function (response) {
                     console.log("Successfully sent message: : ", response);
                     return resolve(message["200_SUCCESS"]);
