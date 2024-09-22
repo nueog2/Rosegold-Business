@@ -140,7 +140,7 @@ class ChattingLogGuest {
 
       const headers = {
         "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "ct_wc8b1i_Pb1AXDQ0RZWuCccpzdNL",
+        Authorization: "XNbfuAgcRbiLiYMYwGhl",
       };
 
       axios
@@ -258,7 +258,7 @@ class ChattingLogGuest {
 
       const headers = {
         "Content-Type": "application/json;charset=UTF-8",
-        Authorization: "ct_wc8b1i_Pb1AXDQ0RZWuCccpzdNL",
+        Authorization: "",
       };
 
       axios
@@ -273,8 +273,39 @@ class ChattingLogGuest {
         });
     });
   }
+
+  readMany(condition) {
+    return new Promise((resolve, reject) => {
+      models.chatting_log_guest
+        .findAll({
+          where: condition,
+        })
+        .then((response) => {
+          if (response.length > 0) {
+            var obj = Object.assign({}, message["200_SUCCESS"]);
+            obj.chatting_log_guests = response;
+            return resolve(obj);
+          } else {
+            return reject(
+              message.issueMessage(
+                message["404_NOT_FOUND"],
+                "CHAT_LOG_NOT_FOUND"
+              )
+            );
+          }
+        })
+        .catch((error) => {
+          return reject({
+            status: error.status,
+            error: error,
+          });
+        });
+    });
+  }
 }
 
 module.exports = {
   ChattingLogGuest,
 };
+
+//인증키 : XNbfuAgcRbiLiYMYwGhl

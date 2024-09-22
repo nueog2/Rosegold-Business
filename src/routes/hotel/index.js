@@ -18,6 +18,7 @@ const service_categoryRouter = require("./service_category");
 const work_noticeRouter = require("./work_notice");
 const weatherRouter = require("./weather");
 const ai_requestRouter = require("./ai_request");
+const chattingLogGuestRouter = require("./chatting_log_guest");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -37,6 +38,7 @@ router.use("/service", serviceRouter);
 router.use("/service_category", service_categoryRouter);
 router.use("/auto", autoRouter);
 router.use("/ai_request", ai_requestRouter);
+router.use("/chatting_log_guest", chattingLogGuestRouter);
 
 router.use("/weather", weatherRouter);
 

@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const chatting_log_guest = sequelize.define(
     "chatting_log_guest",
     {
-      user_id: {
+      user: {
         type: DataTypes.TEXT,
         allowNull: false,
       },

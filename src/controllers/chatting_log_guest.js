@@ -77,6 +77,27 @@ function sendChattingLogGuest_Naver(req, res) {
     });
 }
 
+function getChattingLogGuest_Naver(req, res) {
+  new ChattingLogGuest()
+    .readMany(req.query)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function createChattingLogGuest_Kakao(req, res) {
   if (
     req.query.hotel_id == null ||
@@ -141,6 +162,7 @@ function sendChattingLogGuest_Kakao(req, res) {
 module.exports = {
   createChattingLogGuest_Naver,
   sendChattingLogGuest_Naver,
+  getChattingLogGuest_Naver,
   createChattingLogGuest_Kakao,
   sendChattingLogGuest_Kakao,
 };
