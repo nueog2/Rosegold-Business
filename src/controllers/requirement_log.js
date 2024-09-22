@@ -1043,19 +1043,20 @@ function getSummarizedSentenceForRoom(roomId) {
               user_id: null,
               progress: null,
             });
-          } else {
-            requirementResults.push({
-              room_id: roomId,
-              room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
-              requirement_log_id: null,
-              summarized_sentence: null,
-              createdAt: null,
-              process_department_id: null,
-              department_name: null,
-              user_id: null,
-              progress: null,
-            });
           }
+          // else {
+          //   requirementResults.push({
+          //     room_id: roomId,
+          //     room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+          //     requirement_log_id: null,
+          //     summarized_sentence: null,
+          //     createdAt: null,
+          //     process_department_id: null,
+          //     department_name: null,
+          //     user_id: null,
+          //     progress: null,
+          //   });
+          // }
 
           return Promise.resolve(requirementResults);
         });

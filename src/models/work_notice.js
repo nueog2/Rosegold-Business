@@ -7,18 +7,19 @@ class Work_Notice extends Hotel {
     super();
   }
 
-  create(content, department_id, hotel_id) {
+  create(content, department_id, hotel_id, user_id) {
     return new Promise((resolve, reject) => {
       super
         .readOne(hotel_id)
         .then((response) => {
           models.work_notice
-            .create({ content, department_id, hotel_id })
+            .create({ content, department_id, hotel_id, user_id })
             .then((response) => {
               console.log("work_notice created:", {
                 content,
                 department_id,
                 hotel_id,
+                user_id,
               });
               return resolve(message["200_SUCCESS"]);
             })
@@ -46,6 +47,13 @@ class Work_Notice extends Hotel {
       models.work_notice
         .findAll({
           where: condition,
+          include: [
+            {
+              model: models.user,
+              attributes: ["name"],
+              // as: "room",
+            },
+          ],
         })
         .then((response) => {
           if (response.length > 0) {

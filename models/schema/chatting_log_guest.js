@@ -9,10 +9,14 @@ module.exports = (sequelize, DataTypes) => {
       },
       question: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       answer: {
         type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      guest_num: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       translated_question: {
@@ -23,19 +27,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      // req_log_created: {
-      //   type: DataTypes.INTEGER,
-      //   allowNull: true,
-      //   defaultValue: 0,
-      // },
-      // identifier: {
-      //   type: DataTypes.INTEGER,
-      //   allowNull: true,
-      // },
-      // summarized_sentence: {
-      //   type: DataTypes.TEXT,
-      //   allowNull: true,
-      // },
     },
     {
       paranoid: true,

@@ -23,6 +23,11 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
+    this.belongsTo(models.user, {
+      foreignKey: "user_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
   };
   return work_notice;
 };

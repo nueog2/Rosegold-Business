@@ -5,7 +5,8 @@ function createWorkNotice(req, res) {
   if (
     req.body.content == null ||
     req.body.department_id == null ||
-    req.body.hotel_id == null
+    req.body.hotel_id == null ||
+    req.body.user_id == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -15,7 +16,12 @@ function createWorkNotice(req, res) {
   }
   const work_notice = new Work_Notice();
   work_notice
-    .create(req.body.content, req.body.department_id, req.body.hotel_id)
+    .create(
+      req.body.content,
+      req.body.department_id,
+      req.body.hotel_id,
+      req.body.user_id
+    )
     .then((response) => {
       return res.status(response.status).send(response);
     })
