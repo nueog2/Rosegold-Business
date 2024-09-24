@@ -8,6 +8,7 @@ const Worker = require("../models/hotel").Worker;
 const Role_Assign_Log = require("../models/hotel").Role_Assign_Log;
 const Requirement_Log = require("../models/hotel").Requirement_Log;
 const Chatting_Log = require("../models/chatting_log").ChattingLog;
+const Work_Log = require("../models/work_log").Work_Log;
 
 const nodemailer = require("nodemailer");
 
@@ -2618,6 +2619,8 @@ function readWorkerProcessedReqLog(req, res) {
 
 function setAssignWorker(req, res) {
   var requireLog = new Requirement_Log();
+  var worker = new Worker();
+  // var work_log = new Work_Log();
 
   requireLog
     .update(req.body.requirement_log_id, req.body.progress)
@@ -2625,10 +2628,26 @@ function setAssignWorker(req, res) {
       requireLog
         .updateWorker(req.body.requirement_log_id, req.user.id)
         .then((response) => {
-          return res.status(response.status).send(response);
-        })
-        .catch((error) => {
-          return res.status(error.status).send(error);
+          worker
+            .readWorkLogRecentOne({ user_id: req.user.id })
+            .then((response) => {
+              console.log(response);
+              if (response.work_logs[0].dataValues.status == "ASSIGN") {
+                return res.status(response.status).send({
+                  response: response,
+                  message: "ALREADY ASSIGNED REQ_LOG, NOT UPDATING STATUS",
+                });
+              }
+              worker.createWorkLog(req.user.id, "ASSIGN").then((response) => {
+                return res.status(response.status).send({
+                  response: response,
+                  message: "UPDATING STATUS TO ASSIGN",
+                });
+              });
+            })
+            .catch((error) => {
+              return res.status(error.status).send(error);
+            });
         });
     })
     .catch((error) => {
@@ -2638,6 +2657,7 @@ function setAssignWorker(req, res) {
 
 function setAssignWorkerinWeb(req, res) {
   var requireLog = new Requirement_Log();
+  var worker = new Worker();
 
   requireLog
     .update(req.body.requirement_log_id, req.body.progress)
@@ -2645,7 +2665,28 @@ function setAssignWorkerinWeb(req, res) {
       requireLog
         .updateWorker(req.body.requirement_log_id, req.body.user_id)
         .then((response) => {
-          return res.status(response.status).send(response);
+          worker
+            .readWorkLogRecentOne({ user_id: req.body.user_id })
+            .then((response) => {
+              console.log(response);
+              if (response.work_logs[0].dataValues.status == "ASSIGN") {
+                return res.status(response.status).send({
+                  response: response,
+                  message: "ALREADY ASSIGNED REQ_LOG, NOT UPDATING STATUS",
+                });
+              }
+              worker
+                .createWorkLog(req.body.user_id, "ASSIGN")
+                .then((response) => {
+                  return res.status(response.status).send({
+                    response: response,
+                    message: "UPDATING STATUS TO ASSIGN",
+                  });
+                });
+            });
+          // worker.createWorkLog(req.body.user_id, "ASSIGN").then((response) => {
+          //   return res.status(response.status).send(response);
+          // });
         })
         .catch((error) => {
           return res.status(error.status).send(error);
@@ -2750,6 +2791,19 @@ function setReqLogNotAssign(req, res) {
       return requireLog.updateWorkerNull(req.body.requirement_log_id);
     })
     .then(() => {
+      requireLog
+        .readMany({
+          user_id: req.user.id,
+          progress: 1,
+        })
+        .then((response) => {
+          if (response.requirement_log.length > 0) {
+          } else {
+            return worker.createWorkLog(req.user.id, "WORK");
+          }
+        });
+    })
+    .then(() => {
       return requireLog.readOne({ id: req.body.requirement_log_id });
     })
     .then((response) => {
@@ -2809,21 +2863,64 @@ function setReqLogNotAssign(req, res) {
     })
     .catch((error) => {
       console.log("\n\nERROR SENDING MESSAGE!!! : ", error);
-      const statusCode = error.status || 500; // 기본값을 500으로 설정
-      const errorMessage = error.message || "Internal Server Error";
-      return res
-        .status(statusCode)
-        .send({ status: statusCode, message: errorMessage });
+      // const statusCode = error.status || 500; // 기본값을 500으로 설정
+      // const errorMessage = error.message || "Internal Server Error";
+      // return res
+      //   .status(statusCode)
+      //   .send({ status: statusCode, message: errorMessage });
+      return reject(error);
     });
 }
 
 function setWorkFinish(req, res) {
   var requireLog = new Requirement_Log();
+  var worker = new Worker();
+
   console.log(req.body.requirement_log_id);
   requireLog
     .updateProcessedInfo(req.body.requirement_log_id, req.body.processed_info)
     .then((response) => {
-      return res.status(response.status).send(response);
+      requireLog
+        .readMany({ user_id: req.user.id, progress: 1 })
+        .then((response) => {
+          // console.log("/n/n/nRESPONSE!!!!!!!!!!! :", response);
+          // console.log(
+          //   "/n/n/nRESPONSELENGTH!!!!!!!!!!! :",
+          //   response.requirement_log.length
+          // );
+          if (response.requirement_log.length > 0) {
+            return res.status(response.status).send(response);
+          } else {
+            return worker
+              .createWorkLog(req.user.id, "WORK")
+              .then((response) => {
+                return res.status(response.status).send({
+                  response: response,
+                  message: "REQ_LOG_NOT_FOUND, UPDATING TO STATUS -> WORK",
+                });
+              });
+          }
+        })
+        .catch((error) => {
+          if (error.detail_cause == "REQUIREMENT_LOG_NOT_FOUND") {
+            return worker
+              .createWorkLog(req.user.id, "WORK")
+              .then((response) => {
+                return res.status(response.status).send({
+                  response: response,
+                  message: "REQ_LOG_NOT_FOUND, UPDATING TO STATUS -> WORK",
+                });
+              })
+              .catch((error) => {
+                return res.status(error.status).send(error);
+              });
+          } else {
+            return res.status(error.status).send(error);
+          }
+        });
+      // .then((response) => {
+      //   return res.status(response.status).send(response);
+      // });
     })
     .catch((error) => {
       return res.status(error.status).send(error);

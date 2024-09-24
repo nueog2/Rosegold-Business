@@ -220,7 +220,8 @@ function createRequirementLogAdditionalService(req, res) {
       req.body.room_id,
       req.body.summarized_sentence,
       req.body.price,
-      req.body.pmsign
+      req.body.pmsign,
+      req.body.department_name
     )
     .then((response) => {
       return res.status(response.status).send(response);
@@ -237,6 +238,7 @@ function createRequirementLogAdditionalService(req, res) {
             )
           );
       else return res.status(error.status).send(error);
+      // return res.status(error.status).send(error);
     });
 }
 

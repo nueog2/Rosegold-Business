@@ -925,6 +925,21 @@ class Worker extends Hotel {
     });
   }
 
+  readWorkLogRecentOne(condition) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .findAll({ where: condition, order: [["createdAt", "DESC"]], limit: 1 })
+        .then((response) => {
+          var obj = Object.assign({}, message["200_SUCCESS"]);
+          obj.work_logs = response;
+          return resolve(obj);
+        })
+        .catch((error) => {
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
+
   createWorkLog(user_id, status, reason = null) {
     return new Promise((resolve, reject) => {
       models.work_log
@@ -2308,8 +2323,11 @@ class Requirement_Log extends Room {
 
           for (var i = 0; i < workers["workers"].length; i++) {
             if (
-              workers["workers"][i].work_logs.length > 0 &&
-              workers["workers"][i].work_logs[0]["status"] == "WORK"
+              (workers["workers"][i].work_logs.length > 0 &&
+                workers["workers"][i].work_logs[0]["status"] == "WORK") ||
+              //ASSIGN 케이스 추가
+              (workers["workers"][i].work_logs.length > 0 &&
+                workers["workers"][i].work_logs[0]["status"] == "ASSIGN")
             ) {
               if (workers["workers"][i].fcm_token.length > 0) {
                 sendTargetFCMTokens = sendTargetFCMTokens.concat(
@@ -2465,9 +2483,12 @@ class Requirement_Log extends Room {
 
                         for (var i = 0; i < workers["workers"].length; i++) {
                           if (
-                            workers["workers"][i].work_logs.length > 0 &&
-                            workers["workers"][i].work_logs[0]["status"] ==
-                              "WORK"
+                            (workers["workers"][i].work_logs.length > 0 &&
+                              workers["workers"][i].work_logs[0]["status"] ==
+                                "WORK") ||
+                            (workers["workers"][i].work_logs.length > 0 &&
+                              workers["workers"][i].work_logs[0]["status"] ==
+                                "ASSIGN")
                           ) {
                             if (workers["workers"][i].fcm_token.length > 0) {
                               sendTargetFCMTokens = sendTargetFCMTokens.concat(
@@ -2639,16 +2660,36 @@ class Requirement_Log extends Room {
     });
   }
 
-  createAdditionalService(room_id, summarized_sentence, price, pmsign) {
+  createAdditionalService(
+    room_id,
+    summarized_sentence,
+    price,
+    pmsign,
+    department_name
+  ) {
     return new Promise((resolve, reject) => {
+      let room_name, hotel_id, department_id;
+      let reqresponse;
+
       const room = new Room();
+
       room
-        .readOne({ id: room_id })
+        .addService(room_id, 1)
+        .then(() => {
+          return room.readOne({ id: room_id });
+        })
         .then((response) => {
+          room_name = response.room.name;
           var hotel_id = response.room.hotel_id;
-          new Room()
-            .addService(room_id, 1)
-            .then(() => {
+          return new Department()
+            .readOne({
+              token_name: department_name,
+              hotel_id: hotel_id,
+            })
+            .then((response) => {
+              department_name = response.department.name;
+              department_id = response.department.id;
+
               let pricePromise;
               if (pmsign == "+") {
                 pricePromise = new Room().addPrice(room_id, price);
@@ -2663,40 +2704,227 @@ class Requirement_Log extends Room {
                 );
               }
 
-              pricePromise.then(() => {
-                // new Room().addPrice(room_id, price).then(() => {
-                models.requirement_log
-                  .create({
-                    type: "부가서비스",
-                    room_id: room_id,
-                    summarized_sentence: summarized_sentence,
-                    price: price,
-                    num: 1,
-                    pmsign: pmsign,
-                    hotel_id: hotel_id,
-                  })
-                  .then((response) => {
-                    return resolve(message["200_SUCCESS"]);
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                    return reject(
-                      message.issueMessage(
-                        message["500_SERVER_INTERNAL_ERROR"],
-                        "UNDEFINED_ERROR"
-                      )
-                    );
-                  });
-              });
+              pricePromise
+                .then(() => {
+                  // new Room().addPrice(room_id, price).then(() => {
+                  models.requirement_log
+                    .create({
+                      type: "부가서비스",
+                      room_id: room_id,
+                      summarized_sentence: summarized_sentence,
+                      process_department_id: department_id,
+                      price: price,
+                      num: 1,
+                      pmsign: pmsign,
+                      hotel_id: hotel_id,
+                    })
+                    .then((response) => {
+                      reqresponse = response;
+                      if (reqresponse) {
+                        var worker = new Worker();
+                        worker
+                          .readManyByDepartment(department_id)
+                          .then((workers) => {
+                            console.log(
+                              "\n\n\nreadManybyDepworkers2 : ",
+                              workers
+                            );
+                            var sendTargetFCMTokens = [];
+
+                            for (
+                              var i = 0;
+                              i < workers["workers"].length;
+                              i++
+                            ) {
+                              // console.log(
+                              //   "\n\n\n이이이이이잉 : ",
+                              //   workers["workers"][i].work_logs[0]
+                              // );
+                              if (
+                                (workers["workers"][i].work_logs.length > 0 &&
+                                  workers["workers"][i].work_logs[0][
+                                    "status"
+                                  ] == "WORK") ||
+                                (workers["workers"][i].work_logs.length > 0 &&
+                                  workers["workers"][i].work_logs[0][
+                                    "status"
+                                  ] == "ASSIGN")
+                              ) {
+                                if (
+                                  workers["workers"][i].fcm_token.length > 0
+                                ) {
+                                  sendTargetFCMTokens =
+                                    sendTargetFCMTokens.concat(
+                                      workers["workers"][i].fcm_token
+                                    );
+                                }
+                              }
+                            }
+
+                            // 이제 sendTargetFCMTokens 길이와 상관없이 실행합니다.
+                            let notificationPromises = [];
+
+                            if (sendTargetFCMTokens.length > 0) {
+                              console.log(
+                                "FCMTOKENS!!!! : ",
+                                sendTargetFCMTokens
+                              );
+                              let _message = {
+                                notification: {
+                                  title: "새로운 요청 도착!",
+                                  body: "빠르게 요청을 배정받아주세요!",
+                                },
+                                data: {
+                                  title: "새로운 요청 도착!",
+                                  body: "빠르게 요청을 배정받아주세요!",
+                                },
+                                tokens: sendTargetFCMTokens,
+                                android: {
+                                  priority: "high",
+                                },
+                                apns: {
+                                  payload: {
+                                    aps: {
+                                      contentAvailable: true,
+                                      sound: "default",
+                                    },
+                                  },
+                                },
+                              };
+                              notificationPromises.push(
+                                admin.messaging().sendEachForMulticast(_message)
+                              );
+                            }
+
+                            // 두 번째 알림을 위해 웹용 fcm_token을 가진 직원들을 조회
+                            worker
+                              .readMany({ hotel_id: hotel_id })
+                              .then((allWorkers) => {
+                                console.log(
+                                  "\n\n\nALL WORKERS READ BY HOTEL_ID  : ",
+                                  allWorkers["workers"]
+                                );
+                                var sendTargetFCMTokensWeb = [];
+
+                                for (
+                                  var j = 0;
+                                  j < allWorkers["workers"].length;
+                                  j++
+                                ) {
+                                  if (
+                                    allWorkers["workers"][j].fcm_token_web &&
+                                    allWorkers["workers"][j].fcm_token_web
+                                      .length > 0
+                                  ) {
+                                    sendTargetFCMTokensWeb =
+                                      sendTargetFCMTokensWeb.concat(
+                                        allWorkers["workers"][j].fcm_token_web
+                                      );
+                                  }
+                                }
+
+                                if (sendTargetFCMTokensWeb.length > 0) {
+                                  let _webMessage = {
+                                    notification: {
+                                      title: "로즈골드",
+                                      body:
+                                        "[" +
+                                        department_name +
+                                        "] " +
+                                        room_name +
+                                        "호에서 요청이 들어왔습니다: " +
+                                        summarized_sentence,
+                                    },
+                                    tokens: sendTargetFCMTokensWeb,
+                                  };
+
+                                  notificationPromises.push(
+                                    admin
+                                      .messaging()
+                                      .sendEachForMulticast(_webMessage)
+                                  );
+                                } else {
+                                  console.log("NO WEB TOKENS");
+                                }
+
+                                Promise.all(notificationPromises)
+                                  .then((responses) => {
+                                    console.log(
+                                      "\n\nWEB MESSAGE SEND SUCCESS :",
+                                      responses
+                                    );
+                                    return resolve({
+                                      status: message["200_SUCCESS"].status,
+                                      requirement_log: reqresponse,
+                                      result: responses,
+                                    });
+                                  })
+                                  .catch((err) => {
+                                    console.log(
+                                      "\n\nERROR SENDING MESSAGE!!! : ",
+                                      err
+                                    );
+                                    return resolve({
+                                      status: message["200_SUCCESS"].status,
+                                      requirement_log: reqresponse,
+                                      result: err,
+                                    });
+                                  });
+                              })
+                              .catch((error) => {
+                                console.log(error);
+                                return resolve({
+                                  status: message["200_SUCCESS"].status,
+                                  requirement_log: reqresponse,
+                                  result: error,
+                                });
+                              });
+                          })
+                          .catch((error) => {
+                            console.log(error);
+                            if (
+                              error.status &&
+                              error.status == message["404_NOT_FOUND"].status
+                            ) {
+                              return resolve({
+                                status: message["200_SUCCESS"].status,
+                                requirement_log: reqresponse,
+                                result: error,
+                              });
+                            } else {
+                              return reject(error);
+                            }
+                          });
+                      } else {
+                        return reject(
+                          // message.issueMessage(
+                          //   message["500_SERVER_INTERNAL_ERROR"],
+                          //   "UNDEFINED_ERROR"
+                          // )
+                          error
+                        );
+                      }
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                      return reject(
+                        // message.issueMessage(
+                        //   message["500_SERVER_INTERNAL_ERROR"],
+                        //   "UNDEFINED_ERROR"
+                        // )
+                        error
+                      );
+                    });
+                })
+                .catch((error) => {
+                  console.log(error);
+                  return reject(error);
+                });
             })
             .catch((error) => {
               console.log(error);
               return reject(error);
             });
-        })
-        .catch((error) => {
-          console.log(error);
-          return reject(error);
         });
     });
   }
