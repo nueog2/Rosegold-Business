@@ -1,6 +1,9 @@
 const models = require("../../models");
 const message = require("../../config/message");
 const { Hotel } = require("../models/hotel");
+const { Worker } = require("../models/hotel");
+
+const admin = require("firebase-admin");
 
 class Work_Notice extends Hotel {
   constructor() {
@@ -21,24 +24,112 @@ class Work_Notice extends Hotel {
                 hotel_id,
                 user_id,
               });
-              return resolve(message["200_SUCCESS"]);
+
+              var worker = new Worker();
+              worker
+                .readManyByDepartment(department_id)
+                .then((workers) => {
+                  console.log("\n\n\nreadManybyDepworkers2 : ", workers);
+                  var sendTargetFCMTokens = [];
+
+                  for (var i = 0; i < workers["workers"].length; i++) {
+                    if (workers["workers"][i].work_logs.length > 0) {
+                      if (workers["workers"][i].fcm_token.length > 0) {
+                        sendTargetFCMTokens = sendTargetFCMTokens.concat(
+                          workers["workers"][i].fcm_token
+                        );
+                      }
+                    }
+                  }
+
+                  let notificationPromises = [];
+
+                  if (sendTargetFCMTokens.length > 0) {
+                    console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
+                    let _message = {
+                      notification: {
+                        title: "Notice",
+                        body: "직원 전달사항이 있습니다 : " + content,
+                      },
+                      data: {
+                        title: "Notice",
+                        body: "직원 전달사항이 있습니다 : " + content,
+                      },
+                      tokens: sendTargetFCMTokens,
+                      android: {
+                        priority: "high",
+                      },
+                      apns: {
+                        payload: {
+                          aps: {
+                            contentAvailable: true,
+                            sound: "default",
+                          },
+                        },
+                      },
+                    };
+                    notificationPromises.push(
+                      admin.messaging().sendEachForMulticast(_message)
+                    );
+                  }
+
+                  Promise.all(notificationPromises)
+                    .then((responses) => {
+                      console.log("\n\nAPP MESSAGE SEND SUCCESS :", responses);
+                      return resolve({
+                        status: message["200_SUCCESS"].status,
+                        // requirement_log: reqresponse,
+                        result: responses,
+                      });
+                    })
+                    .catch((err) => {
+                      console.log("\n\nERROR SENDING MESSAGE!!! : ", err);
+                      return resolve({
+                        status: message["200_SUCCESS"].status,
+                        // requirement_log: reqresponse,
+                        result: err,
+                      });
+                    });
+                })
+                .catch((error) => {
+                  console.log(error);
+                  return resolve({
+                    status: message["200_SUCCESS"].status,
+                    // requirement_log: reqresponse,
+                    result: error,
+                  });
+                });
             })
             .catch((error) => {
               console.log(error);
-              return reject(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
+              if (
+                error.status &&
+                error.status == message["404_NOT_FOUND"].status
+              ) {
+                return resolve({
+                  status: message["200_SUCCESS"].status,
+                  // requirement_log: reqresponse,
+                  result: error,
+                });
+              } else {
+                return reject(error);
+              }
             });
         })
         .catch((error) => {
           console.log(error);
           return reject(
-            message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND")
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
           );
         });
+    }).catch((error) => {
+      console.log(error);
+      return reject(
+        message.issueMessage(message["404_NOT_FOUND"], "HOTEL_NOT_FOUND")
+      );
     });
   }
 

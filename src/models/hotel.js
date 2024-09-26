@@ -2344,11 +2344,25 @@ class Requirement_Log extends Room {
             let _message = {
               notification: {
                 title: "새로운 요청 도착!",
-                body: "빠르게 요청을 배정받아주세요!",
+                // body: "빠르게 요청을 배정받아주세요!",
+                body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
               },
               data: {
                 title: "새로운 요청 도착!",
-                body: "빠르게 요청을 배정받아주세요!",
+                // body: "빠르게 요청을 배정받아주세요!",
+                body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
               },
               tokens: sendTargetFCMTokens,
               android: {
@@ -2506,11 +2520,25 @@ class Requirement_Log extends Room {
                           let _message = {
                             notification: {
                               title: "새로운 요청 도착!",
-                              body: "빠르게 요청을 배정받아주세요!",
+                              // body: "빠르게 요청을 배정받아주세요!",
+                              body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
                             },
                             data: {
                               title: "새로운 요청 도착!",
-                              body: "빠르게 요청을 배정받아주세요!",
+                              // body: "빠르게 요청을 배정받아주세요!",
+                              body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
                             },
                             tokens: sendTargetFCMTokens,
                             android: {
@@ -2772,11 +2800,25 @@ class Requirement_Log extends Room {
                               let _message = {
                                 notification: {
                                   title: "새로운 요청 도착!",
-                                  body: "빠르게 요청을 배정받아주세요!",
+                                  // body: "빠르게 요청을 배정받아주세요!",
+                                  body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
                                 },
                                 data: {
                                   title: "새로운 요청 도착!",
-                                  body: "빠르게 요청을 배정받아주세요!",
+                                  // body: "빠르게 요청을 배정받아주세요!",
+                                  body:
+                  "[" +
+                  department_name +
+                  "] " +
+                  room_name +
+                  "호에서 요청이 들어왔습니다: " +
+                  summarized_sentence,
                                 },
                                 tokens: sendTargetFCMTokens,
                                 android: {
