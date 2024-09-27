@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      platform: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       paranoid: true,
