@@ -274,6 +274,103 @@ class ChattingLogGuest {
     });
   }
 
+  create_Page(hotel_id, event, user, text) {
+    return new Promise((resolve, reject) => {
+      const findOrCreateGuestNum = async () => {
+        const existingGuest = await models.chatting_log_guest.findOne({
+          where: {
+            hotel_id: hotel_id,
+            user: user,
+          },
+          order: [["guest_num", "DESC"]], // 최신의 guest_num을 가져오기 위함
+        });
+
+        if (existingGuest) {
+          return existingGuest.guest_num;
+        } else {
+          const maxGuestNum = await models.chatting_log_guest.max("guest_num", {
+            where: {
+              hotel_id: hotel_id,
+            },
+          });
+
+          return maxGuestNum ? maxGuestNum + 1 : 1;
+        }
+      };
+
+      findOrCreateGuestNum().then((guest_num) => {
+        if (event == "send") {
+          //고객 -> 챗봇
+          models.chatting_log_guest
+            .create({
+              hotel_id: hotel_id,
+              user: user,
+              guest_num: guest_num,
+              question: text,
+              platform: "homepage",
+            })
+            .then((response) => {
+              if (response) {
+                return resolve({
+                  // return resolve(message["200_SUCCESS"]);
+                  status: message["200_SUCCESS"].status,
+                  chatting_log_guest: response,
+                });
+              } else {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              }
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        } else {
+          // 챗봇 -> 고객
+
+          models.chatting_log_guest
+            .create({
+              hotel_id: hotel_id,
+              user: user,
+              answer: text,
+              guest_num: guest_num,
+              platform: "homepage",
+            })
+            .then((response) => {
+              if (response) {
+                return resolve({
+                  // return resolve(message["200_SUCCESS"]);
+                  status: message["200_SUCCESS"].status,
+                  chatting_log_guest: response,
+                });
+              } else {
+                return reject(
+                  message.issueMessage(
+                    message["500_SERVER_INTERNAL_ERROR"],
+                    "UNDEFINED_ERROR"
+                  )
+                );
+              }
+            })
+            .catch((error) => {
+              return reject({
+                status: error.status,
+                error: error,
+              });
+            });
+        }
+      });
+    });
+  }
+
   readMany(condition) {
     return new Promise((resolve, reject) => {
       models.chatting_log_guest
