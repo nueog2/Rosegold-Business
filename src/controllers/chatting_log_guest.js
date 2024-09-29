@@ -100,24 +100,30 @@ function sendChattingLogGuest_Naver(req, res) {
 // }
 
 function createChattingLogGuest_Kakao(req, res) {
-  if (
-    req.query.hotel_id == null ||
-    // req.body.event or skill
-    req.body.userRequest.user.id == null ||
-    req.body.userRequest.utterance == null
-  ) {
-    return res
-      .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
-  }
+  // if (
+  //   req.body.hotel_id == null ||
+  //   // req.body.event or skill
+  //   req.body.event == null ||
+  //   req.body.user == null ||
+  //   req.body.text == null
+  // ) {
+  //   return res
+  //     .status(message["400_BAD_REQUEST"].status)
+  //     .send(
+  //       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+  //     );
+  // }
 
-  const text = req.body.userRequest.utterance;
-  const user = req.body.userRequest.user.id;
+  // const text = req.body.userRequest.utterance;
+  // const user = req.body.userRequest.user.id;
 
   new ChattingLogGuest()
-    .create_Kakao(req.query.hotel_id, user, text)
+    .create_Kakao(
+      req.body.hotel_id,
+      req.body.event,
+      req.body.user,
+      req.body.text
+    )
     .then((response) => {
       console.log(response);
       return res.status(response.status).send(response);
