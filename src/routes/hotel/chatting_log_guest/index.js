@@ -10,7 +10,10 @@ router.post(
   chattingLogGuestController.sendChattingLogGuest_Naver
 );
 router.post("/kakao", chattingLogGuestController.createChattingLogGuest_Kakao);
-router.post("/kakao", chattingLogGuestController.sendChattingLogGuest_Kakao);
+router.post(
+  "/kakao/send",
+  chattingLogGuestController.sendChattingLogGuest_Kakao
+);
 
 router.post("/page", chattingLogGuestController.createChattingLogGuest_Page);
 

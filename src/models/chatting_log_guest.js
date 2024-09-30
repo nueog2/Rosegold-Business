@@ -180,7 +180,7 @@ class ChattingLogGuest {
         }
       };
 
-      findOrCreateGestNum().then((guest_num) => {
+      findOrCreateGuestNum().then((guest_num) => {
         if (event == "send") {
           models.chatting_log_guest
             .create({
