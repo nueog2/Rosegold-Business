@@ -2306,6 +2306,8 @@ class Requirement_Log extends Room {
           });
         })
         .then((response) => {
+          // console.log(reqresonse)
+          const requirement_log_id = response.id;
           reqresponse = response;
           if (reqresponse) {
             var worker = new Worker();
@@ -2315,6 +2317,7 @@ class Requirement_Log extends Room {
               message["500_SERVER_INTERNAL_ERROR"],
               "UNDEFINED_ERROR"
             );
+            ``;
           }
         })
         .then((workers) => {
@@ -2350,8 +2353,11 @@ class Requirement_Log extends Room {
                   department_name +
                   "] " +
                   room_name +
-                  "호에서 요청이 들어왔습니다: " +
+                  "호에서 요청이 들어왔습니다 : " +
                   summarized_sentence,
+                // summarized_sentence +
+                // "requirement_log_id : " +
+                // requirement_log_id,
               },
               data: {
                 title: "새로운 요청 도착!",
@@ -2361,8 +2367,10 @@ class Requirement_Log extends Room {
                   department_name +
                   "] " +
                   room_name +
-                  "호에서 요청이 들어왔습니다: " +
-                  summarized_sentence,
+                  "호에서 요청이 들어왔습니다 : " +
+                  summarized_sentence +
+                  " requirement_log_id : " +
+                  requirement_log_id,
               },
               tokens: sendTargetFCMTokens,
               android: {
@@ -2486,6 +2494,8 @@ class Requirement_Log extends Room {
                   user_id: null,
                 })
                 .then((response) => {
+                  // console.log(response);
+                  const requirement_log_id = response.id;
                   reqresponse = response;
                   if (reqresponse) {
                     var worker = new Worker();
@@ -2522,23 +2532,29 @@ class Requirement_Log extends Room {
                               title: "새로운 요청 도착!",
                               // body: "빠르게 요청을 배정받아주세요!",
                               body:
-                  "[" +
-                  department_name +
-                  "] " +
-                  room_name +
-                  "호에서 요청이 들어왔습니다: " +
-                  summarized_sentence,
+                                "[" +
+                                department_name +
+                                "] " +
+                                room_name +
+                                "호에서 요청이 들어왔습니다 : " +
+                                summarized_sentence,
+                              // summarized_sentence +
+                              // "requirement_log_id : " +
+                              // requirement_log_id,
                             },
                             data: {
                               title: "새로운 요청 도착!",
                               // body: "빠르게 요청을 배정받아주세요!",
                               body:
-                  "[" +
-                  department_name +
-                  "] " +
-                  room_name +
-                  "호에서 요청이 들어왔습니다: " +
-                  summarized_sentence,
+                                "[" +
+                                department_name +
+                                "] " +
+                                room_name +
+                                "호에서 요청이 들어왔습니다 : " +
+                                // summarized_sentence,
+                                summarized_sentence +
+                                " requirement_log_id : " +
+                                requirement_log_id,
                             },
                             tokens: sendTargetFCMTokens,
                             android: {
@@ -2594,7 +2610,7 @@ class Requirement_Log extends Room {
                                     department_name +
                                     "] " +
                                     room_name +
-                                    "호에서 요청이 들어왔습니다: " +
+                                    "호에서 요청이 들어왔습니다 : " +
                                     summarized_sentence,
                                 },
                                 tokens: sendTargetFCMTokensWeb,
@@ -2747,6 +2763,7 @@ class Requirement_Log extends Room {
                       hotel_id: hotel_id,
                     })
                     .then((response) => {
+                      const requirement_log_id = response.id;
                       reqresponse = response;
                       if (reqresponse) {
                         var worker = new Worker();
@@ -2802,23 +2819,26 @@ class Requirement_Log extends Room {
                                   title: "새로운 요청 도착!",
                                   // body: "빠르게 요청을 배정받아주세요!",
                                   body:
-                  "[" +
-                  department_name +
-                  "] " +
-                  room_name +
-                  "호에서 요청이 들어왔습니다: " +
-                  summarized_sentence,
+                                    "[" +
+                                    department_name +
+                                    "] " +
+                                    room_name +
+                                    "호에서 요청이 들어왔습니다 : " +
+                                    summarized_sentence,
                                 },
                                 data: {
                                   title: "새로운 요청 도착!",
                                   // body: "빠르게 요청을 배정받아주세요!",
                                   body:
-                  "[" +
-                  department_name +
-                  "] " +
-                  room_name +
-                  "호에서 요청이 들어왔습니다: " +
-                  summarized_sentence,
+                                    "[" +
+                                    department_name +
+                                    "] " +
+                                    room_name +
+                                    "호에서 요청이 들어왔습니다 : " +
+                                    // summarized_sentence,
+                                    summarized_sentence +
+                                    " requirement_log_id : " +
+                                    requirement_log_id,
                                 },
                                 tokens: sendTargetFCMTokens,
                                 android: {
