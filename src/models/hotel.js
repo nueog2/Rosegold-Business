@@ -3347,6 +3347,8 @@ class Requirement_Log extends Room {
             }
           )
           .then((response) => {
+            // const requirement_log_id = response.id;
+
             var worker = new Worker();
             worker
               .readManyByDepartment(process_department_id)
@@ -3356,8 +3358,10 @@ class Requirement_Log extends Room {
 
                 for (var i = 0; i < workers["workers"].length; i++) {
                   if (
-                    workers["workers"][i].work_logs.length > 0 &&
-                    workers["workers"][i].work_logs[0]["status"] == "WORK"
+                    (workers["workers"][i].work_logs.length > 0 &&
+                      workers["workers"][i].work_logs[0]["status"] == "WORK") ||
+                    (workers["workers"][i].work_logs.length > 0 &&
+                      workers["workers"][i].work_logs[0]["status"] == "ASSIGN")
                   ) {
                     if (workers["workers"][i].fcm_token.length > 0) {
                       sendTargetFCMTokens = sendTargetFCMTokens.concat(
@@ -3379,6 +3383,7 @@ class Requirement_Log extends Room {
                     data: {
                       title: "새로운 요청 도착!",
                       body: "빠르게 요청을 배정받아주세요!",
+                      requirement_log_id: String(requirement_log_id),
                     },
                     tokens: sendTargetFCMTokens,
                     android: {
@@ -3397,30 +3402,32 @@ class Requirement_Log extends Room {
                   notificationPromises.push(
                     admin.messaging().sendEachForMulticast(_message)
                   );
-                } else {
-                  return Promise.resolve();
                 }
-              })
-              .then((response) => {
-                console.log("Successfully sent message: : ", response);
-                return resolve({
-                  status: message["200_SUCCESS"].status,
-                  result: response,
-                  message:
-                    "Successfully sent dep_update alarm, update department success",
-                });
-              })
-              .catch((error) => {
-                return reject(
-                  message.issueMessage(
-                    message["500_SERVER_INTERNAL_ERROR"],
-                    "UNDEFINED_ERROR"
-                  )
-                );
+
+                Promise.all(notificationPromises)
+                  .then((responses) => {
+                    console.log("Successfully sent message: : ", responses);
+                    return resolve({
+                      status: message["200_SUCCESS"].status,
+                      result: responses,
+                      message:
+                        "Successfully sent dep_update alarm, update department success",
+                    });
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    return reject(
+                      message.issueMessage(
+                        message["500_SERVER_INTERNAL_ERROR"],
+                        "UNDEFINED_ERROR"
+                      )
+                    );
+                  });
               });
           })
           .catch((error) => {
             console.log("ERROR SENDING MESSAGE.....", error);
+            return reject(error);
           });
       });
     });
@@ -3466,18 +3473,30 @@ class Requirement_Log extends Room {
               }
             )
             .then((response) => {
+              console.log("\n\n\nupdateWorkerResponse", response);
+
+              // const Requirement_log_id = response.requirement_log_id;
+              // console.log("\n\n\nREQLOGID!!!!!!!!!!!!", Requirement_log_id);
+
               var worker = new Worker();
               worker
                 .readOne({ id: user_id })
                 .then((workerinfo) => {
                   console.log("\n\n\nreadOnebyUserID : ", workerinfo);
                   var sendTargetFCMTokens = [];
-
                   if (
-                    workerinfo.worker.dataValues.work_logs.length > 0 &&
-                    workerinfo.worker.dataValues.work_logs[0]["status"] ==
-                      "WORK"
+                    (workerinfo.worker.dataValues.work_logs.length > 0 &&
+                      workerinfo.worker.dataValues.work_logs[0]["status"] ==
+                        "WORK") ||
+                    (workerinfo.worker.dataValues.work_logs.length > 0 &&
+                      workerinfo.worker.dataValues.work_logs[0]["status"] ==
+                        "ASSIGN")
                   ) {
+                    // if (
+                    //   workerinfo.worker.dataValues.work_logs.length > 0 &&
+                    //   workerinfo.worker.dataValues.work_logs[0]["status"] ==
+                    //     "WORK"
+                    // ) {
                     if (workerinfo.worker.dataValues.fcm_token.length > 0) {
                       sendTargetFCMTokens = sendTargetFCMTokens.concat(
                         workerinfo.worker.dataValues.fcm_token
@@ -3498,6 +3517,7 @@ class Requirement_Log extends Room {
                       data: {
                         title: "새로운 요청 배정!",
                         body: "요청이 배정되었습니다 !",
+                        requirement_log_id: String(requirement_log_id),
                       },
                       tokens: sendTargetFCMTokens,
                       android: {
