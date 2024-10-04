@@ -9,6 +9,7 @@ const admin = require("firebase-admin");
 
 let serAccount = require("../../config/firebase-key.json");
 const { orderBy, result } = require("lodash");
+const requirement = require("../../models/schema/requirement");
 
 admin.initializeApp({
   credential: admin.credential.cert(serAccount),
@@ -2368,9 +2369,8 @@ class Requirement_Log extends Room {
                   "] " +
                   room_name +
                   "호에서 요청이 들어왔습니다 : " +
-                  summarized_sentence +
-                  " requirement_log_id : " +
-                  requirement_log_id,
+                  summarized_sentence,
+                requirement_log_id: String(requirement_log_id),
               },
               tokens: sendTargetFCMTokens,
               android: {
@@ -2551,10 +2551,8 @@ class Requirement_Log extends Room {
                                 "] " +
                                 room_name +
                                 "호에서 요청이 들어왔습니다 : " +
-                                // summarized_sentence,
-                                summarized_sentence +
-                                " requirement_log_id : " +
-                                requirement_log_id,
+                                summarized_sentence,
+                              requirement_log_id: String(requirement_log_id),
                             },
                             tokens: sendTargetFCMTokens,
                             android: {
@@ -2835,10 +2833,9 @@ class Requirement_Log extends Room {
                                     "] " +
                                     room_name +
                                     "호에서 요청이 들어왔습니다 : " +
-                                    // summarized_sentence,
-                                    summarized_sentence +
-                                    " requirement_log_id : " +
-                                    requirement_log_id,
+                                    summarized_sentence,
+                                  requirement_log_id:
+                                    String(requirement_log_id),
                                 },
                                 tokens: sendTargetFCMTokens,
                                 android: {
