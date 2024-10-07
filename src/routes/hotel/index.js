@@ -20,6 +20,7 @@ const weatherRouter = require("./weather");
 const ai_requestRouter = require("./ai_request");
 const chattingLogGuestRouter = require("./chatting_log_guest");
 const ex_questionRouter = require("./ex_question");
+const chattingLogFrontRouter = require("./chatting_log_front");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -41,6 +42,7 @@ router.use("/auto", autoRouter);
 router.use("/ai_request", ai_requestRouter);
 router.use("/chatting_log_guest", chattingLogGuestRouter);
 router.use("/ex_question", ex_questionRouter);
+router.use("/potential", chattingLogFrontRouter);
 
 router.use("/weather", weatherRouter);
 
