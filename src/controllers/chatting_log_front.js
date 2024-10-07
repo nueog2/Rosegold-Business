@@ -1,4 +1,4 @@
-const { create } = require("lodash");
+// const { create } = require("lodash");
 const message = require("../../config/message");
 const models = require("../../models");
 const { ChattingLogFront } = require("../models/chatting_log_front");
@@ -6,6 +6,7 @@ const { ChattingLogFront } = require("../models/chatting_log_front");
 function createChattingLogFront(req, res) {
   if (
     req.body.hotel_id == null ||
+    req.body.user == null ||
     req.body.question == null ||
     req.body.answer == null ||
     req.body.translated_question == null ||
@@ -18,10 +19,17 @@ function createChattingLogFront(req, res) {
       );
   }
 
-  const text = req.body.textContent.text;
+  // const text = req.body.textContent.text;
 
   new ChattingLogFront()
-    .create(req.body.hotel_id, req.body.event, req.body.user, text)
+    .create(
+      req.body.hotel_id,
+      req.body.user,
+      req.body.question,
+      req.body.answer,
+      req.body.translated_question,
+      req.body.translated_answer
+    )
     .then((response) => {
       console.log(response);
       return res.status(response.status).send(response);

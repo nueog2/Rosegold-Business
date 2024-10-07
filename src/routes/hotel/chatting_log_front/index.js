@@ -1,4 +1,4 @@
-const chattingLogFrontController = "../../../controllers/chatting_log_front";
+const chattingLogFrontController = require("../../../controllers/chatting_log_front");
 const router = require("express").Router();
 
 router.post("/", chattingLogFrontController.createChattingLogFront);

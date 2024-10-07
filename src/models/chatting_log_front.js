@@ -10,7 +10,7 @@ class ChattingLogFront {
     question,
     answer,
     translated_question,
-    translated_question
+    translated_answer
   ) {
     return new Promise((resolve, reject) => {
       const findOrCreateGuestNum = async () => {
