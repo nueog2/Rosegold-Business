@@ -17,7 +17,7 @@ class ExQuestion {
             return resolve({
               // return resolve(message["200_SUCCESS"]);
               status: message["200_SUCCESS"].status,
-              chatting_log: response,
+              ex_question: response,
             });
           } else {
             return reject(
@@ -66,7 +66,7 @@ class ExQuestion {
 
   readMany(condition) {
     return new Promise((resolve, reject) => {
-      models.chatting_log
+      models.ex_question
         .findAll({
           where: condition,
         })
@@ -91,34 +91,39 @@ class ExQuestion {
     });
   }
 
-  update(exameple_question_id, text) {
+  update(example_question_id, text) {
     return new Promise((resolve, reject) => {
-      this.readOne({ id: exameple_question_id }).then((response) => {
-        models.ex_question
-          .update(
-            {
-              text: text,
+      //   models.ex_question
+      //     .readOne({ id: exameple_question_id })
+      //     .then((response) => {
+      models.ex_question
+        .update(
+          {
+            text: text,
+          },
+          {
+            where: {
+              id: example_question_id,
             },
-            {
-              where: {
-                id: exameple_question_id,
-              },
-            }
-          )
-          .then((response) => {
-            return resolve(message["200_SUCCESS"]);
-          })
-          .catch((error) => {
-            console.log(error);
-            return reject(error);
-          });
-      });
+          }
+        )
+        .then(() => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
     });
+    // }).catch((error) => {
+    //   console.log(error);
+    //   return reject(error);
+    // });
   }
 
   delete(example_question_id) {
     return new Promise((resolve, reject) => {
-      this.readOne({ id: exameple_question_id })
+      this.readOne({ id: example_question_id })
         .then((response) => {
           models.ex_question
             .destroy({

@@ -1,4 +1,5 @@
 const Ex_Question = require("../models/ex_question").ExQuestion;
+const message = require("../../config/message");
 
 function createExQuestion(req, res) {
   const ex_question = new Ex_Question();
@@ -71,7 +72,7 @@ function updateExQuestion(req, res) {
   const ex_question = new Ex_Question();
 
   ex_question
-    .update(req.body.text, req.body.exameple_question_id)
+    .update(req.body.example_question_id, req.body.text)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -94,7 +95,7 @@ function deleteExQuestion(req, res) {
   const ex_question = new Ex_Question();
 
   ex_question
-    .delete(req.body.exameple_question_id)
+    .delete(req.body.example_question_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
