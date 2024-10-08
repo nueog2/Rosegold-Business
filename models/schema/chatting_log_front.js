@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       email: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       question: {
         type: DataTypes.TEXT,
@@ -19,15 +19,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      front_num: {
+      guest_num: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       translated_question: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
       translated_answer: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      lang: {
         type: DataTypes.TEXT,
         allowNull: true,
       },

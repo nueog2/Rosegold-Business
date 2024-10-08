@@ -7,6 +7,7 @@ function createChattingLogFront(req, res) {
   if (
     req.body.hotel_id == null ||
     req.body.user == null ||
+    req.body.lang == null ||
     req.body.question == null ||
     req.body.answer == null ||
     req.body.translated_question == null ||
@@ -25,6 +26,7 @@ function createChattingLogFront(req, res) {
     .create(
       req.body.hotel_id,
       req.body.user,
+      req.body.lang,
       req.body.question,
       req.body.answer,
       req.body.translated_question,

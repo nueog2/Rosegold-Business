@@ -7,6 +7,7 @@ class ChattingLogFront {
   create(
     hotel_id,
     user,
+    lang,
     question,
     answer,
     translated_question,
@@ -42,6 +43,7 @@ class ChattingLogFront {
               hotel_id: hotel_id,
               user: user,
               guest_num: guest_num,
+              lang: lang,
               question: question,
               answer: answer,
               translated_question: translated_question,
