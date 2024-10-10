@@ -68,6 +68,34 @@ class Work_Log {
         });
     });
   }
+
+  //제일 최신 업데이트용
+  update(user_id, status, reason = null) {
+    return new Promise((resolve, reject) => {
+      models.work_log
+        .update(
+          {
+            // user_id: user_id,
+            status: status,
+            reason: reason,
+          },
+          {
+            where: {
+              user_id: user_id,
+            },
+            order: [["createdAt", "DESC"]],
+            limit: 1,
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(message["500_SERVER_INTERNAL_ERROR"]);
+        });
+    });
+  }
 }
 
 module.exports = { Work_Log };

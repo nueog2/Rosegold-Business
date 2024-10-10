@@ -2494,7 +2494,7 @@ function updateWorkStatus(req, res) {
 
   var worker = new Worker();
   worker
-    .readWorkLogMany({
+    .readWorkLogRecentOne({
       user_id: req.user.id,
     })
     .then((workLogResponse) => {
@@ -2503,10 +2503,7 @@ function updateWorkStatus(req, res) {
         "\n\nworkLogResponse.work_logs[0]:",
         workLogResponse.work_logs[0]
       );
-      // console.log(
-      //   "\n\nworkLogResponse.work_logs[0].dataValues.status :",
-      //   workLogResponse.work_logs[0].dataValues.status
-      // );
+
       if (
         workLogResponse.work_logs.length == 0 ||
         workLogResponse.work_logs[0].dataValues.status != req.body.status
@@ -2521,12 +2518,31 @@ function updateWorkStatus(req, res) {
               message.issueMessage(message["400_BAD_REQUEST"], "UNVALID_STATUS")
             );
         }
+
+        // 조건을 만족하는 경우에만 createWorkLog 호출
+        if (
+          (workLogResponse.work_logs[0].dataValues.status == "LEAVE" &&
+            req.body.status == "WORK") ||
+          (workLogResponse.work_logs[0].dataValues.status == "WORK" &&
+            req.body.status == "LEAVE") ||
+          (workLogResponse.work_logs[0].dataValues.status == "ASSIGN" &&
+            req.body.status == "LEAVE")
+        ) {
+          return worker
+            .createWorkLog(req.user.id, req.body.status)
+            .then((response) => {
+              console.log(response);
+              return res.status(response.status).send(response);
+            });
+        }
+
         const reason = req.body.reason || null;
 
         // REST 상태 - 배정 불가 사유 추가
-        worker
-          .createWorkLog(req.user.id, req.body.status, reason)
+        return worker
+          .updateWorkLog(req.user.id, req.body.status, reason)
           .then((response) => {
+            console.log("업데이트된 값: ", req.body.status, req.body.reason);
             console.log(response);
             return res.status(response.status).send(response);
           })
@@ -2547,6 +2563,8 @@ function updateWorkStatus(req, res) {
       worker
         .createWorkLog(req.user.id, req.body.status, reason)
         .then((response) => {
+          console.log("생성된 값: ", req.body.status, req.body.reason);
+          console.log(response);
           return res.status(response.status).send(response);
         })
         .catch((error) => {
@@ -2638,7 +2656,7 @@ function setAssignWorker(req, res) {
                   message: "ALREADY ASSIGNED REQ_LOG, NOT UPDATING STATUS",
                 });
               }
-              worker.createWorkLog(req.user.id, "ASSIGN").then((response) => {
+              worker.updateWorkLog(req.user.id, "ASSIGN").then((response) => {
                 return res.status(response.status).send({
                   response: response,
                   message: "UPDATING STATUS TO ASSIGN",
@@ -2676,7 +2694,7 @@ function setAssignWorkerinWeb(req, res) {
                 });
               }
               worker
-                .createWorkLog(req.body.user_id, "ASSIGN")
+                .updateWorkLog(req.body.user_id, "ASSIGN")
                 .then((response) => {
                   return res.status(response.status).send({
                     response: response,
@@ -2799,7 +2817,7 @@ function setReqLogNotAssign(req, res) {
         .then((response) => {
           if (response.requirement_log.length > 0) {
           } else {
-            return worker.createWorkLog(req.user.id, "WORK");
+            return worker.updateWorkLog(req.user.id, "WORK");
           }
         });
     })
@@ -2892,7 +2910,7 @@ function setWorkFinish(req, res) {
             return res.status(response.status).send(response);
           } else {
             return worker
-              .createWorkLog(req.user.id, "WORK")
+              .updateWorkLog(req.user.id, "WORK")
               .then((response) => {
                 return res.status(response.status).send({
                   response: response,
@@ -2904,7 +2922,7 @@ function setWorkFinish(req, res) {
         .catch((error) => {
           if (error.detail_cause == "REQUIREMENT_LOG_NOT_FOUND") {
             return worker
-              .createWorkLog(req.user.id, "WORK")
+              .updateWorkLog(req.user.id, "WORK")
               .then((response) => {
                 return res.status(response.status).send({
                   response: response,
