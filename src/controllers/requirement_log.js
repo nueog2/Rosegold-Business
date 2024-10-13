@@ -5,6 +5,7 @@ const { Worker } = require("../models/hotel");
 const Room = require("../models/hotel").Room;
 const ChattingLog = require("../models/chatting_log").ChattingLog;
 const Sequelize = require("sequelize");
+
 // import { Sequelize } from "sequelize";
 
 function createRequirementLog(req, res) {
@@ -897,52 +898,33 @@ function getSummarizedSentencesForHotel(req, res) {
       return Promise.all(roomSummariesPromises).then((summariesArray) => {
         let flattenedSummaries = summariesArray.flat();
 
+        // 1. createdAt을 먼저 기준으로 정렬
+        if (time === "asc") {
+          flattenedSummaries.sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+          ); // 오름차순
+        } else {
+          flattenedSummaries.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          ); // 내림차순 (기본값)
+        }
+
+        // 2. progress와 createdAt을 함께 고려하여 정렬
         flattenedSummaries.sort((a, b) => {
-          // 1. progress가 0인 것 우선 ( 미진행 )
-          if (a.progress === 0 && b.progress !== 0) {
-            return -1;
-          } else if (b.progress === 0 && a.progress !== 0) {
-            return 1;
+          // 2-1. progress 기준 오름차순 정렬 (0, 1, 2, 3, 4, 5 순서)
+          if (a.progress !== b.progress) {
+            return a.progress - b.progress;
           }
 
-          // 1-2. progress가 1인 것 우선 ( 진행중 )
-          if (a.progress === 1 && b.progress !== 1) {
-            return -1;
-          } else if (b.progress === 1 && a.progress !== 1) {
-            return 1;
-          }
-
-          // 1-3. progress가 2인 것 우선 ( 완료 )
-          if (a.progress === 2 && b.progress !== 2) {
-            return -1;
-          } else if (b.progress === 2 && a.progress !== 2) {
-            return 1;
-          }
-
-          // 2. summarized_sentence와 createdAt이 null이 아닌 것 우선 ( AI 처리 )
-          if (
-            a.summarized_sentence &&
-            a.createdAt &&
-            (!b.summarized_sentence || !b.createdAt)
-          ) {
-            return -1;
-          } else if (
-            b.summarized_sentence &&
-            b.createdAt &&
-            (!a.summarized_sentence || !a.createdAt)
-          ) {
-            return 1;
-          }
-
-          // 3. createdAt 기준 정렬 (time 파라미터에 따라 asc/desc)
-          if (time === "desc") {
-            return new Date(b.createdAt) - new Date(a.createdAt); // 내림차순(최신순)
-          } else {
+          // 2-2. progress가 같은 경우, createdAt을 기준으로 정렬 (time 파라미터에 따라 정렬 방향 결정)
+          if (time === "asc") {
             return new Date(a.createdAt) - new Date(b.createdAt); // 오름차순
+          } else {
+            return new Date(b.createdAt) - new Date(a.createdAt); // 내림차순 (기본값)
           }
         });
 
-        // 4. process 필터링 (processValues가 null이면 모든 progress 허용)
+        // 5. process 필터링 (processValues가 null이면 모든 progress 허용)
         if (processValues !== null) {
           flattenedSummaries = flattenedSummaries.filter((item) => {
             const currentProgress = item.progress === null ? 3 : item.progress;
@@ -983,6 +965,9 @@ function getSummarizedSentencesForHotel(req, res) {
 
 function getSummarizedSentenceForRoom(roomId) {
   const { Sequelize } = require("../../models/index.js");
+  const { Op } = Sequelize;
+  const curDate = new Date();
+  const requirementResults = [];
 
   return models.requirement_log
     .findAll({
@@ -1019,19 +1004,37 @@ function getSummarizedSentenceForRoom(roomId) {
           attributes: ["summarized_sentence", "createdAt"],
         })
         .then((latestChat) => {
-          const requirementResults = latestRequirements.map((requirement) => ({
-            room_id: roomId,
-            room_name: null,
-            requirement_log_id: requirement.id,
-            summarized_sentence: requirement.summarized_sentence,
-            createdAt: requirement.createdAt,
-            process_department_id: requirement.process_department_id || null,
-            department_name: requirement.department
-              ? requirement.department.name
-              : null,
-            user_id: requirement.user_id || null,
-            progress: requirement.progress,
-          }));
+          // const requirementResults = latestRequirements.map((requirement) => ({
+          //   room_id: roomId,
+          //   room_name: null,
+          //   requirement_log_id: requirement.id,
+          //   summarized_sentence: requirement.summarized_sentence,
+          //   createdAt: requirement.createdAt,
+          //   process_department_id: requirement.process_department_id || null,
+          //   department_name: requirement.department
+          //     ? requirement.department.name
+          //     : null,
+          //   user_id: requirement.user_id || null,
+          //   progress: requirement.progress,
+          // }));
+
+          latestRequirements.forEach((requirement) => {
+            requirementResults.push({
+              room_id: roomId,
+              room_name: null, // 나중에 업데이트될 예정
+              requirement_log_id: requirement.id,
+              summarized_sentence: requirement.summarized_sentence,
+              createdAt: requirement.createdAt,
+              process_department_id: requirement.process_department_id || null,
+              department_name: requirement.department
+                ? requirement.department.name
+                : null,
+              user_id: requirement.user_id || null,
+              progress: requirement.progress,
+            });
+          });
+
+          // requirementResults.push(...latestRequirements);
 
           if (latestChat) {
             requirementResults.push({
@@ -1043,7 +1046,7 @@ function getSummarizedSentenceForRoom(roomId) {
               process_department_id: null,
               department_name: null,
               user_id: null,
-              progress: null,
+              progress: 3,
             });
           }
           // else {
@@ -1060,6 +1063,124 @@ function getSummarizedSentenceForRoom(roomId) {
           //   });
           // }
 
+          return requirementResults;
+          // return Promise.resolve(requirementResults);
+        });
+    })
+    .then((requirementResults) => {
+      return models.requirement_log
+        .findAll({
+          paranoid: false,
+          where: {
+            room_id: roomId,
+            progress: [0, 1, 2],
+            // createdAt: {
+            //   [Op.gte]: new Date(
+            //     Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+            //   ), //30일 전 기준 조회
+            // },
+          },
+          order: [["createdAt", "DESC"]],
+          attributes: [
+            "id",
+            "summarized_sentence",
+            "createdAt",
+            "process_department_id",
+            "user_id",
+            "progress",
+          ],
+          include: [
+            {
+              model: models.department,
+              attributes: ["name"],
+              required: false,
+            },
+          ],
+        })
+        .then((pastRequirements) => {
+          pastRequirements.forEach((p_requirement) => {
+            requirementResults.push({
+              room_id: roomId,
+              room_name: null, // 나중에 업데이트될 예정
+              requirement_log_id: p_requirement.id,
+              summarized_sentence: p_requirement.summarized_sentence,
+              createdAt: p_requirement.createdAt,
+              process_department_id:
+                p_requirement.process_department_id || null,
+              department_name: p_requirement.department
+                ? p_requirement.department.name
+                : null,
+              user_id: p_requirement.user_id || null,
+              progress: 4, // 체크아웃 이후 고객 요청사항은 progress 4로 처리
+            });
+          });
+
+          if (pastRequirements.summarized_sentence) {
+            requirementResults.push({
+              room_id: roomId,
+              room_name: null,
+              requirement_log_id: pastRequirements.requirement_log_id,
+              summarized_sentence: pastRequirements.summarized_sentence,
+              createdAt: pastRequirements.createdAt,
+              process_department_id: pastRequirements.process_department_id,
+              department_name: pastRequirements.department_name,
+              user_id: pastRequirements.user_id,
+              progress: 4,
+            });
+          }
+          return requirementResults;
+          // return Promise.resolve(requirementResults);
+        });
+    })
+    .then((requirementResults) => {
+      return models.chatting_log
+        .findAll({
+          paranoid: false,
+          where: {
+            room_id: roomId,
+            summarized_sentence: { [Sequelize.Op.ne]: null },
+            req_log_created: 0,
+            // createdAt: {
+            //   [Op.gte]: new Date(
+            //     Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+            //   ), //30일 전 기준 조회
+            // },
+          },
+          order: [["createdAt", "DESC"]],
+          attributes: ["summarized_sentence", "createdAt"],
+        })
+        .then((pastChats) => {
+          pastChats.forEach((pastChat) => {
+            if (pastChat.summarized_sentence && pastChat.createdAt) {
+              requirementResults.push({
+                room_id: roomId,
+                room_name: null,
+                requirement_log_id: null,
+                summarized_sentence: pastChat.summarized_sentence,
+                createdAt: pastChat.createdAt,
+                process_department_id: null,
+                department_name: null,
+                user_id: null,
+                progress: 5, // 체크아웃 이후 AI 처리는 progress 5로 처리
+              });
+            }
+          });
+
+          // if (pastChat.summarized_sentence && pastChat.createdAt) {
+          //   requirementResults.push({
+          //     room_id: roomId,
+          //     room_name: null,
+          //     requirement_log_id: null,
+          //     summarized_sentence: pastChat.summarized_sentence,
+          //     createdAt: pastChat.createdAt,
+          //     process_department_id: null,
+          //     department_name: null,
+          //     user_id: null,
+          //     progress: 5,
+          //   });
+          // }
+
+          // return requirementResults;
           return Promise.resolve(requirementResults);
         });
     })
@@ -1068,6 +1189,95 @@ function getSummarizedSentenceForRoom(roomId) {
       return Promise.resolve([]);
     });
 }
+
+//기존 ver.
+// function getSummarizedSentenceForRoom(roomId) {
+//   const { Sequelize } = require("../../models/index.js");
+
+//   return models.requirement_log
+//     .findAll({
+//       where: {
+//         room_id: roomId,
+//         progress: [0, 1, 2],
+//       },
+//       order: [["createdAt", "DESC"]],
+//       attributes: [
+//         "id",
+//         "summarized_sentence",
+//         "createdAt",
+//         "process_department_id",
+//         "user_id",
+//         "progress",
+//       ],
+//       include: [
+//         {
+//           model: models.department,
+//           attributes: ["name"],
+//           required: false,
+//         },
+//       ],
+//     })
+//     .then((latestRequirements) => {
+//       return models.chatting_log
+//         .findOne({
+//           where: {
+//             room_id: roomId,
+//             summarized_sentence: { [Sequelize.Op.ne]: null },
+//             req_log_created: 0,
+//           },
+//           order: [["createdAt", "DESC"]],
+//           attributes: ["summarized_sentence", "createdAt"],
+//         })
+//         .then((latestChat) => {
+//           const requirementResults = latestRequirements.map((requirement) => ({
+//             room_id: roomId,
+//             room_name: null,
+//             requirement_log_id: requirement.id,
+//             summarized_sentence: requirement.summarized_sentence,
+//             createdAt: requirement.createdAt,
+//             process_department_id: requirement.process_department_id || null,
+//             department_name: requirement.department
+//               ? requirement.department.name
+//               : null,
+//             user_id: requirement.user_id || null,
+//             progress: requirement.progress,
+//           }));
+
+//           if (latestChat) {
+//             requirementResults.push({
+//               room_id: roomId,
+//               room_name: null,
+//               requirement_log_id: null,
+//               summarized_sentence: latestChat.summarized_sentence,
+//               createdAt: latestChat.createdAt,
+//               process_department_id: null,
+//               department_name: null,
+//               user_id: null,
+//               progress: null,
+//             });
+//           }
+//           // else {
+//           //   requirementResults.push({
+//           //     room_id: roomId,
+//           //     room_name: null, // 방 이름은 이 단계에서 알 수 없으므로 null로 설정
+//           //     requirement_log_id: null,
+//           //     summarized_sentence: null,
+//           //     createdAt: null,
+//           //     process_department_id: null,
+//           //     department_name: null,
+//           //     user_id: null,
+//           //     progress: null,
+//           //   });
+//           // }
+
+//           return Promise.resolve(requirementResults);
+//         });
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       return Promise.resolve([]);
+//     });
+// }
 
 //배열 ver
 
