@@ -1074,11 +1074,11 @@ function getSummarizedSentenceForRoom(roomId) {
           where: {
             room_id: roomId,
             progress: [0, 1, 2],
-            // createdAt: {
-            //   [Op.gte]: new Date(
-            //     Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
-            //   ), //30일 전 기준 조회
-            // },
+             createdAt: {
+               [Op.gte]: new Date(
+                 Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+               ), //30일 전 기준 조회
+             },
           },
           order: [["createdAt", "DESC"]],
           attributes: [
@@ -1140,11 +1140,11 @@ function getSummarizedSentenceForRoom(roomId) {
             room_id: roomId,
             summarized_sentence: { [Sequelize.Op.ne]: null },
             req_log_created: 0,
-            // createdAt: {
-            //   [Op.gte]: new Date(
-            //     Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
-            //   ), //30일 전 기준 조회
-            // },
+             createdAt: {
+               [Op.gte]: new Date(
+                 Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+               ), //30일 전 기준 조회
+             },
           },
           order: [["createdAt", "DESC"]],
           attributes: ["summarized_sentence", "createdAt"],
