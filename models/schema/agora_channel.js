@@ -3,6 +3,11 @@ module.exports = (sequelize, DataTypes) => {
   const agora_channel = sequelize.define(
     "agora_channel",
     {
+      channel_name: {
+        type: DataTypes.TEXT(),
+        allowNull: false,
+        // default: 0,
+      },
       process_id: {
         type: DataTypes.INTEGER(),
         allowNull: false,
