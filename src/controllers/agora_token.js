@@ -47,7 +47,7 @@ const tokenWithUid = RtcTokenBuilder.buildTokenWithUid(
 );
 console.log("Token with int uid:", tokenWithUid);
 
-function createAgoraToken(req, req) {
+function createAgoraToken(req, res) {
   const channelName = req.body.channel_name;
 
   const tokenWithUid = RtcTokenBuilder.buildTokenWithUid(
