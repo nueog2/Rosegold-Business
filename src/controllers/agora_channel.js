@@ -1,6 +1,6 @@
 const { create } = require("lodash");
 const message = require("../../config/message");
-const models = require("../../modles");
+const models = require("../../models");
 const { AgoraChannel } = require("../models/agora_channel");
 
 function createAgoraChannel(req, res) {
@@ -124,4 +124,7 @@ module.exports = {
   createAgoraChannel,
   readManyChannel,
   readOneChannel,
+  updateChannelName,
+  updateChannelProcess,
+  deleteChannelByID,
 };

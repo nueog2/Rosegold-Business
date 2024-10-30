@@ -1,4 +1,4 @@
-const models = require("../../modles");
+const models = require("../../models");
 const message = require("../../config/message");
 
 class AgoraChannel {
