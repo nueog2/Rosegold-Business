@@ -22,6 +22,7 @@ const chattingLogGuestRouter = require("./chatting_log_guest");
 const ex_questionRouter = require("./ex_question");
 const chattingLogFrontRouter = require("./chatting_log_front");
 const agoraChattingRouter = require("./agora_channel");
+const agoraUploadRouter = require("./agora_upload");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -45,6 +46,7 @@ router.use("/chatting_log_guest", chattingLogGuestRouter);
 router.use("/ex_question", ex_questionRouter);
 router.use("/potential", chattingLogFrontRouter);
 router.use("/agora_channel", agoraChattingRouter);
+router.use("/agora_upload", agoraUploadRouter);
 
 router.use("/weather", weatherRouter);
 
