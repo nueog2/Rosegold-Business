@@ -1804,6 +1804,10 @@ class Room extends Hotel {
               model: models.floor,
               attributes: ["floor_number"],
             },
+            {
+              model: models.room_grade,
+              attributes: ["price_multiplier"],
+            },
           ],
           attributes: [
             "id",

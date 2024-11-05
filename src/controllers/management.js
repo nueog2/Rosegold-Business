@@ -1921,6 +1921,37 @@ function getRoomManyByFloor(req, res) {
     });
 }
 
+function getRoomManyByRoomGrade(req, res) {
+  if (req.query.hotel_id == null || req.query.room_grade_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readMany({
+      hotel_id: req.query.hotel_id,
+      room_grade_id: req.query.room_grade_id,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 function getRoomOne(req, res) {
   if (req.query.room_id == null) {
     return res
@@ -3045,6 +3076,8 @@ module.exports = {
   getRoomOneByName,
   getRoomManyByFloor,
   // 객실 층 조회 추가
+  getRoomManyByRoomGrade,
+  //객실 호실 등급별 조회 추가
   getRoomFloors,
   updateRoom,
   //객실 등급 수정

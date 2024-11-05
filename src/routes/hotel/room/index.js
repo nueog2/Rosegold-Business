@@ -4,6 +4,7 @@ const managementController = require("../../../controllers/management");
 router.post("/", managementController.createRoom);
 router.get("/many", managementController.getRoomMany);
 router.get("/many/floor", managementController.getRoomManyByFloor);
+router.get("/many/grade", managementController.getRoomManyByRoomGrade);
 router.get("/floor", managementController.getRoomFloors);
 router.get("/one", managementController.getRoomOne);
 router.get("/one/name", managementController.getRoomOneByName);
