@@ -13,6 +13,7 @@ const requirement = require("../../models/schema/requirement");
 
 admin.initializeApp({
   credential: admin.credential.cert(serAccount),
+  storageBucket: "gs://rosegold-app.appspot.com",
 });
 
 class Hotel {
