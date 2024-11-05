@@ -1804,10 +1804,10 @@ class Room extends Hotel {
               model: models.floor,
               attributes: ["floor_number"],
             },
-            {
-              model: models.room_grade,
-              attributes: ["price_multiplier"],
-            },
+            // {
+            //   model: models.room_grade,
+            //   attributes: ["price_multiplier"],
+            // },
           ],
           attributes: [
             "id",
@@ -1830,11 +1830,14 @@ class Room extends Hotel {
               return models.room_grade
                 .findOne({
                   where: { id: room.room_grade_id },
-                  attributes: ["name"],
+                  attributes: ["name", "price_multiplier"],
                 })
                 .then((roomGrade) => {
                   room.dataValues.room_grade_name = roomGrade
                     ? roomGrade.name
+                    : null;
+                  room.dataValues.price_multiplier = roomGrade
+                    ? roomGrade.price_multiplier
                     : null;
                   return room;
                 });
