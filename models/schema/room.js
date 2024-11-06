@@ -26,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      checkin_status: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       paranoid: true,

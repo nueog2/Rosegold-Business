@@ -1952,6 +1952,37 @@ function getRoomManyByRoomGrade(req, res) {
     });
 }
 
+function getRoomManyByCheckin(req, res) {
+  if (req.query.hotel_id == null || req.query.checkin_status == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const room = new Room();
+  room
+    .readMany({
+      hotel_id: req.query.hotel_id,
+      checkin_status: req.query.checkin_status,
+    })
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          message.issueMessage(
+            message["500_SERVER_INTERNAL_ERROR"],
+            "UNDEFINED_ERROR"
+          )
+        );
+    });
+}
+
 function getRoomOne(req, res) {
   if (req.query.room_id == null) {
     return res
@@ -2195,6 +2226,59 @@ function updateRoomPriceAdd(req, res) {
     });
 }
 
+// function updateRoomCheckinStatusbyArray(req, res) {
+//   const { room_array } = req.body;
+
+//   if (!Array.isArray(room_array) || room_array.length === 0) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+//   }
+
+//   const promises = room_array.map((rooms) => {
+//     const { room_id, checkin_status } = rooms;
+
+//     if (room_id == null || checkin_status == null) {
+//       return res
+//         .status(message["400_BAD_REQUEST"].status)
+//         .send(
+//           message.issueMessage(
+//             message["400_BAD_REQUEST"],
+//             "SEND_ALL_PARAMETERS"
+//           )
+//         );
+//     }
+
+//     const room = new Room();
+//     room.updateCheckinStatus(room_id, checkin_status);
+//   });
+
+//   Promise.all(promises)
+//     .then((responses) => {
+//       if (responses.every((response) => response.status === 200)) {
+//         return res.status(message["200_SUCCESS"].status).send(responses);
+//       } else {
+//         const errorResponse = responses.find(
+//           (response) => response.status !== 200
+//         );
+//         return res.status(errorResponse.status).send(errorResponse);
+//       }
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       if (!error.status)
+//         return res
+//           .status(message["500_SERVER_INTERNAL_ERROR"].status)
+//           .send(
+//             message.issueMessage(
+//               message["500_SERVER_INTERNAL_ERROR"],
+//               "UNDEFINED_ERROR"
+//             )
+//           );
+//       else return res.status(error.status).send(error);
+//     });
+// }
+
 // 배열로 입력받게끔 변경
 
 // function checkoutRoom(req, res) {
@@ -2230,6 +2314,57 @@ function updateRoomPriceAdd(req, res) {
 //     });
 // }
 
+function updateRoomCheckinStatusbyArray(req, res) {
+  const { room_array } = req.body;
+
+  if (!Array.isArray(room_array) || room_array.length === 0) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+  }
+
+  const invalidEntry = room_array.find(
+    (rooms) => rooms.room_id == null || rooms.checkin_status == null
+  );
+  if (invalidEntry) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const promises = room_array.map(({ room_id, checkin_status }) => {
+    const room = new Room();
+    return room.updateCheckinStatus(room_id, checkin_status);
+  });
+
+  Promise.all(promises)
+    .then((responses) => {
+      if (responses.every((response) => response.status === 200)) {
+        return res.status(message["200_SUCCESS"].status).send(responses);
+      } else {
+        const errorResponse = responses.find(
+          (response) => response.status !== 200
+        );
+        return res.status(errorResponse.status).send(errorResponse);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      return res
+        .status(error.status || message["500_SERVER_INTERNAL_ERROR"].status)
+        .send(
+          error.status
+            ? error
+            : message.issueMessage(
+                message["500_SERVER_INTERNAL_ERROR"],
+                "UNDEFINED_ERROR"
+              )
+        );
+    });
+}
+
 function checkoutRoom(req, res) {
   const { results } = req.body;
 
@@ -2248,7 +2383,8 @@ function checkoutRoom(req, res) {
       .updatePrice(room_id, 0)
       .then(() => room.updateAdditionalService(room_id, 0))
       .then(() => requirement_log.deletebyRoomID(room_id))
-      .then(() => chatting_log.deletebyRoomID(room_id));
+      .then(() => chatting_log.deletebyRoomID(room_id))
+      .then(() => room.updateCheckinStatus(room_id, 0));
   });
 
   Promise.all(roomCheckoutPromises)
@@ -3078,6 +3214,8 @@ module.exports = {
   // 객실 층 조회 추가
   getRoomManyByRoomGrade,
   //객실 호실 등급별 조회 추가
+  getRoomManyByCheckin,
+  //객실 체크인 상태별 조회 추가
   getRoomFloors,
   updateRoom,
   //객실 등급 수정
@@ -3086,6 +3224,7 @@ module.exports = {
   updateRoomPrice,
   //객실 가격 추가
   updateRoomPriceAdd,
+  updateRoomCheckinStatusbyArray,
   deleteRoom,
   deleteRoombyHotel,
   //객실 체크아웃

@@ -1817,6 +1817,7 @@ class Room extends Hotel {
             "price",
             "room_grade_id",
             "additional_service",
+            "checkin_status",
           ],
         })
         .then((response) => {
@@ -1926,6 +1927,7 @@ class Room extends Hotel {
             "price",
             "room_grade_id",
             "additional_service",
+            "checkin_status",
           ],
         })
         .then((response) => {
@@ -1966,6 +1968,7 @@ class Room extends Hotel {
             "price",
             "room_grade_id",
             "additional_service",
+            "checkin_status",
           ],
         })
         .then((response) => {
@@ -2125,6 +2128,42 @@ class Room extends Hotel {
             .catch((error) => {
               return reject(
                 console.log(error),
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
+  updateCheckinStatus(room_id, checkin_status) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: room_id,
+      })
+        .then((response) => {
+          models.room
+            .update(
+              {
+                checkin_status: checkin_status,
+              },
+              {
+                where: {
+                  id: room_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject(
                 message.issueMessage(
                   message["500_SERVER_INTERNAL_ERROR"],
                   "UNDEFINED_ERROR"
