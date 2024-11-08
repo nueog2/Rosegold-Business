@@ -2365,6 +2365,58 @@ function updateRoomCheckinStatusbyArray(req, res) {
     });
 }
 
+// 사물함 api 에서 활용 예정
+// function updateRoomCheckinStatusNamebyArray(req, res) {
+//   const { room_array } = req.body;
+
+//   if (!Array.isArray(room_array) || room_array.length === 0) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_ARRAY"));
+//   }
+
+//   const invalidEntry = room_array.find(
+//     (rooms) => rooms.room_id == null || rooms.checkin_status == null
+//   );
+//   if (invalidEntry) {
+//     return res
+//       .status(message["400_BAD_REQUEST"].status)
+//       .send(
+//         message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+//       );
+//   }
+
+//   const promises = room_array.map(({ room_id, checkin_status }) => {
+//     const room = new Room();
+//     return room.updateCheckinStatus(room_id, checkin_status);
+//   });
+
+//   Promise.all(promises)
+//     .then((responses) => {
+//       if (responses.every((response) => response.status === 200)) {
+//         return res.status(message["200_SUCCESS"].status).send(responses);
+//       } else {
+//         const errorResponse = responses.find(
+//           (response) => response.status !== 200
+//         );
+//         return res.status(errorResponse.status).send(errorResponse);
+//       }
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       return res
+//         .status(error.status || message["500_SERVER_INTERNAL_ERROR"].status)
+//         .send(
+//           error.status
+//             ? error
+//             : message.issueMessage(
+//                 message["500_SERVER_INTERNAL_ERROR"],
+//                 "UNDEFINED_ERROR"
+//               )
+//         );
+//     });
+// }
+
 function checkoutRoom(req, res) {
   const { results } = req.body;
 
@@ -3225,6 +3277,7 @@ module.exports = {
   //객실 가격 추가
   updateRoomPriceAdd,
   updateRoomCheckinStatusbyArray,
+  // updateRoomCheckinStatusNamebyArray,
   deleteRoom,
   deleteRoombyHotel,
   //객실 체크아웃
