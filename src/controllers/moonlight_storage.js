@@ -5,11 +5,11 @@ const { Storage } = require("../models/moonlight_storage");
 function createStorage(req, res) {
   if (
     req.body.number == null ||
-    req.body.hotel_id == null ||
-    req.body.checkin_status == null ||
-    req.body.is_booked == null ||
-    req.body.is_paid == null ||
-    req.body.has_key == null
+    req.body.hotel_id == null
+    // req.body.checkin_status == null ||
+    // req.body.is_booked == null ||
+    // req.body.is_paid == null ||
+    // req.body.has_key == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -24,14 +24,16 @@ function createStorage(req, res) {
     .create(
       req.body.number,
       req.body.hotel_id,
-      req.body.checkin_status,
-      req.body.is_booked,
-      req.body.is_paid,
-      req.body.has_key
+      req.body.room_id || null,
+      req.body.checkin_status || 0,
+      req.body.is_booked || 0,
+      req.body.is_paid || 0,
+      req.body.guest_name || null,
+      req.body.has_key || 0
     )
     .then((response) => {
       console.log(response);
-      return res.status(response.stauts).send(response);
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);
@@ -57,7 +59,21 @@ function readOneStorage(req, res) {
   const storage = new Storage();
 
   storage
-    .readOne(req.query.storage_id)
+    .readOne(req.query)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
+function readOneStorageByRoomName(req, res) {
+  const storage = new Storage();
+
+  storage
+    .readByRoomName(req.query.room_name, req.query.hotel_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -69,12 +85,14 @@ function readOneStorage(req, res) {
 
 function updateStorage(req, res) {
   if (
-    req.body.number == null ||
-    req.body.checkin_status == null ||
-    req.body.is_booked == null ||
-    req.body.is_paid == null ||
-    req.body.guest_name == null ||
-    req.body.has_key == null
+    req.body.storage_id == null
+    // req.body.room_id == null ||
+    // req.body.number == null ||
+    // req.body.checkin_status == null ||
+    // req.body.is_booked == null ||
+    // req.body.is_paid == null ||
+    // req.body.guest_name == null ||
+    // req.body.has_key == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -87,6 +105,8 @@ function updateStorage(req, res) {
 
   storage
     .updateStorage(
+      req.body.storage_id,
+      req.body.room_id,
       req.body.number,
       req.body.checkin_status,
       req.body.is_booked,
@@ -94,28 +114,6 @@ function updateStorage(req, res) {
       req.body.guest_name,
       req.body.has_key
     )
-    .then((response) => {
-      return res.status(response.status).send(response);
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.status(error.status).send(error);
-    });
-}
-
-function updateStorageProcess(req, res) {
-  if (req.body.storage_id == null || req.body.process_id == null) {
-    return res
-      .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
-      );
-  }
-
-  const storage = new Storage();
-
-  storage
-    .updateProcess(req.body.storage_id, req.body.process_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -159,7 +157,7 @@ function deleteStorageByID(req, res) {
   const storage = new Storage();
 
   storage
-    .deletebyID(req.body.storage_id)
+    .delete(req.body.storage_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -173,8 +171,9 @@ module.exports = {
   createStorage,
   readManyStorage,
   readOneStorage,
+  readOneStorageByRoomName,
   updateStorage,
-  updateStorageProcess,
+  //   updateStorageProcess,
   clearStorageByID,
   deleteStorageByID,
 };

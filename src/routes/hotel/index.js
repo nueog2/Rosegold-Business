@@ -23,6 +23,7 @@ const ex_questionRouter = require("./ex_question");
 const chattingLogFrontRouter = require("./chatting_log_front");
 const agoraChattingRouter = require("./agora_channel");
 const agoraUploadRouter = require("./agora_upload");
+const moonlightRouter = require("./moonlight_storage");
 
 router.use("/department", departmentRouter);
 router.use("/worker", workerRouter);
@@ -47,6 +48,7 @@ router.use("/ex_question", ex_questionRouter);
 router.use("/potential", chattingLogFrontRouter);
 router.use("/agora_channel", agoraChattingRouter);
 router.use("/agora_upload", agoraUploadRouter);
+router.use("/moon_light", moonlightRouter);
 
 router.use("/weather", weatherRouter);
 

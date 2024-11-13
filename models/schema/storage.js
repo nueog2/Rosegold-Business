@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       guest_name: {
         type: DataTypes.TEXT(),
-        allowNull: false,
+        allowNull: true,
       },
       has_key: {
         type: DataTypes.INTEGER(),
@@ -39,8 +39,8 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
-    this.hasMany(models.room, {
-      foreignKey: "storage_id",
+    this.belongsTo(models.room, {
+      foreignKey: "room_id",
       sourceKey: "id",
       on_delete: "CASCADE",
     });

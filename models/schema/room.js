@@ -52,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
-    this.belongsTo(models.storage, {
+    this.hasMany(models.storage, {
       foreignKey: "room_id",
       sourceKey: "id",
       on_delete: "CASCADE",
