@@ -214,8 +214,8 @@ class Storage {
 
   updateStorage(
     storage_id,
-    room_id,
     number,
+    room_id,
     checkin_status,
     is_booked,
     is_paid,

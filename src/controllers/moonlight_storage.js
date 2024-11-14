@@ -106,8 +106,8 @@ function updateStorage(req, res) {
   storage
     .updateStorage(
       req.body.storage_id,
-      req.body.room_id,
       req.body.number,
+      req.body.room_id,
       req.body.checkin_status,
       req.body.is_booked,
       req.body.is_paid,
