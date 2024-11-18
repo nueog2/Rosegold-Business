@@ -7,6 +7,10 @@ router.get("/many/name", storageController.readOneStorageByRoomName);
 router.get("/", storageController.readOneStorage);
 router.put("/", storageController.updateStorage);
 router.put("/clear", storageController.clearStorageByID);
+router.put(
+  "/clear/hotel",
+  storageController.clearStorageByhotelID_CheckinStatus
+);
 router.delete("/", storageController.deleteStorageByID);
 
 module.exports = router;

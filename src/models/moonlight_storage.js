@@ -294,6 +294,35 @@ class Storage {
     });
   }
 
+  cleardataStoragebyhotelID(hotel_id) {
+    return new Promise((resolve, reject) => {
+      models.storage
+        .update(
+          {
+            //   number: number,
+            checkin_status: 0,
+            is_booked: 0,
+            is_paid: 0,
+            guest_name: null,
+            has_key: 1,
+          },
+          {
+            where: {
+              hotel_id: hotel_id,
+              checkin_status: 1,
+            },
+          }
+        )
+        .then((response) => {
+          return resolve(message["200_SUCCESS"], response.dataValues);
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
+    });
+  }
+
   delete(storage_id) {
     return new Promise((resolve, reject) => {
       this.readOne({

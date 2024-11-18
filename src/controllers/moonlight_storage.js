@@ -145,6 +145,26 @@ function clearStorageByID(req, res) {
     });
 }
 
+function clearStorageByhotelID_CheckinStatus(req, res) {
+  if (req.query.hotel_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(message.issueMessage(message["400_BAD_REQUEST"], "SEND_HOTEL_ID"));
+  }
+
+  const storage = new Storage();
+
+  storage
+    .cleardataStoragebyhotelID(req.query.hotel_id)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
 function deleteStorageByID(req, res) {
   if (req.body.storage_id == null) {
     return res
@@ -175,5 +195,6 @@ module.exports = {
   updateStorage,
   //   updateStorageProcess,
   clearStorageByID,
+  clearStorageByhotelID_CheckinStatus,
   deleteStorageByID,
 };
