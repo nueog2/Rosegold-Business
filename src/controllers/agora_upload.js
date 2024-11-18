@@ -126,8 +126,8 @@ async function uploadCustomerFilestoFbStorage(req, res) {
     await Promise.all(uploadPromises);
     return res.status(200).json({ uploadedFiles });
   } catch (error) {
-    console.error("Error uploading files:", error);
-    return res.status(500).send("Internal server error."); // 에러 발생 시 500 에러 반환
+    console.error("ERROR UPLOADING FILES:", error);
+    return res.status(500).send("SERVER_INTERNAL_ERROR"); // 에러 발생 시 500 에러 반환
   }
 }
 
@@ -197,8 +197,8 @@ async function uploadCustomerFilestoFbStoragewithGuest(req, res) {
     );
     return res.status(200).json({ uploadedFiles });
   } catch (error) {
-    console.error("Error uploading files:", error);
-    return res.status(500).send("Internal server error."); // 에러 발생 시 500 에러 반환
+    console.error("ERROR UPLOADING FILES:", error);
+    return res.status(500).send("SERVER_INTERNAL_ERROR"); // 에러 발생 시 500 에러 반환
   }
 }
 

@@ -244,7 +244,7 @@ class Storage {
             }
           )
           .then((response) => {
-            return resolve(message["200_SUCCESS"], response.dataValues);
+            return resolve(message["200_SUCCESS"], response);
           })
           .catch((error) => {
             console.log(error);
@@ -275,7 +275,7 @@ class Storage {
               is_booked: 0,
               is_paid: 0,
               guest_name: null,
-              has_key: 0,
+              has_key: 1,
             },
             {
               where: {
