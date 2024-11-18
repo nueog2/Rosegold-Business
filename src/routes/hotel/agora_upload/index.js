@@ -13,7 +13,7 @@ router.post(
 );
 
 router.post(
-  "/upload/guest",
+  "/guest",
   upload.array("files"),
   agoraUploadController.uploadCustomerFilestoFbStoragewithGuest
 );
