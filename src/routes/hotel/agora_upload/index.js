@@ -12,6 +12,12 @@ router.post(
   agoraUploadController.uploadCustomerFilestoFbStorage
 );
 
+router.post(
+  "/upload/guest",
+  upload.array("files"),
+  agoraUploadController.uploadCustomerFilestoFbStoragewithGuest
+);
+
 // // 라우터에서 사용
 // router.post("/test", agoraUploadController.addToFirestore);
 // router.post("/", upload, agoraUploadController.uploadCustomerFilestoFbStorage);

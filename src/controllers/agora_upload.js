@@ -1,6 +1,8 @@
 var admin = require("firebase-admin");
 const { Buffer } = require("buffer");
 const moment = require("moment");
+const message = require("../../config/message");
+const Moonlight_Guest = require("../models/moonlight_guest").Moonlight_Guest;
 
 // admin.initializeApp({
 //   credential: admin.credential.cert(serviceAccount),
@@ -129,6 +131,77 @@ async function uploadCustomerFilestoFbStorage(req, res) {
   }
 }
 
+async function uploadCustomerFilestoFbStoragewithGuest(req, res) {
+  try {
+    const hotelId = req.body.hotel_id;
+    if (!hotelId) {
+      return res.status(400).send("hotel_id is required.");
+    }
+
+    if (!req.files || !req.files.length) {
+      return res.status(400).send("No files uploaded.");
+    }
+
+    const dateString = moment().format("YYMMDD");
+    const uploadedFiles = [];
+    const downloadURLarray = [];
+
+    const uploadPromises = req.files.map((file) => {
+      const destination = `customer/hotel${hotelId}/${dateString}/${file.originalname}`;
+      const blob = bucket.file(destination);
+      const blobStream = blob.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      return new Promise((resolve, reject) => {
+        blobStream.on("error", (err) => {
+          console.error("Error uploading file:", err);
+          reject(err);
+        });
+
+        blobStream.on("finish", async () => {
+          try {
+            const [metadata] = await blob.getMetadata();
+            const downloadURL = metadata.mediaLink;
+
+            await blob.setMetadata({
+              acl: [
+                {
+                  entity: "allUsers",
+                  role: "READER",
+                },
+              ],
+            });
+
+            uploadedFiles.push({ name: file.originalname, url: downloadURL });
+            downloadURLarray.push(downloadURL);
+            resolve();
+          } catch (error) {
+            reject(error); // 메타데이터 가져오기 실패 시 reject
+          }
+        });
+
+        blobStream.end(file.buffer);
+      });
+    });
+
+    await Promise.all(uploadPromises);
+    const moonlight_guest = new Moonlight_Guest();
+    await moonlight_guest.create(
+      hotelId,
+      req.body.name,
+      req.body.num_guest,
+      downloadURLarray
+    );
+    return res.status(200).json({ uploadedFiles });
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    return res.status(500).send("Internal server error."); // 에러 발생 시 500 에러 반환
+  }
+}
+
 // const message = require("../../config/message");
 // const { db, storageRef, getFirestore } = require("../firebase.js");
 // const { collection, addDoc } = require("firebase/firestore");
@@ -202,5 +275,6 @@ async function uploadCustomerFilestoFbStorage(req, res) {
 module.exports = {
   // addToFirestore,
   uploadCustomerFilestoFbStorage,
+  uploadCustomerFilestoFbStoragewithGuest,
   // otherControllerFunction1,
 };

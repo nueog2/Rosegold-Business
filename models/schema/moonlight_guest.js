@@ -12,8 +12,9 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       id_list: {
-        type: DataTypes.TEXT(),
-        allowNull: false,
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: [],
       },
     },
     {
