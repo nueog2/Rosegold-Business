@@ -59,6 +59,7 @@ class Storage {
             {
               model: models.room,
               attributes: ["name", "room_grade_id"],
+              required: false,
             },
           ],
         })
@@ -73,7 +74,9 @@ class Storage {
           }
 
           const storagePromises = storages.map((storage) => {
-            const roomGradeId = storage.room.room_grade_id;
+            const roomGradeId = storage.room
+              ? storage.room.room_grade_id
+              : null;
 
             const roomGradePromise = roomGradeId
               ? models.room_grade.findOne({
@@ -87,6 +90,11 @@ class Storage {
                 ? roomGrade.price_multiplier
                 : 0;
               storage.dataValues.grade_name = roomGrade ? roomGrade.name : "";
+
+              storage.dataValues.room_name = storage.room
+                ? storage.room.name
+                : "";
+
               return storage;
             });
           });
@@ -99,7 +107,7 @@ class Storage {
           return resolve(obj);
         })
         .catch((error) => {
-          console.error(error);
+          console.log(error);
           return reject(error);
         });
     });
@@ -114,6 +122,7 @@ class Storage {
             {
               model: models.room,
               attributes: ["name", "room_grade_id"],
+              required: false,
             },
           ],
         })
@@ -127,7 +136,8 @@ class Storage {
             );
           }
 
-          const roomGradeId = storage.room.room_grade_id;
+          const roomGradeId = storage.room ? storage.room.room_grade_id : null;
+
           const roomGradePromise = roomGradeId
             ? models.room_grade.findOne({
                 where: { id: roomGradeId },
@@ -141,13 +151,17 @@ class Storage {
               : 0;
             storage.dataValues.grade_name = roomGrade ? roomGrade.name : "";
 
+            storage.dataValues.room_name = storage.room
+              ? storage.room.name
+              : "";
+
             var obj = Object.assign({}, message["200_SUCCESS"]);
             obj.storage = storage.dataValues;
             return resolve(obj);
           });
         })
         .catch((error) => {
-          console.error(error);
+          console.log(error);
           return reject(error);
         });
     });
@@ -206,7 +220,7 @@ class Storage {
           return resolve(obj);
         })
         .catch((error) => {
-          console.error(error);
+          console.log(error);
           return reject(error);
         });
     });
@@ -276,6 +290,7 @@ class Storage {
               is_paid: 0,
               guest_name: null,
               has_key: 1,
+              room_id: null,
             },
             {
               where: {
@@ -305,6 +320,7 @@ class Storage {
             is_paid: 0,
             guest_name: null,
             has_key: 1,
+            room_id: null,
           },
           {
             where: {
@@ -339,10 +355,12 @@ class Storage {
               return resolve(message["200_SUCCESS"]);
             })
             .catch((error) => {
+              console.log(error);
               return reject(error);
             });
         })
         .catch((error) => {
+          console.log(error);
           return reject(error);
         });
     });
