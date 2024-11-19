@@ -108,6 +108,11 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: "id",
       on_delete: "CASCADE",
     });
+    this.hasMany(models.moon_notice, {
+      foreignKey: "hotel_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
   };
   return hotel;
 };
