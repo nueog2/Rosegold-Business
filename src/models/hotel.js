@@ -3481,7 +3481,7 @@ class Requirement_Log extends Room {
                       payload: {
                         aps: {
                           contentAvailable: true,
-                          sound: "default",
+                          // sound: "default",
                         },
                       },
                     },
@@ -3615,7 +3615,7 @@ class Requirement_Log extends Room {
                         payload: {
                           aps: {
                             contentAvailable: true,
-                            sound: "default",
+                            // sound: "default",
                           },
                         },
                       },
