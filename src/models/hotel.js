@@ -3467,6 +3467,7 @@ class Requirement_Log extends Room {
                     notification: {
                       title: "새로운 요청 도착!",
                       body: "빠르게 요청을 배정받아주세요! ",
+                      // sound: null,
                     },
                     data: {
                       title: "새로운 요청 도착!",
@@ -3476,6 +3477,10 @@ class Requirement_Log extends Room {
                     tokens: sendTargetFCMTokens,
                     android: {
                       priority: "high",
+                      notification: {
+                        sound: null,
+                        channelId: "silent_channel", // 무음 채널
+                      },
                     },
                     apns: {
                       payload: {
@@ -3610,6 +3615,10 @@ class Requirement_Log extends Room {
                       tokens: sendTargetFCMTokens,
                       android: {
                         priority: "high",
+                        // notification: {
+                        //   sound: null,
+                        //   channelId: "silent_channel", // 무음 채널
+                        // },
                       },
                       apns: {
                         payload: {
@@ -3914,7 +3923,6 @@ class Message {
                     payload: {
                       aps: {
                         contentAvailable: true,
-                        sound: "default",
                       },
                     },
                   },
