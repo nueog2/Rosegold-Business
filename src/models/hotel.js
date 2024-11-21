@@ -3476,6 +3476,7 @@ class Requirement_Log extends Room {
                     tokens: sendTargetFCMTokens,
                     android: {
                       priority: "high",
+                      sound: null,
                     },
                     apns: {
                       payload: {
@@ -3610,6 +3611,7 @@ class Requirement_Log extends Room {
                       tokens: sendTargetFCMTokens,
                       android: {
                         priority: "high",
+                        sound: null,
                       },
                       apns: {
                         payload: {
@@ -3914,6 +3916,7 @@ class Message {
                     payload: {
                       aps: {
                         contentAvailable: true,
+                        sound: "default",
                       },
                     },
                   },
