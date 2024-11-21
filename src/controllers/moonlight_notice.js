@@ -55,7 +55,7 @@ function getMoonlightNoticeMany(req, res) {
 function deleteMoonlightNotice(req, res) {
   const moonlight_notice = new Moonlight_Notice();
   moonlight_notice
-    .delete(req.query.moon_notice_id)
+    .delete(req.body.moon_notice_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
