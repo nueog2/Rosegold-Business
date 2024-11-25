@@ -189,16 +189,25 @@ async function uploadCustomerFilestoFbStoragewithGuest(req, res) {
 
     await Promise.all(uploadPromises);
     const moonlight_guest = new Moonlight_Guest();
-    await moonlight_guest.create(
+    const response = await moonlight_guest.create(
+      // await 추가
       hotelId,
       req.body.name,
       req.body.num_guest,
+      req.body.room_id,
+      req.body.process,
       downloadURLarray
     );
-    return res.status(200).json({ uploadedFiles });
+
+    console.log(response);
+
+    return res.status(200).json({
+      moonlight_guest: response,
+      uploadedFiles: uploadedFiles,
+    });
   } catch (error) {
     console.error("ERROR UPLOADING FILES:", error);
-    return res.status(500).send("SERVER_INTERNAL_ERROR"); // 에러 발생 시 500 에러 반환
+    return res.status(500).send("SERVER_INTERNAL_ERROR");
   }
 }
 

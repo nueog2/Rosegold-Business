@@ -4,13 +4,15 @@ const message = require("../../config/message");
 class Moonlight_Guest {
   constructor() {}
 
-  create(hotel_id, name, num_guest, idList) {
+  create(hotel_id, name, num_guest, room_id, process, idList) {
     return new Promise((resolve, reject) => {
       models.moonlight_guest
         .create({
           hotel_id: hotel_id,
           name: name,
           num_guest: num_guest,
+          room_id: room_id,
+          process: process,
           id_list: idList,
         })
         .then((response) => {

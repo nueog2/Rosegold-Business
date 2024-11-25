@@ -16,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: [],
       },
+      process: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       paranoid: true,
@@ -24,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
   moonlight_guest.associate = function (models) {
     this.belongsTo(models.hotel, {
       foreignKey: "hotel_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
+    this.belongsTo(models.room, {
+      foreignKey: "room_id",
       sourceKey: "id",
       on_delete: "CASCADE",
     });
