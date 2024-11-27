@@ -15,10 +15,10 @@ function createAgoraChannel(req, res) {
   const agora_channel = new AgoraChannel();
 
   agora_channel
-    .create(req.body.channel_name)
+    .create(req.body.hotel_id, req.body.channel_name, req.body.process_id)
     .then((response) => {
       console.log(response);
-      return res.status(response.stauts).send(response);
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);

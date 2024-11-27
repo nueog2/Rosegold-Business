@@ -4,12 +4,13 @@ const message = require("../../config/message");
 class AgoraChannel {
   constructor() {}
 
-  create(channel_name, process_id = 0) {
+  create(hotel_id, channel_name, process_id) {
     return new Promise((resolve, reject) => {
       models.agora_channel
         .create({
+          hotel_id: hotel_id,
           channel_name: channel_name,
-          process_id: 0,
+          process_id: process_id,
         })
         .then((response) => {
           if (response) {
