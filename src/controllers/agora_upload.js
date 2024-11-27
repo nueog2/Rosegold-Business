@@ -188,11 +188,13 @@ async function uploadCustomerFilestoFbStoragewithGuest(req, res) {
     });
 
     await Promise.all(uploadPromises);
+    nameJSON = [];
+    nameJSON.push(req.body.name);
     const moonlight_guest = new Moonlight_Guest();
     const response = await moonlight_guest.create(
       // await 추가
       hotelId,
-      req.body.name,
+      nameJSON,
       req.body.num_guest,
       req.body.room_id,
       req.body.process,

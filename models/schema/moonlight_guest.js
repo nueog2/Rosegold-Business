@@ -4,8 +4,9 @@ module.exports = (sequelize, DataTypes) => {
     "moonlight_guest",
     {
       name: {
-        type: DataTypes.CHAR(16),
+        type: DataTypes.JSON,
         allowNull: false,
+        defaultValue: [],
       },
       num_guest: {
         type: DataTypes.INTEGER(),
