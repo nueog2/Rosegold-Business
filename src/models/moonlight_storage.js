@@ -14,7 +14,8 @@ class Storage {
     is_booked,
     is_paid,
     guest_name,
-    has_key
+    has_key,
+    price
   ) {
     return new Promise((resolve, reject) => {
       models.storage
@@ -27,6 +28,7 @@ class Storage {
           is_paid: is_paid,
           guest_name: guest_name,
           has_key: has_key,
+          price: price,
         })
         .then((response) => {
           if (response) {
@@ -81,14 +83,15 @@ class Storage {
             const roomGradePromise = roomGradeId
               ? models.room_grade.findOne({
                   where: { id: roomGradeId },
-                  attributes: ["price_multiplier", "name"],
+                  // attributes: ["price_multiplier", "name"],
+                  attributes: ["name"],
                 })
               : Promise.resolve(null);
 
             return roomGradePromise.then((roomGrade) => {
-              storage.dataValues.price_multiplier = roomGrade
-                ? roomGrade.price_multiplier
-                : 0;
+              // storage.dataValues.price_multiplier = roomGrade
+              //   ? roomGrade.price_multiplier
+              //   : 0;
               storage.dataValues.grade_name = roomGrade ? roomGrade.name : "";
 
               storage.dataValues.room_name = storage.room
@@ -141,14 +144,15 @@ class Storage {
           const roomGradePromise = roomGradeId
             ? models.room_grade.findOne({
                 where: { id: roomGradeId },
-                attributes: ["price_multiplier", "name"],
+                // attributes: ["price_multiplier", "name"],
+                attributes: ["name"],
               })
             : Promise.resolve(null);
 
           return roomGradePromise.then((roomGrade) => {
-            storage.dataValues.price_multiplier = roomGrade
-              ? roomGrade.price_multiplier
-              : 0;
+            // storage.dataValues.price_multiplier = roomGrade
+            //   ? roomGrade.price_multiplier
+            //   : 0;
             storage.dataValues.grade_name = roomGrade ? roomGrade.name : "";
 
             storage.dataValues.room_name = storage.room
@@ -199,14 +203,15 @@ class Storage {
             const roomGradePromise = roomGradeId
               ? models.room_grade.findOne({
                   where: { id: roomGradeId },
-                  attributes: ["price_multiplier", "name"],
+                  // attributes: ["price_multiplier", "name"],
+                  attributes: ["name"],
                 })
               : Promise.resolve(null);
 
             return roomGradePromise.then((roomGrade) => {
-              storage.dataValues.price_multiplier = roomGrade
-                ? roomGrade.price_multiplier
-                : 0;
+              // storage.dataValues.price_multiplier = roomGrade
+              //   ? roomGrade.price_multiplier
+              //   : 0;
               storage.dataValues.grade_name = roomGrade ? roomGrade.name : "";
               return storage;
             });
@@ -234,7 +239,8 @@ class Storage {
     is_booked,
     is_paid,
     guest_name,
-    has_key
+    has_key,
+    price
   ) {
     return new Promise((resolve, reject) => {
       this.readOne({
@@ -250,6 +256,7 @@ class Storage {
               is_paid: is_paid,
               guest_name: guest_name,
               has_key: has_key,
+              price: price,
             },
             {
               where: {
@@ -291,6 +298,7 @@ class Storage {
               guest_name: null,
               has_key: 1,
               room_id: null,
+              price: 0,
             },
             {
               where: {
@@ -321,6 +329,7 @@ class Storage {
             guest_name: null,
             has_key: 1,
             room_id: null,
+            price: 0,
           },
           {
             where: {
