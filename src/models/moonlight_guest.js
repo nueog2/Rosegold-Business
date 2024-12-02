@@ -63,7 +63,7 @@ class Moonlight_Guest {
 
   readOne(condition) {
     return new Promise((resolve, reject) => {
-      models.requirement
+      models.moonlight_guest
         .findOne({
           where: condition,
         })
@@ -104,6 +104,24 @@ class Moonlight_Guest {
       });
     }).catch((error) => {
       return reject(error);
+    });
+  }
+
+  deletebyhotel(hotel_id) {
+    return new Promise((resolve, reject) => {
+      models.moonlight_guest
+        .destroy({
+          where: {
+            hotel_id: hotel_id,
+          },
+        })
+        .then((response) => {
+          return resolve(message["200_SUCCESS"]);
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
     });
   }
 }
