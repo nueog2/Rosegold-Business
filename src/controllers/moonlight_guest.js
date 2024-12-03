@@ -48,7 +48,7 @@ function getMoonlightGuestOne(req, res) {
 function deleteMoonlightGuest(req, res) {
   const moonlight_guest = new Moonlight_Guest();
   moonlight_guest
-    .delete(req.body.moonlight_guest_id)
+    .delete(req.query.moonlight_guest_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -70,7 +70,7 @@ function deleteMoonlightGuest(req, res) {
 function deleteMoonlightGuestbyHotelID(req, res) {
   const moonlight_guest = new Moonlight_Guest();
   moonlight_guest
-    .deletebyhotel(req.body.hotel_id)
+    .deletebyhotel(req.query.hotel_id)
     .then((response) => {
       return res.status(response.status).send(response);
     })
