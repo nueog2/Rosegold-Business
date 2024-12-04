@@ -96,10 +96,15 @@ class Moonlight_Guest {
         )
         .then((response) => {
           if (response) {
-            return resolve({
-              status: message["200_SUCCESS"].status,
-              ...message["200_SUCCESS"],
-            });
+            models.moonlight_guest
+              .findOne({ id: moonlight_guest_id })
+              .then((response) => {
+                return resolve({
+                  status: message["200_SUCCESS"].status,
+                  message: "PROCESS_UPDATE_SUCCESS",
+                  moonlight_guest: response,
+                });
+              });
           } else {
             return reject({
               status: message["404_NOT_FOUND"].status,
