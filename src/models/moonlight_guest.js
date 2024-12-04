@@ -97,7 +97,7 @@ class Moonlight_Guest {
         .then((response) => {
           if (response) {
             models.moonlight_guest
-              .findOne({ id: moonlight_guest_id })
+              .findOne({ where: { id: moonlight_guest_id } })
               .then((response) => {
                 return resolve({
                   status: message["200_SUCCESS"].status,
