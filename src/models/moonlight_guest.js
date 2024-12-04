@@ -85,6 +85,45 @@ class Moonlight_Guest {
     });
   }
 
+  updateProcess(moonlight_guest_id, process) {
+    return new Promise((resolve, reject) => {
+      models.moonlight_guest
+        .update(
+          {
+            process: process,
+          },
+          { where: { id: moonlight_guest_id } }
+        )
+        .then((response) => {
+          if (response) {
+            return resolve({
+              status: message["200_SUCCESS"].status,
+              ...message["200_SUCCESS"],
+            });
+          } else {
+            return reject({
+              status: message["404_NOT_FOUND"].status,
+              ...message.issueMessage(
+                message["404_NOT_FOUND"],
+                "MOONLIGHT_GUEST_NOT_FOUND"
+              ),
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject({
+            status: message["500_SERVER_INTERNAL_ERROR"].status,
+            ...message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR",
+              error
+            ),
+          });
+        });
+    });
+  }
+
   delete(moonlight_guest_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: moonlight_guest_id }).then((response) => {

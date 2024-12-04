@@ -45,6 +45,28 @@ function getMoonlightGuestOne(req, res) {
     });
 }
 
+function updateMoonlightGuestProcess(req, res) {
+  const moonlight_guest = new Moonlight_Guest();
+  moonlight_guest
+    .updateProcess(req.query.moonlight_guest_id, req.query.process)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function deleteMoonlightGuest(req, res) {
   const moonlight_guest = new Moonlight_Guest();
   moonlight_guest
@@ -92,6 +114,7 @@ function deleteMoonlightGuestbyHotelID(req, res) {
 module.exports = {
   getMoonlightGuestMany,
   getMoonlightGuestOne,
+  updateMoonlightGuestProcess,
   deleteMoonlightGuest,
   deleteMoonlightGuestbyHotelID,
 };
