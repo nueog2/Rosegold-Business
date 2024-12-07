@@ -129,6 +129,58 @@ class Moonlight_Guest {
     });
   }
 
+  updateNameandNum(moonlight_guest_id, name, num_guest) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: moonlight_guest_id })
+        .then((response) => {
+          models.moonlight_guest
+            .update(
+              {
+                name: name,
+                num_guest: num_guest,
+              },
+              { where: { id: moonlight_guest_id } }
+            )
+            .then((response) => {
+              if (response) {
+                models.moonlight_guest
+                  .findOne({ where: { id: moonlight_guest_id } })
+                  .then((response) => {
+                    return resolve({
+                      status: message["200_SUCCESS"].status,
+                      message: "GUEST_NAME_AND_NUM_UPDATE_SUCCESS",
+                      moonlight_guest: response,
+                    });
+                  });
+              } else {
+                return reject({
+                  status: message["404_NOT_FOUND"].status,
+                  ...message.issueMessage(
+                    message["404_NOT_FOUND"],
+                    "MOONLIGHT_GUEST_NOT_FOUND"
+                  ),
+                });
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              return reject({
+                status: message["500_SERVER_INTERNAL_ERROR"].status,
+                ...message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR",
+                  error
+                ),
+              });
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+          return reject(error);
+        });
+    });
+  }
+
   delete(moonlight_guest_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: moonlight_guest_id }).then((response) => {
