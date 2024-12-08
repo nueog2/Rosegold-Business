@@ -5,11 +5,11 @@ module.exports = (sequelize, DataTypes) => {
     {
       question: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       answer: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
     },
     {

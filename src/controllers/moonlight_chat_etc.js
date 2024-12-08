@@ -5,9 +5,9 @@ const { Moon_ChattingLog_Etc } = require("../models/moonlight_chat_etc");
 
 function createMoonlightChattingLog_Etc(req, res) {
   if (
-    req.body.hotel_id == null ||
-    req.body.question == null ||
-    req.body.answer == null
+    req.body.hotel_id == null
+    // req.body.question == null ||
+    // req.body.answer == null
   ) {
     return res
       .status(message["400_BAD_REQUEST"].status)
@@ -17,7 +17,11 @@ function createMoonlightChattingLog_Etc(req, res) {
   }
 
   new Moon_ChattingLog_Etc()
-    .create(req.body.hotel_id, req.body.question, req.body.answer)
+    .create(
+      req.body.hotel_id,
+      req.body.question || null,
+      req.body.answer || null
+    )
     .then((response) => {
       console.log(response);
       return res.status(response.status).send(response);
