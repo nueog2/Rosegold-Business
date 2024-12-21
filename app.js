@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const path = require("path");
 const router = require("./src/routes");
@@ -32,9 +33,17 @@ const nodemailer = require("nodemailer");
 app.use(cookieParser());
 
 var port = process.env.PORT || 6060;
-// 개발용으로 임시로 8080으로 배포s
+// 개발용으로 임시로 8080으로 배포
 //실제 프로덕트용 port는 임시로 6060 으로 설정
 //원래는 4040임.
+
+// CORS 설정
+app.use(
+  cors({
+    origin: "*", // 프론트엔드 주소 (특정 도메인만 허용) -> 일단 임시로 모든 도메인 허용
+    credentials: true, // 쿠키 등 인증 정보 전달 허용
+  })
+);
 
 db.sequelizeSync();
 
@@ -62,5 +71,5 @@ app.all("*", function (req, res) {
 
 //포트 설정 및 서버 실행
 app.listen(port, function () {
-  console.log(`Server is listening at localhost:{$port}`);
+  console.log(`Server is listening at localhost:${port}`);
 });
