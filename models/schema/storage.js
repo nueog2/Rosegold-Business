@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT(),
         allowNull: true,
       },
+      guest_num: {
+        type: DataTypes.TEXT(),
+        allowNull: true,
+      },
       has_key: {
         type: DataTypes.INTEGER(),
         allowNull: false,

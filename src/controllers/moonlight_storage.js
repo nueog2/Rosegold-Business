@@ -29,6 +29,7 @@ function createStorage(req, res) {
       req.body.is_booked || 0,
       req.body.is_paid || 0,
       req.body.guest_name || null,
+      req.body.guest_num || null,
       req.body.has_key || 1,
       req.body.price || 0
     )
@@ -113,6 +114,7 @@ function updateStorage(req, res) {
       req.body.is_booked,
       req.body.is_paid,
       req.body.guest_name || null,
+      req.body.guest_num || null,
       req.body.has_key,
       req.body.price
     )

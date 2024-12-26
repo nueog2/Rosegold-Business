@@ -14,6 +14,7 @@ class Storage {
     is_booked,
     is_paid,
     guest_name,
+    guest_num,
     has_key,
     price
   ) {
@@ -27,6 +28,7 @@ class Storage {
           is_booked: is_booked,
           is_paid: is_paid,
           guest_name: guest_name,
+          guest_num: guest_num,
           has_key: has_key,
           price: price,
         })
@@ -239,6 +241,7 @@ class Storage {
     is_booked,
     is_paid,
     guest_name,
+    guest_num,
     has_key,
     price
   ) {
@@ -255,6 +258,7 @@ class Storage {
               is_booked: is_booked,
               is_paid: is_paid,
               guest_name: guest_name,
+              guest_num: guest_num,
               has_key: has_key,
               price: price,
             },
@@ -296,6 +300,7 @@ class Storage {
               is_booked: 0,
               is_paid: 0,
               guest_name: null,
+              guest_num: null,
               has_key: 1,
               room_id: null,
               price: 0,
@@ -327,6 +332,7 @@ class Storage {
             is_booked: 0,
             is_paid: 0,
             guest_name: null,
+            guest_num: null,
             has_key: 1,
             room_id: null,
             price: 0,
