@@ -16,7 +16,8 @@ class Storage {
     guest_name,
     guest_num,
     has_key,
-    price
+    price,
+    memo
   ) {
     return new Promise((resolve, reject) => {
       models.storage
@@ -31,6 +32,7 @@ class Storage {
           guest_num: guest_num,
           has_key: has_key,
           price: price,
+          memo: memo,
         })
         .then((response) => {
           if (response) {
@@ -243,7 +245,8 @@ class Storage {
     guest_name,
     guest_num,
     has_key,
-    price
+    price,
+    memo
   ) {
     return new Promise((resolve, reject) => {
       this.readOne({
@@ -261,6 +264,34 @@ class Storage {
               guest_num: guest_num,
               has_key: has_key,
               price: price,
+              memo: memo,
+            },
+            {
+              where: {
+                id: storage_id,
+              },
+            }
+          )
+          .then((response) => {
+            return resolve(message["200_SUCCESS"], response);
+          })
+          .catch((error) => {
+            console.log(error);
+            return reject(error);
+          });
+      });
+    });
+  }
+
+  updateStorageEquipment(storage_id, memo) {
+    return new Promise((resolve, reject) => {
+      this.readOne({
+        id: storage_id,
+      }).then((response) => {
+        models.storage
+          .update(
+            {
+              memo: memo,
             },
             {
               where: {
@@ -304,6 +335,7 @@ class Storage {
               has_key: 1,
               room_id: null,
               price: 0,
+              memo: null,
             },
             {
               where: {
@@ -336,6 +368,7 @@ class Storage {
             has_key: 1,
             room_id: null,
             price: 0,
+            memo: null,
           },
           {
             where: {

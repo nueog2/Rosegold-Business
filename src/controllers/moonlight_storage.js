@@ -31,7 +31,8 @@ function createStorage(req, res) {
       req.body.guest_name || null,
       req.body.guest_num || null,
       req.body.has_key || 1,
-      req.body.price || 0
+      req.body.price || 0,
+      req.body.memo || null
     )
     .then((response) => {
       console.log(response);
@@ -116,8 +117,31 @@ function updateStorage(req, res) {
       req.body.guest_name || null,
       req.body.guest_num || null,
       req.body.has_key,
-      req.body.price
+      req.body.price,
+      req.body.memo || null
     )
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(error.status).send(error);
+    });
+}
+
+function updateStorageEquipment(req, res) {
+  if (req.body.storage_id == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETER")
+      );
+  }
+
+  const storage = new Storage();
+
+  storage
+    .updateStorageEquipment(req.body.storage_id, req.body.memo)
     .then((response) => {
       return res.status(response.status).send(response);
     })
@@ -197,6 +221,7 @@ module.exports = {
   readOneStorage,
   readOneStorageByRoomName,
   updateStorage,
+  updateStorageEquipment,
   //   updateStorageProcess,
   clearStorageByID,
   clearStorageByhotelID_CheckinStatus,

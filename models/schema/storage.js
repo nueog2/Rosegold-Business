@@ -37,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: 0,
       },
+      memo: {
+        type: DataTypes.TEXT(),
+        allowNull: true,
+      },
     },
     {
       paranoid: true,
