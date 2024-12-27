@@ -9,7 +9,8 @@ const db = require("./models");
 const message = require("./config/message");
 const googleStorage = require("@google-cloud/storage");
 var serviceAccount = require("./config/firebase-key.json");
-
+const webSocket = require("./socket2");
+// const webSocket = require("./socket2");
 //const fileUpload = require("express-fileupload");
 
 var admin = require("firebase-admin");
@@ -33,6 +34,8 @@ const nodemailer = require("nodemailer");
 app.use(cookieParser());
 
 var port = process.env.PORT || 6060;
+
+app.set("port", port);
 // 개발용으로 임시로 8080으로 배포
 //실제 프로덕트용 port는 임시로 6060 으로 설정
 //원래는 4040임.
@@ -44,6 +47,11 @@ app.use(
     credentials: true, // 쿠키 등 인증 정보 전달 허용
   })
 );
+
+// 루트 경로에 대한 GET 요청 처리 (webSocket 연결 로직보다 무조건 위에 와야함)
+app.get("/", (req, res) => {
+  res.render("index"); // index.ejs 렌더링
+});
 
 db.sequelizeSync();
 
@@ -70,6 +78,13 @@ app.all("*", function (req, res) {
 });
 
 //포트 설정 및 서버 실행
-app.listen(port, function () {
-  console.log(`Server is listening at localhost:${port}`);
+// app.listen(port, function () {
+//   console.log(`Server is listening at localhost:${port}`);
+// });
+
+const server = app.listen(app.get("port"), () => {
+  console.log(app.get("port"), "번 포트에서 대기중");
 });
+
+//express 서버와 웹소켓 서버 연결
+webSocket(server);
