@@ -9,7 +9,8 @@ const db = require("./models");
 const message = require("./config/message");
 const googleStorage = require("@google-cloud/storage");
 var serviceAccount = require("./config/firebase-key.json");
-const webSocket = require("./socket2");
+// const webSocket = require("./socket2");
+// -> 일단 socket 대신 sse 쓰는 방식으로 개발 진행.
 // const webSocket = require("./socket2");
 //const fileUpload = require("express-fileupload");
 
@@ -85,6 +86,8 @@ app.all("*", function (req, res) {
 const server = app.listen(app.get("port"), () => {
   console.log(app.get("port"), "번 포트에서 대기중");
 });
+
+app.use(express.static(path.join(__dirname, "views")));
 
 //express 서버와 웹소켓 서버 연결
 webSocket(server);

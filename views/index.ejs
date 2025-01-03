@@ -35,6 +35,22 @@
 <head>
     <meta charset="UTF-8">
     <title>노드 채팅방</title>
+    <style>
+        #connectedHotels {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #connectedHotels ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #connectedHotels li {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 
 <body>
@@ -46,9 +62,26 @@
         <button type="submit">연결</button>
     </form>
 
+    <div id="connectedHotels">
+        <h3>연결된 호텔</h3>
+        <ul id="hotelList">
+        </ul>
+    </div>
+
     <script>
         const form = document.getElementById("hotelIdForm");
         const websocketUrl = "ws://localhost:6060"; // 실제 서버 주소로 변경
+        const hotelList = document.getElementById("hotelList");
+
+        function updateHotelList(connectedHotels) {
+            hotelList.innerHTML = ""; // 목록 초기화
+            for (const hotelId in connectedHotels) {
+                const hotelName = connectedHotels[hotelId];
+                const listItem = document.createElement("li");
+                listItem.textContent = `${hotelName} (ID: ${hotelId})`;
+                hotelList.appendChild(listItem);
+            }
+        }
 
         form.addEventListener("submit", (event) => {
             event.preventDefault(); // 폼 제출 기본 동작 방지
@@ -57,11 +90,28 @@
 
             webSocket.onopen = function () {
                 console.log('서버와 웹소켓 연결 성공!');
+                webSocket.send(JSON.stringify({ action: "getHotelName", hotelId: hotelId })); // 호텔 이름 요청
             };
 
             webSocket.onmessage = function (event) {
-                console.log(event.data);
-                webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); // 서버로부터 메세지 받으면 바로 서버로 메세지 보냄
+                console.log("서버로부터 받은 메시지:", event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.action === "hotelName") {
+                        // ... (호텔 이름 처리)
+                    } else if (data.action === "connectedHotels") {
+                        // ... (연결된 호텔 목록 처리)
+                    } else if (data.event) {
+                        // 이벤트 메시지 처리 (여기에 console.log 추가)
+                        console.log("이벤트 메시지:", data);
+                        alert(JSON.stringify(data)); // alert 대신 원하는 방식으로 메시지 표시
+                    } else {
+                        // 기타 메시지 처리
+                        webSocket.send('클라이언트에서 서버로 답장을 보냅니다');
+                    }
+                } catch (error) {
+                    console.error("메시지 파싱 오류:", error);
+                }
             };
         });
     </script>

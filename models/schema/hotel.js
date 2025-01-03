@@ -47,11 +47,39 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      process: {
+        type: DataTypes.INTEGER(),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
+    //   {
+    //     paranoid: true,
+    //   }
+    // );
     {
       paranoid: true,
+      // hooks: {
+      //   // afterUpdate 훅 추가
+      //   afterUpdate: async (hotel, options) => {
+      //     if (hotel.previous("process") === 0 && hotel.process === 1) {
+      //       try {
+      //         await sequelize.models.event_queue.create({
+      //           hotel_id: hotel.id,
+      //           event_type: "Human_Detected", // 이벤트 유형
+      //         });
+      //         console.log(
+      //           `Event 'Human_Detected' created for hotel ID ${hotel.id}`
+      //         );
+      //       } catch (error) {
+      //         console.error("Error creating event_queue record:", error);
+      //       }
+      //     }
+      //   },
+      // },
     }
   );
+
   hotel.associate = function (models) {
     this.hasMany(models.department, {
       foreignKey: "hotel_id",
@@ -114,6 +142,11 @@ module.exports = (sequelize, DataTypes) => {
       on_delete: "CASCADE",
     });
     this.hasMany(models.moonlight_chat_log, {
+      foreignKey: "hotel_id",
+      sourceKey: "id",
+      on_delete: "CASCADE",
+    });
+    this.hasMany(models.event_queue, {
       foreignKey: "hotel_id",
       sourceKey: "id",
       on_delete: "CASCADE",

@@ -117,7 +117,7 @@ function updateStorage(req, res) {
       req.body.guest_name || null,
       req.body.guest_num || null,
       req.body.has_key,
-      req.body.price,
+      req.body.price || null,
       req.body.memo || null
     )
     .then((response) => {
