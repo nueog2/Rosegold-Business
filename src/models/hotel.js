@@ -174,6 +174,39 @@ class Hotel {
     });
   }
 
+  updateProcess(hotel_id, process) {
+    return new Promise((resolve, reject) => {
+      this.readOne({ id: hotel_id })
+        .then((response) => {
+          models.hotel
+            .update(
+              {
+                process: process,
+              },
+              {
+                where: {
+                  id: hotel_id,
+                },
+              }
+            )
+            .then((response) => {
+              return resolve(message["200_SUCCESS"]);
+            })
+            .catch((error) => {
+              return reject(
+                message.issueMessage(
+                  message["500_SERVER_INTERNAL_ERROR"],
+                  "UNDEFINED_ERROR"
+                )
+              );
+            });
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+
   delete(hotel_id) {
     return new Promise((resolve, reject) => {
       this.readOne({ id: hotel_id })

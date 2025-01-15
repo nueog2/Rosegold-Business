@@ -180,6 +180,36 @@ function updateHotel(req, res) {
     });
 }
 
+function updateProcessHotel(req, res) {
+  if (req.body.hotel_id == null || req.body.process == null) {
+    return res
+      .status(message["400_BAD_REQUEST"].status)
+      .send(
+        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+      );
+  }
+
+  const hotel = new Hotel();
+  hotel
+    .updateProcess(req.body.hotel_id, req.body.process)
+    .then((response) => {
+      return res.status(response.status).send(response);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (!error.status)
+        return res
+          .status(message["500_SERVER_INTERNAL_ERROR"].status)
+          .send(
+            message.issueMessage(
+              message["500_SERVER_INTERNAL_ERROR"],
+              "UNDEFINED_ERROR"
+            )
+          );
+      else return res.status(error.status).send(error);
+    });
+}
+
 function deleteHotel(req, res) {
   if (req.body.hotel_id == null) {
     return res
@@ -3222,6 +3252,7 @@ module.exports = {
   getHotelMany,
   getHotelOne,
   updateHotel,
+  updateProcessHotel,
   deleteHotel,
   createDepartment,
   getDepartmentMany,

@@ -57,6 +57,7 @@ router.post("/", managementController.createHotel);
 router.get("/many", managementController.getHotelMany);
 router.get("/one", managementController.getHotelOne);
 router.put("/", managementController.updateHotel);
+router.put("/process", managementController.updateProcessHotel);
 router.delete("/", auth_util.verifyToken, managementController.deleteHotel);
 // router.post("/auto", managementController2.createHotelAuto);
 
