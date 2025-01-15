@@ -1,33 +1,4 @@
-<!-- <!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <title>노드 채팅방</title>
-</head>
-
-<body>
-    <div>F12를 눌러 console 탭과 network 탭을 확인하세요.</div>
-
-    <script>
-        // websocket으로 서버와 http 포트 연결. http포트와 공유해서 통신할 수 있음
-        // wesocket객체는 기본적으로 브라우저에서 지원
-        const webSocket = new WebSocket("ws://localhost:6060");
-
-        // 서버에서 wss.on('connection' 이 성공적으로 되면, 이벤트 실행
-        webSocket.onopen = function () {
-            console.log('서버와 웹소켓 연결 성공!');
-        };
-
-        // 사실상 .onmessage 와 .send 로 메세지 통신을 하게 되는 것이다
-        webSocket.onmessage = function (event) {
-            console.log(event.data);
-            webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); // 서버로부터 메세지 받으면 바로 서버로 메세지 보냄
-        };
-    </script>
-</body>
-
-</html> -->
+<!-- 
 
 <!DOCTYPE html>
 <html>
@@ -64,7 +35,7 @@
 
     <div id="connectedHotels">
         <h3>연결된 호텔</h3>
-        <ul id="hotelList">
+        <ul id="hotelList"> 
         </ul>
     </div>
 
@@ -114,6 +85,99 @@
                 }
             };
         });
+    </script>
+</body>
+
+</html> -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Example</title>
+    <style>
+        #connectedHotels {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #connectedHotels ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #connectedHotels li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>F12를 눌러 console 탭과 network 탭을 확인하세요.</div>
+
+    <div id="connectedHotels">
+        <h3>연결된 호텔</h3>
+        <ul id="hotelList"></ul>
+    </div>
+
+    <script>
+        const hotelList = document.getElementById("hotelList");
+
+        function updateHotelList(hotels) {
+            hotelList.innerHTML = "";
+            hotels.forEach((hotel) => {
+                const listItem = document.createElement("li");
+                listItem.textContent = `${hotel.name} (ID: ${hotel.id})`;
+                hotelList.appendChild(listItem);
+            });
+        }
+
+        function getHotelIdsFromQueryString() {
+            const queryParams = new URLSearchParams(window.location.search);
+            const hotelIds = queryParams.get("hotelId");
+            return hotelIds ? hotelIds.split(",") : [];
+        }
+
+        function connectToSSE() {
+            const hotelIds = getHotelIdsFromQueryString();
+
+            if (hotelIds.length > 0) {
+                // EventSource 객체를 하나만 생성하고, 모든 hotelId를 쿼리 파라미터로 전달
+                const eventSource = new EventSource(`/events?hotelId=${hotelIds.join(",")}`);
+
+                eventSource.onopen = (event) => {
+                    console.log(`SSE connection opened for Hotel IDs ${hotelIds.join(", ")}.`);
+                };
+
+                eventSource.addEventListener("connectedHotels", (event) => {
+                    const data = JSON.parse(event.data);
+                    updateHotelList(data.hotels);
+                });
+
+                eventSource.addEventListener("Human_Detected", (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log("Human_Detected event received:", data);
+                    alert(JSON.stringify(data));
+                });
+
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log("Message received:", data);
+                    // 추가적인 메시지 처리 (필요한 경우)
+                };
+
+                eventSource.onerror = (error) => {
+                    console.error(`SSE error:`, error);
+                    // eventSource.close(); // 필요에 따라 주석 해제하여 에러 발생 시 연결 종료
+                };
+            } else {
+                console.log("No hotel IDs specified in the query string.");
+            }
+        }
+
+        // 페이지 로드 시 SSE 연결
+        connectToSSE();
     </script>
 </body>
 

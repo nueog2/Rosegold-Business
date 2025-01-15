@@ -9,10 +9,38 @@ const db = require("./models");
 const message = require("./config/message");
 const googleStorage = require("@google-cloud/storage");
 var serviceAccount = require("./config/firebase-key.json");
+const cookieParser = require("cookie-parser");
+const multer = require("./src/modules/multer");
+const multer2 = require("./src/modules/multer2");
+const tiktoken = require("./src/modules/tiktoken");
+const bodyParser = require("body-parser");
+const nodemailer = require("nodemailer");
+const setupSSERoutes = require("./sse");
+// sse 모듈
+const { v4: uuidv4 } = require("uuid");
+
+app.use(cookieParser());
+
 // const webSocket = require("./socket2");
 // -> 일단 socket 대신 sse 쓰는 방식으로 개발 진행.
 // const webSocket = require("./socket2");
 //const fileUpload = require("express-fileupload");
+
+// 고유한 클라이언트 ID 생성 및 쿠키 설정
+app.use((req, res, next) => {
+  const clientID = req.cookies.clientId || uuidv4();
+  res.cookie("clientId", clientID, {
+    maxAge: 3600000 * 24 * 7, // 7일 동안 유지
+    httpOnly: true,
+    // secure: true, // HTTPS를 사용하는 경우 설정
+    // domain: "example.com", // 특정 도메인에서만 쿠키 사용
+    // sameSite: "strict", // CSRF 보호를 위해 설정
+  });
+  req.clientId = clientID; // 요청 객체에 clientID 추가
+  next();
+});
+
+setupSSERoutes(app);
 
 var admin = require("firebase-admin");
 
@@ -24,15 +52,6 @@ var admin = require("firebase-admin");
 var bucket = admin.storage().bucket();
 
 // bucket.upload("/Users/megoe/Pictures/Screenshots/food1.png");
-
-const cookieParser = require("cookie-parser");
-const multer = require("./src/modules/multer");
-const multer2 = require("./src/modules/multer2");
-const tiktoken = require("./src/modules/tiktoken");
-const bodyParser = require("body-parser");
-const nodemailer = require("nodemailer");
-
-app.use(cookieParser());
 
 var port = process.env.PORT || 6060;
 
@@ -90,4 +109,4 @@ const server = app.listen(app.get("port"), () => {
 app.use(express.static(path.join(__dirname, "views")));
 
 //express 서버와 웹소켓 서버 연결
-webSocket(server);
+// webSocket(server);
