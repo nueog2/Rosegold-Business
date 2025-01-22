@@ -2431,6 +2431,7 @@ class Requirement_Log extends Room {
           // console.log(reqresonse)
           const requirement_log_id = response.id;
           reqresponse = response;
+
           if (reqresponse) {
             var worker = new Worker();
             return worker.readManyByDepartment(department_id);
@@ -2465,6 +2466,7 @@ class Requirement_Log extends Room {
           let notificationPromises = [];
 
           if (sendTargetFCMTokens.length > 0) {
+            var requirement_log_id = reqresponse.id;
             console.log("FCMTOKENS!!!! : ", sendTargetFCMTokens);
             let _message = {
               notification: {

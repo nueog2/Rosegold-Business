@@ -9,56 +9,37 @@ const Sequelize = require("sequelize");
 // import { Sequelize } from "sequelize";
 
 function createRequirementLog(req, res) {
-  if (
-    req.body.type == null ||
-    req.body.room_id == null ||
-    req.body.requirement_article == null ||
-    req.body.response_article == null ||
-    req.body.hotel_id == null ||
-    req.body.process_department_id == null ||
-    req.body.requirement_id == null ||
-    req.body.summarized_sentence == null
-  ) {
-    return res
-      .status(message["400_BAD_REQUEST"].status)
-      .send(
-        message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
-      );
-  }
+  // if (
+  //   req.body.room_id == null ||
+  //   req.body.question == null ||
+  //   req.body.answer == null ||
+  //   req.body.department_name == null ||
+  //   req.body.summarized_sentence
+  // ) {
+  //   return res
+  //     .status(message["400_BAD_REQUEST"].status)
+  //     .send(
+  //       message.issueMessage(message["400_BAD_REQUEST"], "SEND_ALL_PARAMETERS")
+  //     );
+  // }
 
   const requirement_log = new Requirement_Log();
   requirement_log
     .create(
-      req.body.type,
+      // req.body.type,
       req.body.room_id,
-      req.body.requirement_article,
-      req.body.response_article,
-      req.body.hotel_id,
-      req.body.process_department_id,
-      req.body.requirement_id,
-      req.body.summarized_sentence,
-      req.body.user_id
+      req.body.question,
+      req.body.answer,
+      req.body.department_name,
+      req.body.summarized_sentence
     )
     .then((response) => {
-      const worker = new Worker();
-      worker
-        .readManyByDepartment2(req.body.process_department_id)
-        .then((departmentWorkers) => {
-          console.log(departmentWorkers);
-          return res.status(response.status).send(response);
-        })
-        .catch((error) => {
-          if (!error.status)
-            return res
-              .status(message["500_SERVER_INTERNAL_ERROR"].status)
-              .send(
-                message.issueMessage(
-                  message["500_SERVER_INTERNAL_ERROR"],
-                  "UNDEFINED_ERROR"
-                )
-              );
-          else return res.status(error.status).send(error);
-        });
+      // const worker = new Worker();
+      // worker
+      //   .readManyByDepartment2(req.body.process_department_id)
+      //   .then((departmentWorkers) => {
+      // console.log(departmentWorkers);
+      return res.status(response.status).send(response);
     })
     .catch((error) => {
       console.log(error);
@@ -1074,11 +1055,11 @@ function getSummarizedSentenceForRoom(roomId) {
           where: {
             room_id: roomId,
             progress: [0, 1, 2],
-             createdAt: {
-               [Op.gte]: new Date(
-                 Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
-               ), //30일 전 기준 조회
-             },
+            createdAt: {
+              [Op.gte]: new Date(
+                Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+              ), //30일 전 기준 조회
+            },
           },
           order: [["createdAt", "DESC"]],
           attributes: [
@@ -1140,11 +1121,11 @@ function getSummarizedSentenceForRoom(roomId) {
             room_id: roomId,
             summarized_sentence: { [Sequelize.Op.ne]: null },
             req_log_created: 0,
-             createdAt: {
-               [Op.gte]: new Date(
-                 Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
-               ), //30일 전 기준 조회
-             },
+            createdAt: {
+              [Op.gte]: new Date(
+                Date.parse(curDate) - 30 * 1000 * 60 * 60 * 24
+              ), //30일 전 기준 조회
+            },
           },
           order: [["createdAt", "DESC"]],
           attributes: ["summarized_sentence", "createdAt"],
