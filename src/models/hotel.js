@@ -3512,10 +3512,10 @@ class Requirement_Log extends Room {
                     tokens: sendTargetFCMTokens,
                     android: {
                       priority: "high",
-                      notification: {
-                        sound: null,
-                        channelId: "silent_channel", // 무음 채널
-                      },
+                      // notification: {
+                      //   sound: null,
+                      //   channelId: "silent_channel", // 무음 채널
+                      // },
                     },
                     apns: {
                       payload: {
