@@ -18,57 +18,6 @@ var bucket = admin.storage().bucket();
 //   destination: "customer/food1.png", // 폴더 경로 포함
 // });
 
-// async function uploadCustomerFilestoFbStorage(req, res) {
-//   try {
-//     const hotelId = req.body.hotel_id;
-//     if (!hotelId) {
-//       return res.status(400).send("hotel_id is required.");
-//     }
-
-//     if (!req.files || !req.files.length) {
-//       return res.status(400).send("No files uploaded.");
-//     }
-
-//     const dateString = moment().format("YYMMDD"); // 날짜 문자열 생성
-//     const uploadedFiles = [];
-
-//     const uploadPromises = req.files.map(async (file) => {
-//       const destination = `customer/hotel${hotelId}/${dateString}/${file.originalname}`;
-//       const blob = bucket.file(destination);
-//       const blobStream = blob.createWriteStream({
-//         metadata: {
-//           contentType: file.mimetype,
-//         },
-//       });
-
-//       blobStream.on("error", (err) => {
-//         console.error("Error uploading file:", err);
-//         throw err;
-//       });
-
-//       blobStream.on("finish", async () => {
-//         const [metadata] = await blob.getMetadata();
-//         const downloadURL = metadata.mediaLink; // 다운로드 URL
-
-//         uploadedFiles.push({ name: file.originalname, url: downloadURL });
-//       });
-
-//       return new Promise((resolve, reject) => {
-//         blobStream.end(file.buffer, () => {
-//           resolve();
-//         });
-//       });
-//     });
-
-//     await Promise.all(uploadPromises);
-
-//     return res.status(200).json({ uploadedFiles });
-//   } catch (error) {
-//     console.error("Error uploading files:", error);
-//     res.status(500).send("Internal server error.");
-//   }
-// }
-
 async function uploadCustomerFilestoFbStorage(req, res) {
   try {
     const hotelId = req.body.hotel_id;

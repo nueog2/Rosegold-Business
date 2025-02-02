@@ -6,6 +6,7 @@ const agoraUploadController = require("../../../controllers/agora_upload.js");
 // const storage = multer.memoryStorage();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// 현재 /guest 사용 중
 router.post(
   "/upload",
   upload.array("files"),
