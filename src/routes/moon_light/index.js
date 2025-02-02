@@ -5,6 +5,7 @@ const moon_chatting_logRouter = require("./chatting_log");
 const moon_accountRouter = require("./account");
 const moon_chatting_log_etcRouter = require("./chatting_log_etc");
 const guestRouter = require("./guest");
+const paymentRouter = require("./payment_info");
 
 router.use("/notice", moonlight_noticeRouter);
 router.use("/storage", storageRouter);
@@ -12,5 +13,6 @@ router.use("/chatting_log", moon_chatting_logRouter);
 router.use("/account", moon_accountRouter);
 router.use("/chatting_log_etc", moon_chatting_log_etcRouter);
 router.use("/guest", guestRouter);
+router.use("/payment", paymentRouter);
 
 module.exports = router;

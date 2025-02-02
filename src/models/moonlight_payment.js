@@ -1,5 +1,6 @@
 const models = require("../../models");
 const message = require("../../config/message");
+// const moonlight_payment = require("../../models/schema/moonlight_payment");
 
 class Moonlight_Payment {
   constructor() {}
@@ -37,7 +38,7 @@ class Moonlight_Payment {
         .then((response) => {
           if (response) {
             return resolve({
-              status: message["200_SUCCESS"].status,
+              status: message["200_SUCCESS"]?.status || 200,
               moonlight_payment: response,
             });
           } else {

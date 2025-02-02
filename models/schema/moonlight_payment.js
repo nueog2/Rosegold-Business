@@ -41,8 +41,8 @@ module.exports = (sequelize, DataTypes) => {
       },
       merchantNumber: {
         //가맹점 번호
-        // type: DataTypes.STRING(),
-        type: DataTypes.INTEGER(),
+        type: DataTypes.STRING(),
+        // type: DataTypes.INTEGER(),
         allowNull: false,
       },
       message: {

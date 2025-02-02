@@ -34,9 +34,10 @@ async function uploadPayment_InfoFbStorage(req, res) {
     const dateString = moment().format("YYMMDD");
     const uploadedFiles = [];
     const downloadURLarray = [];
+    const ApprNo = req.body.apprNo;
 
     const uploadPromises = req.files.map((file) => {
-      const destination = `customer/hotel${hotelId}/${dateString}/${req.body.apprNo}`;
+      const destination = `customer/hotel${hotelId}/${dateString}/${ApprNo}`;
       const blob = bucket.file(destination);
       const blobStream = blob.createWriteStream({
         metadata: {
@@ -64,7 +65,7 @@ async function uploadPayment_InfoFbStorage(req, res) {
               ],
             });
 
-            uploadedFiles.push({ name: req.body.apprNo, url: downloadURL });
+            uploadedFiles.push({ name: ApprNo, url: downloadURL });
             downloadURLarray.push(downloadURL);
             resolve();
           } catch (error) {
