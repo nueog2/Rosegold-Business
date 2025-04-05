@@ -18,6 +18,7 @@ const nodemailer = require("nodemailer");
 const setupSSERoutes = require("./sse");
 // sse 모듈
 const { v4: uuidv4 } = require("uuid");
+const lockerRoutes = require('./src/routes/lockerRoutes');
 
 app.use(cookieParser());
 
@@ -87,9 +88,17 @@ app.use("/req_thumb", express.static(path.join(__dirname, "req_thumb")));
 
 //라우터 설정
 app.use("/api", router);
+// app.use("/", router);
+
+// /api/moonlight prefix 추가
+app.use('/api/moonlight', router);
+
 
 //바디파서
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api', lockerRoutes);
 
 app.all("*", function (req, res) {
   return res

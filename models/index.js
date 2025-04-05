@@ -38,6 +38,10 @@ fs.readdirSync(__dirname + "/schema")
     db[model.name] = model;
   });
 
+const locker = require('../src/models/locker')(sequelize, Sequelize);
+db.Locker = locker.Locker;
+db.LockerSlot = locker.LockerSlot;
+
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
